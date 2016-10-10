@@ -26,13 +26,12 @@ void Application::Init(){
 	
 }
 
-void Application::ParseArgs(int argc, const char *argv[]){
+void Application::ParseArgs(int argc, char *argv[]){
 	
 }
 
-Application::Application(int argc, const char *argv[]){
+Application::Application(int argc, char *argv[]): qapp(argc, argv){
 	ParseArgs(argc, argv);
-	Init();
 }
 
 int Application::Run(){
@@ -69,6 +68,11 @@ Application::~Application(){
 	Quit();
 }
 
-void Application::HandleException(std::exception e){
-	
+void Application::HandleException(std::exception& e){
+	QMessageBox msgBox;
+	QTextCodec* tc = QTextCodec::codecForLocale();
+	msgBox.setText(tc->toUnicode(e.what()));
+	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS
+	msgBox.setIcon(QMessageBox::Icon::Critical);
+	msgBox.exec();
 }

@@ -7,14 +7,16 @@
 //
 
 #include "Application.hpp"
+#include "Path.hpp"
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char * argv[]) {
+	Application app(argc, argv);
 	try{
-		Application app(argc, argv);
+		app.Init();
 		return app.Run();
 	}
 	catch(std::exception& e){
-		
+		app.HandleException(e);
 		return EXIT_FAILURE;
 	}
 }

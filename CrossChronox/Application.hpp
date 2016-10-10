@@ -14,26 +14,28 @@
 class Application{
 	static const unsigned int w = 800, h = 600, bpp = 32;
 	
+	QApplication qapp;
+	
 	sf::RenderWindow window;
 	sf::RenderTexture renderer;
 	
-	void ParseArgs(int argc, const char *argv[]);
+	void ParseArgs(int argc, char *argv[]);
 	
-	void Init();
 	void Quit();
-	Application();
+	Application() = delete;
 public:
-	Application(int argc, const char *argv[]);
+	Application(int argc, char *argv[]);
 	~Application();
 	
+	void Init();
 	int Run();
 	
 	class Application_Init_Failure : public std::runtime_error{
 	public:
 		Application_Init_Failure(const std::string& msg): std::runtime_error(msg){}
 	};
-	
-	void HandleException(std::exception e);
+	void HandleException(std::exception& e);
 };
+
 
 #endif /* Application_hpp */

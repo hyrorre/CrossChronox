@@ -22,6 +22,11 @@
 //sfeMovie
 #include <sfeMovie/Movie.hpp>
 
+//Qt
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
+#include <QtCore/QTextCodec>
+
 //jsoncpp
 #include <json/json.h>
 
@@ -55,6 +60,7 @@
 #include <vector>
 #include <unordered_map>
 #include <array>
+#include <memory>
 #include <exception>
 #include <stdexcept>
 #include <system_error>

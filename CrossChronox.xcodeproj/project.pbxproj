@@ -26,6 +26,10 @@
 		563C713C1DABD71C00CCD81F /* ScoreParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71391DABD71C00CCD81F /* ScoreParser.cpp */; };
 		563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C713D1DABD74800CCD81F /* ScoreData.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
+		563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; };
+		563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; };
+		563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +39,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */,
+				563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */,
 				563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,6 +79,8 @@
 		563C713E1DABD74800CCD81F /* ScoreData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreData.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
 		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
+		563C71431DABECD400CCD81F /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
+		563C71461DABF07100CCD81F /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +88,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */,
+				563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */,
 				563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */,
 				563C71271DAB3D2B00CCD81F /* libboost_filesystem-mt.a in Frameworks */,
 				563C71281DAB3D2B00CCD81F /* libboost_filesystem.a in Frameworks */,
@@ -178,6 +188,8 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				563C71461DABF07100CCD81F /* QtCore.framework */,
+				563C71431DABECD400CCD81F /* QtWidgets.framework */,
 				563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */,
 				563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */,
 				563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */,
@@ -404,6 +416,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -424,6 +437,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
