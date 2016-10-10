@@ -11,8 +11,7 @@
 int main(int argc, const char * argv[]) {
 	try{
 		Application app(argc, argv);
-		app.Run();
-		return EXIT_SUCCESS;
+		return app.Run();
 	}
 	catch(std::exception& e){
 		
