@@ -7,24 +7,72 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		563C70EB1DAB3C5700CCD81F /* ResourcePath.mm in Sources */ = {isa = PBXBuildFile; fileRef = 563C70EA1DAB3C5700CCD81F /* ResourcePath.mm */; };
-		563C70EE1DAB3C5700CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70ED1DAB3C5700CCD81F /* main.cpp */; };
-		563C70F11DAB3C5700CCD81F /* cute_image.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 563C70F01DAB3C5700CCD81F /* cute_image.jpg */; };
-		563C70F31DAB3C5700CCD81F /* nice_music.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 563C70F21DAB3C5700CCD81F /* nice_music.ogg */; };
-		563C70F51DAB3C5700CCD81F /* sansation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 563C70F41DAB3C5700CCD81F /* sansation.ttf */; };
-		563C70F71DAB3C5700CCD81F /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 563C70F61DAB3C5700CCD81F /* icon.png */; };
+		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
+		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
+		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
+		563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = 563C71061DAB3C9000CCD81F /* Path_macOS.mm */; };
+		563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71071DAB3C9000CCD81F /* pch.cpp */; };
+		563C711B1DAB3C9000CCD81F /* Fade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C710A1DAB3C9000CCD81F /* Fade.cpp */; };
+		563C711C1DAB3C9000CCD81F /* MusicSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C710C1DAB3C9000CCD81F /* MusicSelect.cpp */; };
+		563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C710E1DAB3C9000CCD81F /* SceneManager.cpp */; };
+		563C71211DAB3CFA00CCD81F /* KeyConfig_Default.json in Resources */ = {isa = PBXBuildFile; fileRef = 563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */; };
+		563C71271DAB3D2B00CCD81F /* libboost_filesystem-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */; };
+		563C71281DAB3D2B00CCD81F /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */; };
+		563C71291DAB3D2B00CCD81F /* libboost_system-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71251DAB3D2B00CCD81F /* libboost_system-mt.a */; };
+		563C712A1DAB3D2B00CCD81F /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71261DAB3D2B00CCD81F /* libboost_system.a */; };
+		563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */; };
+		563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		563C713B1DABD71C00CCD81F /* BmsParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsParser.cpp */; };
+		563C713C1DABD71C00CCD81F /* ScoreParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71391DABD71C00CCD81F /* ScoreParser.cpp */; };
+		563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C713D1DABD74800CCD81F /* ScoreData.cpp */; };
+		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		563C712E1DAB3D5600CCD81F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CrossChronox-Info.plist"; sourceTree = "<group>"; };
-		563C70EA1DAB3C5700CCD81F /* ResourcePath.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ResourcePath.mm; sourceTree = "<group>"; };
-		563C70EC1DAB3C5700CCD81F /* ResourcePath.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ResourcePath.hpp; sourceTree = "<group>"; };
-		563C70ED1DAB3C5700CCD81F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		563C70F01DAB3C5700CCD81F /* cute_image.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = cute_image.jpg; sourceTree = "<group>"; };
-		563C70F21DAB3C5700CCD81F /* nice_music.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = nice_music.ogg; sourceTree = "<group>"; };
-		563C70F41DAB3C5700CCD81F /* sansation.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = sansation.ttf; sourceTree = "<group>"; };
-		563C70F61DAB3C5700CCD81F /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		563C70FD1DAB3C9000CCD81F /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
+		563C70FE1DAB3C9000CCD81F /* Application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Application.hpp; sourceTree = "<group>"; };
+		563C71011DAB3C9000CCD81F /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
+		563C71021DAB3C9000CCD81F /* InputManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputManager.hpp; sourceTree = "<group>"; };
+		563C71031DAB3C9000CCD81F /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		563C71051DAB3C9000CCD81F /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
+		563C71061DAB3C9000CCD81F /* Path_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Path_macOS.mm; sourceTree = "<group>"; };
+		563C71071DAB3C9000CCD81F /* pch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pch.cpp; sourceTree = "<group>"; };
+		563C71081DAB3C9000CCD81F /* pch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pch.hpp; sourceTree = "<group>"; };
+		563C710A1DAB3C9000CCD81F /* Fade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Fade.cpp; sourceTree = "<group>"; };
+		563C710B1DAB3C9000CCD81F /* Fade.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Fade.hpp; sourceTree = "<group>"; };
+		563C710C1DAB3C9000CCD81F /* MusicSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MusicSelect.cpp; sourceTree = "<group>"; };
+		563C710D1DAB3C9000CCD81F /* MusicSelect.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MusicSelect.hpp; sourceTree = "<group>"; };
+		563C710E1DAB3C9000CCD81F /* SceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneManager.cpp; sourceTree = "<group>"; };
+		563C710F1DAB3C9000CCD81F /* SceneManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SceneManager.hpp; sourceTree = "<group>"; };
+		563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = KeyConfig_Default.json; sourceTree = "<group>"; };
+		563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_filesystem-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem-mt.a"; sourceTree = "<group>"; };
+		563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem.a; sourceTree = "<group>"; };
+		563C71251DAB3D2B00CCD81F /* libboost_system-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_system-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_system-mt.a"; sourceTree = "<group>"; };
+		563C71261DAB3D2B00CCD81F /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = ../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_system.a; sourceTree = "<group>"; };
+		563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sfeMovie.framework; path = ../../../../../Library/Frameworks/sfeMovie.framework; sourceTree = "<group>"; };
+		563C71371DABD71C00CCD81F /* BmsParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BmsParser.cpp; sourceTree = "<group>"; };
+		563C71381DABD71C00CCD81F /* BmsParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BmsParser.hpp; sourceTree = "<group>"; };
+		563C71391DABD71C00CCD81F /* ScoreParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreParser.cpp; sourceTree = "<group>"; };
+		563C713A1DABD71C00CCD81F /* ScoreParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreParser.hpp; sourceTree = "<group>"; };
+		563C713D1DABD74800CCD81F /* ScoreData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreData.cpp; sourceTree = "<group>"; };
+		563C713E1DABD74800CCD81F /* ScoreData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreData.hpp; sourceTree = "<group>"; };
+		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
+		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +80,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */,
+				563C71271DAB3D2B00CCD81F /* libboost_filesystem-mt.a in Frameworks */,
+				563C71281DAB3D2B00CCD81F /* libboost_filesystem.a in Frameworks */,
+				563C71291DAB3D2B00CCD81F /* libboost_system-mt.a in Frameworks */,
+				563C712A1DAB3D2B00CCD81F /* libboost_system.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +96,7 @@
 			children = (
 				563C70E71DAB3C5700CCD81F /* CrossChronox */,
 				563C70E61DAB3C5700CCD81F /* Products */,
+				563C71221DAB3D2B00CCD81F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -57,9 +111,15 @@
 		563C70E71DAB3C5700CCD81F /* CrossChronox */ = {
 			isa = PBXGroup;
 			children = (
-				563C70EA1DAB3C5700CCD81F /* ResourcePath.mm */,
-				563C70EC1DAB3C5700CCD81F /* ResourcePath.hpp */,
-				563C70ED1DAB3C5700CCD81F /* main.cpp */,
+				563C70FD1DAB3C9000CCD81F /* Application.cpp */,
+				563C70FE1DAB3C9000CCD81F /* Application.hpp */,
+				563C71001DAB3C9000CCD81F /* Input */,
+				563C71031DAB3C9000CCD81F /* main.cpp */,
+				563C71041DAB3C9000CCD81F /* Path */,
+				563C71071DAB3C9000CCD81F /* pch.cpp */,
+				563C71081DAB3C9000CCD81F /* pch.hpp */,
+				563C71091DAB3C9000CCD81F /* Scene */,
+				563C71361DABD71C00CCD81F /* Score */,
 				563C70EF1DAB3C5700CCD81F /* Resources */,
 				563C70E81DAB3C5700CCD81F /* Supporting Files */,
 			);
@@ -77,13 +137,69 @@
 		563C70EF1DAB3C5700CCD81F /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				563C70F01DAB3C5700CCD81F /* cute_image.jpg */,
-				563C70F21DAB3C5700CCD81F /* nice_music.ogg */,
-				563C70F41DAB3C5700CCD81F /* sansation.ttf */,
-				563C70F61DAB3C5700CCD81F /* icon.png */,
+				563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
+		};
+		563C71001DAB3C9000CCD81F /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				563C71011DAB3C9000CCD81F /* InputManager.cpp */,
+				563C71021DAB3C9000CCD81F /* InputManager.hpp */,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		563C71041DAB3C9000CCD81F /* Path */ = {
+			isa = PBXGroup;
+			children = (
+				563C71051DAB3C9000CCD81F /* Path.hpp */,
+				563C71061DAB3C9000CCD81F /* Path_macOS.mm */,
+			);
+			path = Path;
+			sourceTree = "<group>";
+		};
+		563C71091DAB3C9000CCD81F /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				563C710A1DAB3C9000CCD81F /* Fade.cpp */,
+				563C710B1DAB3C9000CCD81F /* Fade.hpp */,
+				563C710C1DAB3C9000CCD81F /* MusicSelect.cpp */,
+				563C710D1DAB3C9000CCD81F /* MusicSelect.hpp */,
+				563C710E1DAB3C9000CCD81F /* SceneManager.cpp */,
+				563C710F1DAB3C9000CCD81F /* SceneManager.hpp */,
+				563C71401DABD7E400CCD81F /* PlayScore.cpp */,
+				563C71411DABD7E400CCD81F /* PlayScore.hpp */,
+			);
+			path = Scene;
+			sourceTree = "<group>";
+		};
+		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */,
+				563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */,
+				563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */,
+				563C71251DAB3D2B00CCD81F /* libboost_system-mt.a */,
+				563C71261DAB3D2B00CCD81F /* libboost_system.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		563C71361DABD71C00CCD81F /* Score */ = {
+			isa = PBXGroup;
+			children = (
+				563C71371DABD71C00CCD81F /* BmsParser.cpp */,
+				563C71381DABD71C00CCD81F /* BmsParser.hpp */,
+				563C71391DABD71C00CCD81F /* ScoreParser.cpp */,
+				563C713A1DABD71C00CCD81F /* ScoreParser.hpp */,
+				563C713D1DABD74800CCD81F /* ScoreData.cpp */,
+				563C713E1DABD74800CCD81F /* ScoreData.hpp */,
+			);
+			name = Score;
+			path = CrossChronox/Score;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -96,6 +212,7 @@
 				563C70E11DAB3C5700CCD81F /* Frameworks */,
 				563C70E21DAB3C5700CCD81F /* Resources */,
 				563C70E31DAB3C5700CCD81F /* ShellScript */,
+				563C712E1DAB3D5600CCD81F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -144,10 +261,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				563C70F71DAB3C5700CCD81F /* icon.png in Resources */,
-				563C70F51DAB3C5700CCD81F /* sansation.ttf in Resources */,
-				563C70F31DAB3C5700CCD81F /* nice_music.ogg in Resources */,
-				563C70F11DAB3C5700CCD81F /* cute_image.jpg in Resources */,
+				563C71211DAB3CFA00CCD81F /* KeyConfig_Default.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,8 +288,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				563C70EE1DAB3C5700CCD81F /* main.cpp in Sources */,
-				563C70EB1DAB3C5700CCD81F /* ResourcePath.mm in Sources */,
+				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
+				563C711C1DAB3C9000CCD81F /* MusicSelect.cpp in Sources */,
+				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
+				563C713C1DABD71C00CCD81F /* ScoreParser.cpp in Sources */,
+				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
+				563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */,
+				563C713B1DABD71C00CCD81F /* BmsParser.cpp in Sources */,
+				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
+				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,
+				563C711B1DAB3C9000CCD81F /* Fade.cpp in Sources */,
+				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
+				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,8 +398,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = XXNJ6K5U32;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/boost/1.61.0_1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -284,8 +418,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = XXNJ6K5U32;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/boost/1.61.0_1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -309,6 +453,7 @@
 				563C70FC1DAB3C5700CCD81F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
