@@ -30,9 +30,9 @@ public:
 	void Init();
 	int Run();
 	
-	class Application_Init_Failure : public std::runtime_error{
+	class Init_Error : public std::runtime_error{
 	public:
-		Application_Init_Failure(const std::string& msg): std::runtime_error(msg){}
+		Init_Error(const std::string& msg): std::runtime_error(msg){}
 	};
 	void HandleException(std::exception& e);
 };

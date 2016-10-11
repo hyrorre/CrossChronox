@@ -21,9 +21,8 @@ void Application::Init(){
 	window.setKeyRepeatEnabled(false);
 	
 	//set up rendertexture
-	renderer.create(w, h, true);
+	if(!renderer.create(w, h, true)) throw Init_Error("Could not create RenderTexture.");
 	renderer.setSmooth(true);
-	
 }
 
 void Application::ParseArgs(int argc, char *argv[]){
