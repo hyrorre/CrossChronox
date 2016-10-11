@@ -1,7 +1,7 @@
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883
 build/
-DerivedData
+DerivedData/
 
 # Xcodeのプライベート設定（ウィンドウサイズ、ブックマーク、ブレイクポイントなど）
 # http://lists.apple.com/archives/xcode-users/2004/Jan/msg00193.html
