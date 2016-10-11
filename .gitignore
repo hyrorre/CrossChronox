@@ -3,6 +3,11 @@
 build/
 DerivedData/
 
+# DerivedData内のファイル
+scm.plist
+db.xcindexdb*
+
+
 # Xcodeのプライベート設定（ウィンドウサイズ、ブックマーク、ブレイクポイントなど）
 # http://lists.apple.com/archives/xcode-users/2004/Jan/msg00193.html
 *.pbxuser
