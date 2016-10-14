@@ -46,9 +46,10 @@ namespace Path{
 	
 	void Init(void);
 	
-	class Init_Error : public std::runtime_error{
+	class InitError : public std::runtime_error{
 	public:
-		Init_Error(const std::string& msg): std::runtime_error(msg){}
+		InitError(const std::string& msg): std::runtime_error(msg){}
+		virtual ~InitError(){}
 	};
 }
 

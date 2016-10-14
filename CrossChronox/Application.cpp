@@ -21,7 +21,7 @@ void Application::Init(){
 	window.setKeyRepeatEnabled(false);
 	
 	//set up rendertexture
-	if(!renderer.create(w, h, true)) throw Init_Error("Could not create RenderTexture.");
+	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
 	renderer.setSmooth(true);
 }
 

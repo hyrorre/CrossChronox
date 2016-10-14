@@ -40,7 +40,7 @@ fs::path resourcePath(void){
 #ifdef DEBUG
 		NSLog(@"bundle is nil... thus no resources path can be found.");
 #endif
-		throw Path::Init_Error("Bundle is nil. Please run \"CrossChronox\"");
+		throw Path::InitError("Bundle is nil. Please run \"CrossChronox\"");
 	}
 	else{
 		NSString* path = [bundle resourcePath];
@@ -76,7 +76,7 @@ fs::path appdataPath(void){
 			if(fs::exists(tmp_path)) return tmp_path;
 		}
 	}
-	throw Path::Init_Error("\"CrossChronoxData\" folder was not found.");
+	throw Path::InitError("\"CrossChronoxData\" folder was not found.");
 }
 
 
