@@ -30,6 +30,11 @@
 //jsoncpp
 #include <json/json.h>
 
+//Crypto++ (cryptopp)
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5
+#include <cryptopp/hex.h>
+#include <cryptopp/md5.h>
+
 //boost
 #include <boost/filesystem.hpp>
 #include <boost/utility.hpp>
