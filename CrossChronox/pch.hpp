@@ -36,6 +36,7 @@
 #include <cryptopp/md5.h>
 
 //boost
+#include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/string_ref.hpp>

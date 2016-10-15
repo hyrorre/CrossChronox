@@ -8,4 +8,5 @@ We can play bms, bme, bml, pms, and bmson.<br>
 ・jsoncpp<br>
 ・SFML<br>
 ・sfeMovie<br>
-(・Qt)<br>
+・Qt<br>
+・Crypto++<br>
