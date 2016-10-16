@@ -50,6 +50,7 @@ const char* GetArg(const char* line, const boost::string_ref& command_str){
 }
 
 bool ParseLine(const char* line, ScoreData* out){
+	trim_left(line);
 	//コマンド行でないならreturn
 	if(line[0] == '#') return false;
 		
