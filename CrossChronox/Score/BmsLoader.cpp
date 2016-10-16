@@ -74,6 +74,7 @@ bool ParseLine(const char* line, ScoreData* out){
 }
 
 bool BmsLoader::Load(const std::string& path, ScoreData* out){
+	*out = ScoreData(); //Init
 	fs::ifstream ifs(path);
 	if(!ifs) throw OpenError(std::string("\"") + path + "\" could not be opened.");
 	{
