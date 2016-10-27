@@ -12,7 +12,7 @@
 #include "pch.hpp"
 
 //Define class ScoreData based on bmson specs
-//https://docs.google.com/document/d/1ZDjfjWud8UG3RPjyhN-dd1rVjPaactcMT3PIODTap9s/edit
+//http://bmson-spec.readthedocs.io/en/master/doc/index.html
 
 // bar-line event
 struct BarLine {
