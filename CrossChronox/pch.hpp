@@ -56,6 +56,7 @@
 #include <boost/swap.hpp>
 #include <boost/optional.hpp>
 #include <boost/algorithm/algorithm.hpp>
+#include <boost/algorithm/clamp.hpp>
 
 
 //C std
