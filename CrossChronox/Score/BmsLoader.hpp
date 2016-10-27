@@ -12,9 +12,24 @@
 #include "pch.hpp"
 #include "ScoreData.hpp"
 
-class BmsLoader{
+class BmsLoader: private boost::noncopyable{
+	std::unordered_map<int, double> exbpm;
+	std::list<int> lnobj;
+	ScoreData* out = nullptr;
+	const char* nowline = nullptr;
+	
+	int random_num = 0;
+	bool parse_nextline_flag = true;
+	
+	const char* GetArg();
+	int GetIndex();
+	bool ParseLine();
+	bool TryParseHeaderLine();
+	bool TryParseObjLine();
+	bool InitCommands();
 public:
-	static bool Load(const std::string& path, ScoreData* out);
+	BmsLoader();
+	bool Load(const std::string& path, ScoreData* out);
 	
 	//exceptions
 	class LoadError: public std::runtime_error{

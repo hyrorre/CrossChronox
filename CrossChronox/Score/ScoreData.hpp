@@ -14,8 +14,6 @@
 //Define class ScoreData based on bmson specs
 //https://docs.google.com/document/d/1ZDjfjWud8UG3RPjyhN-dd1rVjPaactcMT3PIODTap9s/edit
 
-static const int NOT_FOUND = -1;
-
 // bar-line event
 struct BarLine {
 	unsigned long y; // pulse number
@@ -72,8 +70,12 @@ struct BGA {
 //		unsigned long l; //length in pulses
 //	};
 
+const bool TOTAL_RELATIVE = false;
+const bool TOTAL_ABSOLUTE = true;
 
 struct ScoreInfo{
+	using judge_ms_type = std::array<int,3>;
+	
 	std::string   title;                 // self-explanatory
 	std::string   subtitle;              // self-explanatory
 	std::string   artist;                // self-explanatory
@@ -81,23 +83,28 @@ struct ScoreInfo{
 	std::string   genre;                 // self-explanatory
 	std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
 	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
-	unsigned long level = NOT_FOUND;     // self-explanatory
-	double        init_bpm = NOT_FOUND;  // self-explanatory
-	double        judge_rank = 100;      // relative judge width
-	double        total = 100;           // relative lifebar gain
+	int           difficulty = 0;
+	unsigned long level = 0;             // self-explanatory
+	double        init_bpm = 130;        // self-explanatory
+	//double        judge_rank = 100;      // relative judge width
+	judge_ms_type judge_ms;
+	bool          total_type = TOTAL_RELATIVE;
+	double        total = 100;           // relative or absolute lifebar gain
 	std::string   back_image;            // background image filename
 	std::string   eyecatch_image;        // eyecatch image filename
 	std::string   banner_image;          // banner image filename
 	std::string   preview_music;         // preview music filename
 	unsigned long resolution = 240;      // pulses per quarter note
 	
-	double max_bpm, min_bpm, main_bpm;   // calc them from the data
+	double max_bpm;        // calc from the data
+	double min_bpm;        // calc from the data
+	double base_bpm = 0;   // calc from the data
+	unsigned long note_count;            // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
 	//int peek_vol;                        //use it if replaygain is implemented
 };
 
 struct ScoreData{
-	
 	std::string               version;        // bmson version
 	ScoreInfo                 info;           // information, e.g. title, artist, …
 	std::vector<BarLine>      lines;          // location of bar-lines in pulses
@@ -105,6 +112,8 @@ struct ScoreData{
 	std::vector<StopEvent>    stop_events;    // stop events
 	std::vector<SoundChannel> sound_channels; // note data
 	BGA                       bga;            // bga data
+	
+	void Init();
 };
 
 #endif /* ScoreData_hpp */

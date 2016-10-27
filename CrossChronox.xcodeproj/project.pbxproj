@@ -417,6 +417,7 @@
 		563C70FB1DAB3C5700CCD81F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				DEVELOPMENT_TEAM = XXNJ6K5U32;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -439,6 +440,7 @@
 		563C70FC1DAB3C5700CCD81F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				DEVELOPMENT_TEAM = XXNJ6K5U32;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
