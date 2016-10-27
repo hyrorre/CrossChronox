@@ -161,7 +161,7 @@ bool BmsLoader::ParseLine(){
 }
 
 bool Init(ScoreData* out){
-	out->Init();
+	*out = ScoreData();
 	out->sound_channels.resize(MAX_INDEX);
 }
 

@@ -113,7 +113,7 @@ struct ScoreData{
 	std::vector<SoundChannel> sound_channels; // note data
 	BGA                       bga;            // bga data
 	
-	void Init();
+	//void Init();
 };
 
 #endif /* ScoreData_hpp */
