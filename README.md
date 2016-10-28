@@ -5,6 +5,8 @@ It works on Windows, macOS, and Linux.
 
 We can play bms, bme, bml, pms, and bmson.
 
+LICENSE : LGPL v3
+
 (WIP)
 
 # Supporting BMS Commands
