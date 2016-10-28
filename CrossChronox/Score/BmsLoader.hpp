@@ -27,6 +27,7 @@ class BmsLoader: private boost::noncopyable{
 	bool TryParseHeaderLine();
 	bool TryParseObjLine();
 	bool InitCommands();
+	bool Init(ScoreData* out);
 public:
 	BmsLoader();
 	bool Load(const std::string& path, ScoreData* out);

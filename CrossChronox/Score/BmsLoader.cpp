@@ -171,9 +171,14 @@ bool BmsLoader::ParseLine(){
 	return false;
 }
 
-bool Init(ScoreData* out){
+bool BmsLoader::Init(ScoreData* out){
 	*out = ScoreData();
 	out->sound_channels.resize(MAX_INDEX);
+	
+	exbpm.clear();
+	lnobj.clear();
+	random_num = 0;
+	parse_nextline_flag = true;
 }
 
 bool BmsLoader::Load(const std::string& path, ScoreData* out){
