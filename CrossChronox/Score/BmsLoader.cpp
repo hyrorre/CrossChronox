@@ -16,7 +16,7 @@
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
 const int MAX_INDEX = 36 * 36; //ZZ(36)
-ScoreInfo::judge_ms_type rank_to_judge_ms[] = {
+const std::vector<ScoreInfo::judge_ms_type> rank_to_judge_ms = {
 	{ 8, 24, 40 },
 	{ 15, 30, 60 },
 	{ 18, 40, 100 },
@@ -75,84 +75,93 @@ bool BmsLoader::TryParseObjLine(){
 
 bool BmsLoader::TryParseHeaderLine(){
 	const char* header = nowline + 1;
-	
-	//Control Flow (Nested #RANDOM is not support.)
-	if(boost::istarts_with(header, "IF")){
-		parse_nextline_flag = (random_num == atoi(GetArg()));
-	}
-	else if(boost::istarts_with(header, "END")){
-		parse_nextline_flag = true;
-	}
-	else if(boost::istarts_with(header, "RANDOM")){
-		random_num = atoi(GetArg());
-	}
-	//Other Headers
-	else if(parse_nextline_flag){
-		//読み込みを高速化するため、定義が出てきやすいヘッダーを先に判定する
-		//WAVやBPM,LNOBJは複数個出てきやすい
-		if(boost::istarts_with(header, "WAV")){
-			out->sound_channels[GetIndex()].name = GetArg();
+	try{
+		//Control Flow (Nested #RANDOM is not support.)
+		if(boost::istarts_with(header, "IF")){
+			parse_nextline_flag = (random_num == atoi(GetArg()));
 		}
-		else if(boost::istarts_with(header, "BPM")){
-			//0123456
-			//BPM 130
-			//BPM01 130
-			if(std::isblank(header[3])){
-				out->info.init_bpm = atof(GetArg());
+		else if(boost::istarts_with(header, "END")){
+			parse_nextline_flag = true;
+		}
+		else if(boost::istarts_with(header, "RANDOM")){
+			random_num = atoi(GetArg());
+		}
+		//Other Headers
+		else if(parse_nextline_flag){
+			//読み込みを高速化するため、定義が出てきやすいヘッダーを先に判定する
+			//WAVやBPM,LNOBJは複数個出てきやすい
+			if(boost::istarts_with(header, "WAV")){
+				out->sound_channels[GetIndex()].name = GetArg();
 			}
-			else{
-				exbpm[GetIndex()] = atof(GetArg());
+			else if(boost::istarts_with(header, "BPM")){
+				//0123456
+				//BPM 130
+				//BPM01 130
+				if(std::isblank(header[3])){
+					out->info.init_bpm = atof(GetArg());
+				}
+				else{
+					exbpm[GetIndex()] = atof(GetArg());
+				}
+			}
+			else if(boost::istarts_with(header, "LNOBJ")){
+				lnobj.emplace_back(std::stoi(GetArg(), nullptr, 36));
+			}
+			else if(boost::istarts_with(header, "TITLE")){
+				out->info.title = GetArg();
+			}
+			else if(boost::istarts_with(header, "SUBTITLE")){
+				out->info.subtitle = GetArg();
+			}
+			else if(boost::istarts_with(header, "ARTIST")){
+				out->info.artist = GetArg();
+			}
+			else if(boost::istarts_with(header, "SUBARTIST")){
+				out->info.subartists.emplace_back(GetArg());
+			}
+			else if(boost::istarts_with(header, "GENRE")){
+				out->info.genre = GetArg();
+			}
+			else if(boost::istarts_with(header, "TOTAL")){
+				out->info.total_type = TOTAL_ABSOLUTE;
+				out->info.total = atof(GetArg());
+				if(out->info.total < 20) throw BmsLoader::ParseError("TOTAL is not appropriate.");
+			}
+			else if(boost::istarts_with(header, "BACKBMP")){
+				out->info.back_image = GetArg();
+			}
+			else if(boost::istarts_with(header, "STAGEFILE")){
+				out->info.eyecatch_image = GetArg();
+			}
+			else if(boost::istarts_with(header, "BANNER")){
+				out->info.banner_image = GetArg();
+			}
+			else if(boost::istarts_with(header, "PREVIEWMUSIC")){
+				out->info.preview_music = GetArg();
+			}
+			else if(boost::istarts_with(header, "PLAYLEVEL")){
+				out->info.level = atoi(GetArg());
+			}
+			else if(boost::istarts_with(header, "DIFFICULTY")){
+				out->info.difficulty = atoi(GetArg());
+				out->info.chart_name = difficulty_str.at(out->info.difficulty);
+			}
+			else if(boost::istarts_with(header, "RANK")){
+				int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
+				out->info.judge_ms = rank_to_judge_ms.at(atoi(GetArg()));
+			}
+			else if(boost::istarts_with(header, "BASEBPM")){
+				out->info.base_bpm = atof(GetArg());
 			}
 		}
-		else if(boost::istarts_with(header, "LNOBJ")){
-			lnobj.emplace_back(std::stoi(GetArg(), nullptr, 36));
-		}
-		else if(boost::istarts_with(header, "TITLE")){
-			out->info.title = GetArg();
-		}
-		else if(boost::istarts_with(header, "SUBTITLE")){
-			out->info.subtitle = GetArg();
-		}
-		else if(boost::istarts_with(header, "ARTIST")){
-			out->info.artist = GetArg();
-		}
-		else if(boost::istarts_with(header, "SUBARTIST")){
-			out->info.subartists.emplace_back(GetArg());
-		}
-		else if(boost::istarts_with(header, "GENRE")){
-			out->info.genre = GetArg();
-		}
-		else if(boost::istarts_with(header, "TOTAL")){
-			out->info.total_type = TOTAL_ABSOLUTE;
-			out->info.total = atof(GetArg());
-			if(out->info.total < 20) throw BmsLoader::ParseError("TOTAL is not appropriate.");
-		}
-		else if(boost::istarts_with(header, "BACKBMP")){
-			out->info.back_image = GetArg();
-		}
-		else if(boost::istarts_with(header, "STAGEFILE")){
-			out->info.eyecatch_image = GetArg();
-		}
-		else if(boost::istarts_with(header, "BANNER")){
-			out->info.banner_image = GetArg();
-		}
-		else if(boost::istarts_with(header, "PREVIEWMUSIC")){
-			out->info.preview_music = GetArg();
-		}
-		else if(boost::istarts_with(header, "PLAYLEVEL")){
-			out->info.level = atoi(GetArg());
-		}
-		else if(boost::istarts_with(header, "DIFFICULTY")){
-			out->info.difficulty = atoi(GetArg());
-			out->info.chart_name = difficulty_str[out->info.difficulty];
-		}
-		else if(boost::istarts_with(header, "RANK")){
-			int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
-			out->info.judge_ms = rank_to_judge_ms[i];
-		}
-		else if(boost::istarts_with(header, "BASEBPM")){
-			out->info.base_bpm = atof(GetArg());
-		}
+	}
+	catch(std::out_of_range& e){
+		std::stringstream msg;
+		msg << "Invalid arguments detected. LINE:";
+		msg << line_num;
+		msg << "\n";
+		msg << e.what();
+		throw ParseError(msg.str());
 	}
 }
 
@@ -177,7 +186,7 @@ bool BmsLoader::Init(ScoreData* out){
 	
 	exbpm.clear();
 	lnobj.clear();
-	random_num = 0;
+	line_num = random_num = 0;
 	parse_nextline_flag = true;
 }
 
@@ -200,6 +209,7 @@ bool BmsLoader::Load(const std::string& path, ScoreData* out){
 	while(std::getline(ifs, line)){
 		nowline = line.c_str();
 		ParseLine();
+		++line_num;
 	}
 	return true;
 }

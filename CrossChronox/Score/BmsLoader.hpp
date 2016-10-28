@@ -17,6 +17,7 @@ class BmsLoader: private boost::noncopyable{
 	std::list<int> lnobj;
 	ScoreData* out = nullptr;
 	const char* nowline = nullptr;
+	int line_num = 0; //行番号
 	
 	int random_num = 0;
 	bool parse_nextline_flag = true;
