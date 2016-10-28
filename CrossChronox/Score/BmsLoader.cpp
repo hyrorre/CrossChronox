@@ -17,16 +17,21 @@
 
 const int MAX_INDEX = 36 * 36; //ZZ(36)
 const std::vector<ScoreInfo::judge_ms_type> rank_to_judge_ms = {
-	{ 8, 24, 40 },
-	{ 15, 30, 60 },
-	{ 18, 40, 100 },
-	{ 21, 60, 120 }
+	{ 8, 24, 40 },  //RANK 0 VERYHARD
+	{ 15, 30, 60 }, //RANK 1 HARD
+	{ 18, 40, 100 },//RANK 2 NORMAL
+	{ 21, 60, 120 } //RANK 3 EASY
 };
 
 int BmsLoader::GetIndex(){
 	const char* line = nowline;
 	while(!std::isblank(*line)) ++line;
 	std::string tmp = { line - 2, line - 1 };
+	return std::stoi(tmp, nullptr, 36);
+}
+
+int GetIndex(const char* str){
+	std::string tmp = { str[0], str[1] };
 	return std::stoi(tmp, nullptr, 36);
 }
 
@@ -41,7 +46,7 @@ const char* BmsLoader::GetArg(){
 	return line;
 }
 
-std::array<std::string,6> difficulty_str = {
+const std::vector<std::string> difficulty_str = {
 	"UNDEFINED", //0
 	"BEGINNER",  //1
 	"NORMAL",    //2
