@@ -13,6 +13,33 @@
 #include "ScoreData.hpp"
 
 class BmsLoader: private boost::noncopyable{
+	static const int BEAT_RESOLUTION = 240;
+	
+	struct BarInfo{
+		double scale;
+		unsigned long start;
+		unsigned long length(){
+			return scale * BEAT_RESOLUTION * 4;
+		}
+		BarInfo(double d): scale(d){}
+	};
+	struct TmpNoteData{
+		int bar;
+		int channel;
+		int index;
+		int tmp_bar_pulse;
+		int tmp_bar_resolution;
+		
+		bool lnend = false;
+		
+		unsigned long bar_pulse = 0;
+		
+		TmpNoteData(){}
+		TmpNoteData(int bar, int channel, int index, int bar_pulse, int bar_resolution): bar(bar), channel(channel), index(index), tmp_bar_pulse(bar_pulse), tmp_bar_resolution(bar_resolution){}
+	};
+	std::vector<BarInfo> bar_info = std::vector<BarInfo>(1001, BarInfo(1));
+	int max_bar = 0;
+	boost::ptr_vector<TmpNoteData> tmp_note;
 	std::unordered_map<int, double> exbpm;
 	std::list<int> lnobj;
 	ScoreData* out = nullptr;
@@ -24,6 +51,7 @@ class BmsLoader: private boost::noncopyable{
 	
 	const char* GetArg();
 	int GetIndex();
+	int GetIndex(const char* str);
 	bool ParseLine();
 	bool TryParseHeaderLine();
 	bool TryParseObjLine();

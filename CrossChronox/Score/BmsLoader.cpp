@@ -30,13 +30,26 @@ int BmsLoader::GetIndex(){
 	return std::stoi(tmp, nullptr, 36);
 }
 
-int GetIndex(const char* str){
+int BmsLoader::GetIndex(const char* str){
 	std::string tmp = { str[0], str[1] };
 	return std::stoi(tmp, nullptr, 36);
 }
 
 void trim_left(const char*& str){
 	while(std::isblank(*str)) ++str;
+}
+
+void trim_right(char* str){
+	char* blank_ptr = nullptr;
+	for(; *str; ++str){
+		if(std::isblank(*str)){
+			if(blank_ptr == nullptr) blank_ptr = str;
+		}
+		else{
+			blank_ptr = nullptr;
+		}
+	}
+	if(blank_ptr) *blank_ptr = '\0';
 }
 
 const char* BmsLoader::GetArg(){
@@ -57,15 +70,14 @@ const std::vector<std::string> difficulty_str = {
 
 
 bool BmsLoader::TryParseObjLine(){
-	//0123456
+	//01234567
 	//#nnncc:001122
-	const char* comma_pos = nowline + 6;
-	if(*comma_pos != ':'){
+	if(nowline[6] != ':'){
 		//'#nnncc:'でないので処理不能
 		return false;
 	}
 	for(int i = 1; i <= 5; ++i){
-		if(!std::isdigit(nowline[i])){
+		if(!std::isalnum(nowline[i])){
 			//'#nnncc:'でないので処理不能
 			return false;
 		}
@@ -74,7 +86,31 @@ bool BmsLoader::TryParseObjLine(){
 		return false;
 	}
 	
-	//TODO: implement
+	//it is obj line. start parsing.
+	
+	//tmp_note.push_back(new TmpNoteData);
+	//TmpNoteData& note = tmp_note.back();
+	std::string tmps = { nowline[1], nowline[2], nowline[3] };
+	int bar = std::stoi(tmps, nullptr, 10);
+	int channel = GetIndex(nowline + 4);
+	max_bar = std::max(max_bar, bar);
+	const char* arg = nowline + 7;
+	trim_left(arg);
+	if(channel == CHANNEL_METER){
+		bar_info[bar].scale = std::atof(arg);
+	}
+	else{
+		int len = 0;
+		while(isalnum(arg[len])) ++len;
+		int resolution = len / 2;
+		for(int i = 0; i < resolution; ++i){
+			int index = GetIndex(arg + i * 2);
+			if(index){
+				tmp_note.push_back(new TmpNoteData(bar, channel, index, i, resolution));
+			}
+		}
+	}
+	
 	return true;
 }
 
@@ -198,24 +234,28 @@ bool BmsLoader::Init(ScoreData* out){
 bool BmsLoader::Load(const std::string& path, ScoreData* out){
 	this->out = out;
 	Init(out);
-	fs::ifstream ifs(path);
-	if(!ifs) throw OpenError(std::string("\"") + path + "\" could not be opened.");
 	{
-		std::istreambuf_iterator<char> it(ifs);
-		std::istreambuf_iterator<char> last;
-		std::string file_str(it, last);
-		ifs.clear();  // ここでclearしてEOFフラグを消す // clear EOF flag.
-		ifs.seekg(0, ifs.beg);
-		if(!StringToMD5(file_str, &out->info.md5)){
-			throw ParseError("MD5 of the file could not be got.");
+		fs::ifstream ifs(path);
+		if(!ifs) throw OpenError(std::string("\"") + path + "\" could not be opened.");
+		{
+			std::istreambuf_iterator<char> it(ifs);
+			std::istreambuf_iterator<char> last;
+			std::string file_str(it, last);
+			ifs.clear();  // ここでclearしてEOFフラグを消す // clear EOF flag.
+			ifs.seekg(0, ifs.beg);
+			if(!StringToMD5(file_str, &out->info.md5)){
+				throw ParseError("MD5 of the file could not be got.");
+			}
 		}
-	}
-	std::string line;
-	while(std::getline(ifs, line)){
-		nowline = line.c_str();
-		ParseLine();
-		++line_num;
-	}
+		std::string line;
+		while(std::getline(ifs, line)){
+			nowline = line.c_str();
+			ParseLine();
+			++line_num;
+		}
+	}//file close
+	
+	
 	return true;
 }
 

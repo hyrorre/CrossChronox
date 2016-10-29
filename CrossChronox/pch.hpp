@@ -57,6 +57,8 @@
 #include <boost/optional.hpp>
 #include <boost/algorithm/algorithm.hpp>
 #include <boost/algorithm/clamp.hpp>
+#include <boost/range/algorithm_ext.hpp>
+#include <boost/range.hpp>
 
 
 //C std
@@ -81,6 +83,7 @@
 #include <typeinfo>
 #include <fstream>
 #include <utility>
+#include <numeric>
 
 //using
 namespace fs = boost::filesystem;
