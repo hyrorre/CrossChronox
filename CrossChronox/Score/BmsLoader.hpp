@@ -41,6 +41,7 @@ class BmsLoader: private boost::noncopyable{
 	int max_bar = 0;
 	boost::ptr_vector<TmpNoteData> tmp_note;
 	std::unordered_map<int, double> exbpm;
+	std::unordered_map<int, int> stop;
 	std::list<int> lnobj;
 	ScoreData* out = nullptr;
 	const char* nowline = nullptr;

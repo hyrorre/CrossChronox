@@ -130,7 +130,7 @@ bool BmsLoader::TryParseHeaderLine(){
 		//Other Headers
 		else if(parse_nextline_flag){
 			//読み込みを高速化するため、定義が出てきやすいヘッダーを先に判定する
-			//WAVやBPM,LNOBJは複数個出てきやすい
+			//WAVやBPM,LNOBJ,STOPは複数個出てきやすい
 			if(boost::istarts_with(header, "WAV")){
 				out->sound_channels[GetIndex()].name = GetArg();
 			}
@@ -147,6 +147,9 @@ bool BmsLoader::TryParseHeaderLine(){
 			}
 			else if(boost::istarts_with(header, "LNOBJ")){
 				lnobj.emplace_back(std::stoi(GetArg(), nullptr, 36));
+			}
+			else if(boost::istarts_with(header, "STOP")){
+				stop[GetIndex()] = atoi(GetArg());
 			}
 			else if(boost::istarts_with(header, "TITLE")){
 				out->info.title = GetArg();
