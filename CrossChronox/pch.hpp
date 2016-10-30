@@ -58,6 +58,8 @@
 #include <boost/algorithm/algorithm.hpp>
 #include <boost/algorithm/clamp.hpp>
 #include <boost/range/algorithm_ext.hpp>
+#include <boost/range/algorithm/binary_search.hpp>
+#include <boost/range/algorithm/sort.hpp>
 #include <boost/range.hpp>
 
 
@@ -88,5 +90,7 @@
 //using
 namespace fs = boost::filesystem;
 
+//global variables and constants
+extern std::mt19937 mt_rand;
 
 #endif /* pch_hpp */

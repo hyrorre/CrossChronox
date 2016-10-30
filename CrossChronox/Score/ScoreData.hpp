@@ -20,10 +20,13 @@ struct BarLine {
 };
 // sound note
 struct Note {
-	boost::any x;    // lane
+	//boost::any x;    // lane
+	int x;           // CrossChronox supports only beat and popn(integer lane)
 	unsigned long y; // pulse number
 	unsigned long l; // length (0: normal note; greater than zero (length in pulses): long note)
 	bool c;          // continuation flag
+	Note(){}
+	Note(int x, unsigned long y, unsigned long l, bool c): x(x), y(y), l(l), c(c){}
 };
 // sound channel
 struct SoundChannel {
@@ -34,11 +37,15 @@ struct SoundChannel {
 struct BpmEvent {
 	unsigned long y; // pulse number
 	double bpm;      // bpm
+	BpmEvent(){}
+	BpmEvent(unsigned long y, double bpm): y(y), bpm(bpm){}
 };
 // stop note
 struct StopEvent {
 	unsigned long y;        // pulse number
 	unsigned long duration; // stop duration (pulses to stop)
+	StopEvent(){}
+	StopEvent(unsigned long y, unsigned long d): y(y), duration(d){}
 };
 
 // picture file
@@ -59,19 +66,17 @@ struct BGA {
 	std::vector<BGAEvent>  poor_events;  // picture sequence when missed
 };
 
-// --- Note type proposal (See comments at notes.x)
-//	struct Note {
-//		std::string type;  // For a mode that uses multiple note types (such as SOUND VOLTEX) (since JSON cannot have “types”)
-//		unsigned long y; // pulse number
-//		bool c;          // continuation flag
-//	};
-//	struct LaneNote: Note {
-//		unsigned long x; //??
-//		unsigned long l; //length in pulses
-//	};
-
 const bool TOTAL_RELATIVE = false;
 const bool TOTAL_ABSOLUTE = true;
+
+enum Mode{
+	MODE_BEAT_5K,
+	MODE_BEAT_7K,
+	MODE_BEAT_10K,
+	MODE_BEAT_14K,
+	MODE_POPN_5K,
+	MODE_POPN_9K,
+};
 
 struct ScoreInfo{
 	using judge_ms_type = std::array<int,3>;
@@ -81,7 +86,8 @@ struct ScoreInfo{
 	std::string   artist;                // self-explanatory
 	std::vector<std::string> subartists; // ["key:value"]
 	std::string   genre;                 // self-explanatory
-	std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
+	//std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
+	Mode          mode;
 	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int           difficulty = 0;
 	unsigned long level = 0;             // self-explanatory
@@ -102,6 +108,7 @@ struct ScoreInfo{
 	unsigned long note_count;            // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
 	//int peek_vol;                        //use it if replaygain is implemented
+	bool random_flag = false;              // if #RANDOM is used, it should not be registered IR
 };
 
 struct ScoreData{
