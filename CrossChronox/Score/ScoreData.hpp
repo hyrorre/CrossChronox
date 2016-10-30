@@ -15,11 +15,11 @@
 //http://bmson-spec.readthedocs.io/en/master/doc/index.html
 
 // bar-line event
-struct BarLine {
+struct BarLine{
 	unsigned long y; // pulse number
 };
 // sound note
-struct Note {
+struct Note{
 	//boost::any x;    // lane
 	int x;           // CrossChronox supports only beat and popn(integer lane)
 	unsigned long y; // pulse number
@@ -29,19 +29,19 @@ struct Note {
 	Note(int x, unsigned long y, unsigned long l, bool c): x(x), y(y), l(l), c(c){}
 };
 // sound channel
-struct SoundChannel {
+struct SoundChannel{
 	std::string name; // sound file name
 	std::vector<Note> notes;   // notes using this sound
 };
 // bpm note
-struct BpmEvent {
+struct BpmEvent{
 	unsigned long y; // pulse number
 	double bpm;      // bpm
 	BpmEvent(){}
 	BpmEvent(unsigned long y, double bpm): y(y), bpm(bpm){}
 };
 // stop note
-struct StopEvent {
+struct StopEvent{
 	unsigned long y;        // pulse number
 	unsigned long duration; // stop duration (pulses to stop)
 	StopEvent(){}
@@ -49,17 +49,17 @@ struct StopEvent {
 };
 
 // picture file
-struct BGAHeader {
+struct BGAHeader{
 	unsigned long id; // self-explanatory
 	std::string name;   // picture file name
 };
 // bga note
-struct BGAEvent {
+struct BGAEvent{
 	unsigned long y;	// pulse number
 	unsigned long id;	// corresponds to BGAHeader.id
 };
 // bga
-struct BGA {
+struct BGA{
 	std::vector<BGAHeader> bga_header;   // picture id and filename
 	std::vector<BGAEvent>  bga_events;   // picture sequence
 	std::vector<BGAEvent>  layer_events; // picture sequence overlays bga_notes

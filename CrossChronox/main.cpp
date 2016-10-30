@@ -9,7 +9,7 @@
 #include "Application.hpp"
 #include "Path.hpp"
 
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[]){
 	Application app(argc, argv);
 	try{
 		app.Init();

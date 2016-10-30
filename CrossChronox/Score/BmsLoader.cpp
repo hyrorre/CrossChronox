@@ -17,7 +17,7 @@
 
 namespace bms{
 	
-	class BmsLoader: private boost::noncopyable{
+	class BmsLoader : private boost::noncopyable{
 		friend bool Load(const std::string& path, ScoreData* out);
 		
 		static const int BEAT_RESOLUTION = 240;
