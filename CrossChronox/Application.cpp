@@ -8,6 +8,17 @@
 
 #include "Application.hpp"
 #include "Path.hpp"
+#include "BmsLoader.hpp"
+
+void Application::ParseArgs(int argc, char *argv[]){
+	if(argc > 0) executable_path = argv[0];
+	if(argc > 1){
+		scorefile_path = argv[1];
+		if(!fs::exists(scorefile_path) || !fs::is_regular_file(scorefile_path)){
+			scorefile_path.clear();
+		}
+	}
+}
 
 void Application::Init(){
 	//GetPaths
@@ -25,15 +36,18 @@ void Application::Init(){
 	renderer.setSmooth(true);
 }
 
-void Application::ParseArgs(int argc, char *argv[]){
-	
-}
-
 Application::Application(int argc, char *argv[]): qapp(argc, argv){
 	ParseArgs(argc, argv);
 }
 
 int Application::Run(){
+	ScoreData score;
+	
+	if(!scorefile_path.empty()){
+		bms::Load(scorefile_path.string(), &score);
+	}
+	
+	
 	//ウインドウが開いている（ゲームループ）
 	while(window.isOpen()){
 		sf::Event event;
