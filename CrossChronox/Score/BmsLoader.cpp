@@ -582,6 +582,10 @@ namespace bms{
 			//start parsing
 			std::string line;
 			while(std::getline(ifs, line)){
+				//if CRLF and LF mixed, remove CR('\r')
+				if(line.back() == '\r'){
+					line.erase(line.end() - 1);
+				}
 				nowline = line.c_str();
 				ParseLine();
 				++line_num;
