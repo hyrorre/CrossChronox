@@ -40,12 +40,21 @@ Application::Application(int argc, char *argv[]): qapp(argc, argv){
 	ParseArgs(argc, argv);
 }
 
+#include <iostream>
+
 int Application::Run(){
 	ScoreData score;
+	score.info.title = "TITLE";
 	
-	if(!scorefile_path.empty()){
-		bms::Load(scorefile_path.string(), &score);
-	}
+	bms::Load("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &score);
+	
+	std::cout << score.info.title << std::endl;
+	std::cout << score.info.genre << std::endl;
+	std::cout << score.info.init_bpm << std::endl;
+	
+//	if(!scorefile_path.empty()){
+//		bms::Load(scorefile_path.string(), &score);
+//	}
 	
 	
 	//ウインドウが開いている（ゲームループ）

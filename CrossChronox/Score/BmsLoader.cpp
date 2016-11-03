@@ -545,9 +545,9 @@ namespace bms{
 		}
 	}
 	
-	bool BmsLoader::Init(ScoreData* out){
+	bool BmsLoader::Init(ScoreData* const out){
 		*out = ScoreData();
-		out->sound_channels.resize(MAX_INDEX);
+		out->sound_channels.resize(MAX_INDEX); //bug???
 		
 		exbpm.clear();
 		lnobj.clear();
@@ -555,7 +555,7 @@ namespace bms{
 		parse_nextline_flag = true;
 	}
 	
-	bool BmsLoader::Load(const std::string& path, ScoreData* out){
+	bool BmsLoader::Load(const std::string& path, ScoreData* const out){
 		this->out = out;
 		Init(out);
 		{
