@@ -28,6 +28,7 @@ namespace bms{
 			unsigned long length(){
 				return scale * BEAT_RESOLUTION * 4;
 			}
+			BarInfo(): scale(1){}
 			BarInfo(double d): scale(d){}
 		};
 		struct TmpNoteData{
@@ -47,7 +48,7 @@ namespace bms{
 				return global_pulse < b.global_pulse;
 			}
 		};
-		std::vector<BarInfo> bar_info = std::vector<BarInfo>(1001, BarInfo(1));
+		std::array<BarInfo,1001> bar_info;
 		int max_bar = 0;
 		boost::ptr_vector<TmpNoteData> tmp_notes;
 		std::unordered_map<int, double> exbpm;
@@ -76,6 +77,7 @@ namespace bms{
 		bool SetMode();
 		bool SetNotesAndEvents();
 		bool SetNoteTime();
+		bool SetBpm();
 
 		BmsLoader(){}
 		bool Load(const std::string& path, ScoreData* out);
@@ -469,10 +471,15 @@ namespace bms{
 	
 	bool BmsLoader::SetNotesAndEvents(){
 		//Set bar_info
+		++max_bar;
+		if(max_bar > 1000){
+			throw ParseError("Too many bars. (max_bar > 1000)");
+		}
 		int total_pulse = 0;
 		for(int i = 0; i <= max_bar; ++i){
 			bar_info[i].start_pulse = total_pulse;
 			total_pulse += bar_info[i].length();
+			out->lines.emplace_back(total_pulse);
 		}
 		
 		//Set bar_pulse and global_pulse to tmp_notes
@@ -485,6 +492,8 @@ namespace bms{
 		
 		//Sort lnobj
 		boost::sort(lnobj);
+		
+		unsigned long note_count = 0;
 		
 		//tmp_notes -> ScoreData
 		bool ln_pushing[MAX_X] = {false};  //fill by 'false'
@@ -537,12 +546,48 @@ namespace bms{
 						break;
 					}
 					if(0 <= x){
-						out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false);
-						last_note[x] = &out->sound_channels[tmp_note.index].notes.front();
+						if(0 < x){
+							out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false, note_count);
+							++note_count;
+						}
+						else{
+							out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false);
+						}
+						last_note[x] = &out->sound_channels[tmp_note.index].notes.back();
 					}
 					break;
 			}
 		}
+		out->info.note_count = note_count;
+		return true;
+	}
+	
+	bool BmsLoader::SetBpm(){
+		double init = out->info.init_bpm;
+		double max = init, min = init, now = init;
+		
+		std::unordered_map<int, double> bpm_length;
+		BpmEvent init_bpm_event(0, init);
+		const BpmEvent* last = &init_bpm_event;
+		
+		for(const auto& event : out->bpm_events){
+			bpm_length[last->bpm] += (event.y - last->y) * last->bpm;
+			max = std::max(max,event.bpm);
+			min = std::min(min,event.bpm);
+			last = &event;
+		}
+		bpm_length[last->bpm] += (out->lines.back().y - last->y) * last->bpm;
+		
+		using pair_t = std::pair<int, double>;
+		auto pred = [](const pair_t& a, const pair_t& b)->bool{
+			return a.second < b.second;
+		};
+		auto it = std::max_element(bpm_length.begin(), bpm_length.end(), pred);
+		out->info.base_bpm = it->first;
+		out->info.max_bpm = max;
+		out->info.min_bpm = min;
+		
+		return true;
 	}
 	
 	bool BmsLoader::Init(ScoreData* out){
@@ -596,6 +641,7 @@ namespace bms{
 		SetMode();
 		SetNotesAndEvents();
 		//SetNoteTime();
+		SetBpm();
 		
 		return true;
 	}

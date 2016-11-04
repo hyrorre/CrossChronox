@@ -17,6 +17,7 @@
 // bar-line event
 struct BarLine{
 	unsigned long y; // pulse number
+	BarLine(unsigned long y): y(y){}
 };
 // sound note
 struct Note{
@@ -25,8 +26,10 @@ struct Note{
 	unsigned long y; // pulse number
 	unsigned long l; // length (0: normal note; greater than zero (length in pulses): long note)
 	bool c;          // continuation flag
+	unsigned long num = 0;     // playable note count (0から始まる)
 	Note(){}
 	Note(int x, unsigned long y, unsigned long l, bool c): x(x), y(y), l(l), c(c){}
+	Note(int x, unsigned long y, unsigned long l, bool c, unsigned long num): x(x), y(y), l(l), c(c), num(num){}
 };
 // sound channel
 struct SoundChannel{
@@ -105,10 +108,10 @@ struct ScoreInfo{
 	double max_bpm;        // calc from the data
 	double min_bpm;        // calc from the data
 	double base_bpm = 0;   // calc from the data
-	unsigned long note_count;            // calc from the data
+	unsigned long note_count = 0;        // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
-	//int peek_vol;                        //use it if replaygain is implemented
-	bool random_flag = false;              // if #RANDOM is used, it should not be registered IR
+	//int peek_vol;                        // use it if replaygain is implemented
+	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
 };
 
 struct ScoreData{
@@ -119,8 +122,6 @@ struct ScoreData{
 	std::vector<StopEvent>    stop_events;    // stop events
 	std::vector<SoundChannel> sound_channels; // note data
 	BGA                       bga;            // bga data
-	
-	//void Init();
 };
 
 #endif /* ScoreData_hpp */
