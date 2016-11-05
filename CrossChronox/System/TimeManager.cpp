@@ -11,13 +11,13 @@
 
 
 namespace TimeManager{
-	sf::Uint32 lastframe_ms_ = 0;
-	sf::Uint32 now_ms_ = 0;
-	sf::Uint32 delta_ms_ = 0;
+	ms_type lastframe_ms_ = 0;
+	ms_type now_ms_ = 0;
+	ms_type delta_ms_ = 0;
 	
-	const sf::Uint32& lastframe_ms = lastframe_ms_;
-	const sf::Uint32& now_ms = now_ms_;
-	const sf::Uint32& delta_ms = delta_ms_;
+	const ms_type& lastframe_ms = lastframe_ms_;
+	const ms_type& now_ms = now_ms_;
+	const ms_type& delta_ms = delta_ms_;
 	
 	void Update(){
 		static const sf::Clock g_clock;

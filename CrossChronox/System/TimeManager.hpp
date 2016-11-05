@@ -12,9 +12,13 @@
 #include "pch.hpp"
 
 namespace TimeManager{
-	extern const sf::Uint32& lastframe_ms;
-	extern const sf::Uint32& now_ms;
-	extern const sf::Uint32& delta_ms;
+	using ms_type = sf::Uint32;
+	using sec_type = double;
+	using min_type = double;
+	
+	extern const ms_type& lastframe_ms;
+	extern const ms_type& now_ms;
+	extern const ms_type& delta_ms;
 	
 	void Update();
 };
