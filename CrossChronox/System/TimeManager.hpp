@@ -21,6 +21,13 @@ namespace TimeManager{
 	extern const ms_type& delta_ms;
 	
 	void Update();
+	
+	double MsToMin(ms_type ms){
+		return ms / (1000.0 * 60.0);
+	}
+	ms_type MinToMs(double min){
+		return min * 1000.0 * 60.0;
+	}
 };
 
 using namespace TimeManager;
