@@ -10,26 +10,31 @@
 #define ScoreData_hpp
 
 #include "pch.hpp"
+//#include "TimeManager.hpp"
 
-//Define class ScoreData based on bmson specs
-//http://bmson-spec.readthedocs.io/en/master/doc/index.html
+// Define class ScoreData based on bmson specs
+// http://bmson-spec.readthedocs.io/en/master/doc/index.html
+
+using pulse_t = unsigned long;
+using event_id_t = unsigned long;
 
 // bar-line event
 struct BarLine{
-	unsigned long y; // pulse number
-	BarLine(unsigned long y): y(y){}
+	pulse_t y; // pulse number
+	BarLine(pulse_t y): y(y){}
 };
 // sound note
 struct Note{
 	//boost::any x;    // lane
 	int x;           // CrossChronox supports only beat and popn(integer lane)
-	unsigned long y; // pulse number
-	unsigned long l; // length (0: normal note; greater than zero (length in pulses): long note)
+	pulse_t y; // pulse number
+	pulse_t l; // length (0: normal note; greater than zero (length in pulses): long note)
 	bool c;          // continuation flag
-	unsigned long num = 0;     // playable note count (0から始まる)
+	size_t num = 0;     // playable note count (0から始まる)
+	//ms_type ms;   // time(ms) that the note should be handled.
 	Note(){}
-	Note(int x, unsigned long y, unsigned long l, bool c): x(x), y(y), l(l), c(c){}
-	Note(int x, unsigned long y, unsigned long l, bool c, unsigned long num): x(x), y(y), l(l), c(c), num(num){}
+	Note(int x, pulse_t y, pulse_t l, bool c): x(x), y(y), l(l), c(c){}
+	Note(int x, pulse_t y, pulse_t l, bool c, size_t num): x(x), y(y), l(l), c(c), num(num){}
 };
 // sound channel
 struct SoundChannel{
@@ -38,28 +43,28 @@ struct SoundChannel{
 };
 // bpm note
 struct BpmEvent{
-	unsigned long y; // pulse number
+	pulse_t y; // pulse number
 	double bpm;      // bpm
 	BpmEvent(){}
-	BpmEvent(unsigned long y, double bpm): y(y), bpm(bpm){}
+	BpmEvent(pulse_t y, double bpm): y(y), bpm(bpm){}
 };
 // stop note
 struct StopEvent{
-	unsigned long y;        // pulse number
-	unsigned long duration; // stop duration (pulses to stop)
+	pulse_t y;        // pulse number
+	pulse_t duration; // stop duration (pulses to stop)
 	StopEvent(){}
-	StopEvent(unsigned long y, unsigned long d): y(y), duration(d){}
+	StopEvent(pulse_t y, pulse_t d): y(y), duration(d){}
 };
 
 // picture file
 struct BGAHeader{
-	unsigned long id; // self-explanatory
+	event_id_t id; // self-explanatory
 	std::string name;   // picture file name
 };
 // bga note
 struct BGAEvent{
-	unsigned long y;	// pulse number
-	unsigned long id;	// corresponds to BGAHeader.id
+	pulse_t y;	// pulse number
+	event_id_t id;	// corresponds to BGAHeader.id
 };
 // bga
 struct BGA{
@@ -93,7 +98,7 @@ struct ScoreInfo{
 	Mode          mode;
 	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int           difficulty = 0;
-	unsigned long level = 0;             // self-explanatory
+	size_t level = 0;             // self-explanatory
 	double        init_bpm = 130;        // self-explanatory
 	//double        judge_rank = 100;      // relative judge width
 	judge_ms_type judge_ms;
@@ -103,12 +108,12 @@ struct ScoreInfo{
 	std::string   eyecatch_image;        // eyecatch image filename
 	std::string   banner_image;          // banner image filename
 	std::string   preview_music;         // preview music filename
-	unsigned long resolution = 240;      // pulses per quarter note
+	pulse_t resolution = 240;      // pulses per quarter note
 	
 	double max_bpm;        // calc from the data
 	double min_bpm;        // calc from the data
 	double base_bpm = 0;   // calc from the data
-	unsigned long note_count = 0;        // calc from the data
+	size_t note_count = 0;        // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
 	//int peek_vol;                        // use it if replaygain is implemented
 	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR

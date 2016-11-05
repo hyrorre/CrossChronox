@@ -24,8 +24,8 @@ namespace bms{
 		
 		struct BarInfo{
 			double scale;
-			unsigned long start_pulse;
-			unsigned long length(){
+			pulse_t start_pulse;
+			pulse_t length(){
 				return scale * BEAT_RESOLUTION * 4;
 			}
 			BarInfo(): scale(1){}
@@ -38,8 +38,8 @@ namespace bms{
 			
 			bool lnend = false;
 			
-			unsigned long bar_pulse = 0;
-			unsigned long global_pulse = 0;
+			pulse_t bar_pulse = 0;
+			pulse_t global_pulse = 0;
 			
 			TmpNoteData(){}
 			TmpNoteData(int bar, int channel, int index, int tmp_bar_linepulse, int tmp_bar_lineresolution): bar(bar), channel(channel), index(index), bar_pulse( 4 * BEAT_RESOLUTION * tmp_bar_linepulse / tmp_bar_lineresolution){}
@@ -493,7 +493,7 @@ namespace bms{
 		//Sort lnobj
 		boost::sort(lnobj);
 		
-		unsigned long note_count = 0;
+		size_t note_count = 0;
 		
 		//tmp_notes -> ScoreData
 		bool ln_pushing[MAX_X] = {false};  //fill by 'false'
