@@ -23,9 +23,9 @@
 #include <sfeMovie/Movie.hpp>
 
 //Qt
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QMessageBox>
-#include <QtCore/QTextCodec>
+#include <QApplication>
+#include <QMessageBox>
+#include <QTextCodec>
 
 //jsoncpp
 #include <json/json.h>

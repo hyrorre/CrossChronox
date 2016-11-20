@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5614FD1F1DB0A5770072FBC9 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD1E1DB0A5770072FBC9 /* README.md */; };
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
@@ -34,6 +33,7 @@
 		565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 565414BD1DB28186001E608A /* libcryptopp.a */; };
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
+		56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA071DCD943C00511911 /* SoundPlayer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,7 +52,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5614FD1E1DB0A5770072FBC9 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -91,6 +90,8 @@
 		56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScorePlayer.hpp; sourceTree = "<group>"; };
 		56EACA041DCC509300511911 /* TimeManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeManager.cpp; sourceTree = "<group>"; };
 		56EACA051DCC509300511911 /* TimeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TimeManager.hpp; sourceTree = "<group>"; };
+		56EACA071DCD943C00511911 /* SoundPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundPlayer.cpp; sourceTree = "<group>"; };
+		56EACA081DCD943C00511911 /* SoundPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundPlayer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,7 +152,6 @@
 		563C70E81DAB3C5700CCD81F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				5614FD1E1DB0A5770072FBC9 /* README.md */,
 				563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */,
 			);
 			name = "Supporting Files";
@@ -234,6 +234,8 @@
 			children = (
 				56EACA041DCC509300511911 /* TimeManager.cpp */,
 				56EACA051DCC509300511911 /* TimeManager.hpp */,
+				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
+				56EACA081DCD943C00511911 /* SoundPlayer.hpp */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -332,10 +334,10 @@
 				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
 				563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
-				5614FD1F1DB0A5770072FBC9 /* README.md in Sources */,
 				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,
 				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
 				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,
+				56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */,
 				563C711B1DAB3C9000CCD81F /* Fade.cpp in Sources */,
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
 				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
@@ -479,7 +481,11 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
-				HEADER_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Library/Frameworks/QtCore.framework/Headers,
+					/Library/Frameworks/QtWidgets.framework/Headers,
+				);
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -503,7 +509,11 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
-				HEADER_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Library/Frameworks/QtCore.framework/Headers,
+					/Library/Frameworks/QtWidgets.framework/Headers,
+				);
 				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
