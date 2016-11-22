@@ -139,7 +139,6 @@
 				563C71001DAB3C9000CCD81F /* Input */,
 				563C71031DAB3C9000CCD81F /* main.cpp */,
 				563C71041DAB3C9000CCD81F /* Path */,
-				5637B4831DE4806F00589544 /* Exception.hpp */,
 				563C71071DAB3C9000CCD81F /* pch.cpp */,
 				563C71081DAB3C9000CCD81F /* pch.hpp */,
 				563C71091DAB3C9000CCD81F /* Scene */,
@@ -234,6 +233,7 @@
 		56EACA001DCC4FED00511911 /* System */ = {
 			isa = PBXGroup;
 			children = (
+				5637B4831DE4806F00589544 /* Exception.hpp */,
 				56EACA041DCC509300511911 /* TimeManager.cpp */,
 				56EACA051DCC509300511911 /* TimeManager.hpp */,
 				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
