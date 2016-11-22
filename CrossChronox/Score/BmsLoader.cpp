@@ -16,7 +16,6 @@
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
 namespace bms{
-	
 	class BmsLoader : private boost::noncopyable{
 		friend bool Load(const std::string& path, ScoreData* out);
 		
@@ -224,7 +223,6 @@ namespace bms{
 		"INSANE"     //5
 	};
 	
-	
 	bool BmsLoader::TryParseObjLine(){
 		//01234567
 		//#nnncc:001122
@@ -243,7 +241,6 @@ namespace bms{
 		}
 		
 		//it is obj line. start parsing.
-		
 		//parse '#nnncc:'
 		std::string tmps = { nowline[1], nowline[2], nowline[3] };
 		int bar = std::stoi(tmps, nullptr, 10);
@@ -498,7 +495,7 @@ namespace bms{
 		
 		//tmp_notes -> ScoreData
 		bool ln_pushing[MAX_X] = {false};  //fill by 'false'
-		std::array<Note*,MAX_X> last_note; //last note of the lane
+		std::array<Note*, MAX_X> last_note; //last note of the lane
 		for(const auto& tmp_note : tmp_notes){
 			switch(tmp_note.channel){
 				case CHANNEL_METER:
@@ -533,8 +530,8 @@ namespace bms{
 					break;
 					
 				case CHANNEL_BGM:
-				default:
-					bool ln_channel_flag = (51 <= tmp_note.channel);
+				default: //Normal note, LN (invisible note is not implemented yet)
+					bool ln_channel_flag = (51 <= tmp_note.channel && tmp_note.channel <= 69);
 					int x = ChannelToX(tmp_note.channel);
 					bool lnend_flag = false;
 					
