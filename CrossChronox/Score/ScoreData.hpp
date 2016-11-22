@@ -115,7 +115,7 @@ struct ScoreInfo{
 	Mode          mode;
 	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int           difficulty = 0;
-	size_t level = 0;             // self-explanatory
+	size_t        level = 0;             // self-explanatory
 	double        init_bpm = 130;        // self-explanatory
 	//double        judge_rank = 100;      // relative judge width
 	judge_ms_type judge_ms;
@@ -125,12 +125,12 @@ struct ScoreInfo{
 	std::string   eyecatch_image;        // eyecatch image filename
 	std::string   banner_image;          // banner image filename
 	std::string   preview_music;         // preview music filename
-	pulse_t resolution = 240;      // pulses per quarter note
+	pulse_t resolution = 240;            // pulses per quarter note
 	
-	double max_bpm;        // calc from the data
-	double min_bpm;        // calc from the data
-	double base_bpm = 0;   // calc from the data
-	size_t note_count = 0;        // calc from the data
+	double max_bpm;                      // calc from the data
+	double min_bpm;                      // calc from the data
+	double base_bpm = 0;                 // calc from the data
+	size_t note_count = 0;               // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
 	//int peek_vol;                        // use it if replaygain is implemented
 	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
