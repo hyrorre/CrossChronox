@@ -54,6 +54,7 @@
 /* Begin PBXFileReference section */
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
+		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CrossChronox-Info.plist"; sourceTree = "<group>"; };
 		563C70FD1DAB3C9000CCD81F /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
@@ -138,6 +139,7 @@
 				563C71001DAB3C9000CCD81F /* Input */,
 				563C71031DAB3C9000CCD81F /* main.cpp */,
 				563C71041DAB3C9000CCD81F /* Path */,
+				5637B4831DE4806F00589544 /* Exception.hpp */,
 				563C71071DAB3C9000CCD81F /* pch.cpp */,
 				563C71081DAB3C9000CCD81F /* pch.hpp */,
 				563C71091DAB3C9000CCD81F /* Scene */,

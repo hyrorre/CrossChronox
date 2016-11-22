@@ -45,7 +45,7 @@ int Application::Run(){
 	ScoreData score;
 	
 	if(!scorefile_path.empty()){
-		bms::Load(scorefile_path.string(), &score);
+		LoadBms(scorefile_path.string(), &score);
 	}
 	
 	
