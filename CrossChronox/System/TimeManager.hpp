@@ -22,10 +22,10 @@ namespace TimeManager{
 	
 	void Update();
 	
-	double MsToMin(ms_type ms){
+	inline double MsToMin(ms_type ms){
 		return ms / (1000.0 * 60.0);
 	}
-	ms_type MinToMs(double min){
+	inline ms_type MinToMs(double min){
 		return min * 1000.0 * 60.0;
 	}
 };

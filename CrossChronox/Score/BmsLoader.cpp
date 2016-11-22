@@ -20,7 +20,7 @@ namespace bms{
 	class BmsLoader : private boost::noncopyable{
 		friend bool Load(const std::string& path, ScoreData* out);
 		
-		static const int BEAT_RESOLUTION = 240;
+		static const pulse_t BEAT_RESOLUTION = 240;
 		
 		struct BarInfo{
 			double scale;
@@ -305,7 +305,8 @@ namespace bms{
 					//BPM 130
 					//BPM01 130
 					if(std::isblank(header[3])){
-						out->info.init_bpm = atof(GetArg());
+						int bpm = out->info.init_bpm = atof(GetArg());
+						out->bpm_events.push_back(new BpmEvent(0, bpm));
 					}
 					else{
 						exbpm[GetIndex()] = atof(GetArg());
@@ -509,21 +510,22 @@ namespace bms{
 					break; //ignore //TODO: implement
 					
 				case CHANNEL_BPM:
-					out->bpm_events.emplace_back(tmp_note.global_pulse, tmp_note.index);
+					out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, tmp_note.index));
 					break;
 					
 				case CHANNEL_EXBPM:
 					try{
-						out->bpm_events.emplace_back(tmp_note.global_pulse, exbpm.at(tmp_note.index));
+						out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, exbpm.at(tmp_note.index)));
 					}
 					catch(std::out_of_range&){
-						out->bpm_events.emplace_back(tmp_note.global_pulse, 120);
+						//default of exBPM is 120
+						out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, 120));
 					}
 					break;
 					
 				case CHANNEL_STOPS:
 					try{
-						out->stop_events.emplace_back(tmp_note.global_pulse, 10 * stop.at(tmp_note.index));
+						out->bpm_events.push_back(new StopEvent(tmp_note.global_pulse, 10 * stop.at(tmp_note.index)));
 					}
 					catch(std::out_of_range&){
 						throw ParseError("Some mistakes are found. (#STOP)");
@@ -553,27 +555,53 @@ namespace bms{
 						else{
 							out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false);
 						}
+						out->all_note.push_back(&out->sound_channels[tmp_note.index].notes.back());
 						last_note[x] = &out->sound_channels[tmp_note.index].notes.back();
 					}
 					break;
 			}
 		}
-		out->info.note_count = note_count;
+		//(last index) + 1 is the number of notes
+		//最後のインデックス+1がノーツの個数
+		out->info.note_count = note_count + 1;
+		return true;
+	}
+	
+	bool BmsLoader::SetNoteTime(){
+		auto bpm_event = out->bpm_events.cbegin();
+		auto end = out->bpm_events.cend();
+		auto next_bpm_event = bpm_event + 1;
+		const auto resolution = out->info.resolution;
+		for(Note* note : out->all_note){
+			while(next_bpm_event != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
+				++bpm_event;
+				++next_bpm_event;
+			}
+			note->ms = bpm_event->NextEventMs(note->y, resolution);
+		}
 		return true;
 	}
 	
 	bool BmsLoader::SetBpm(){
 		double init = out->info.init_bpm;
-		double max = init, min = init, now = init;
+		double max = init, min = init;
 		
 		std::unordered_map<int, double> bpm_length;
 		BpmEvent init_bpm_event(0, init);
 		const BpmEvent* last = &init_bpm_event;
+		const BpmEvent* last_bpm_change = &init_bpm_event;
 		
-		for(const auto& event : out->bpm_events){
-			bpm_length[last->bpm] += (event.y - last->y) * last->bpm;
-			max = std::max(max,event.bpm);
-			min = std::min(min,event.bpm);
+		for(auto& event : out->bpm_events){
+			if(event.duration == 0){ //if event is BpmEvents
+				event.duration = event.y - last_bpm_change->y;
+				bpm_length[static_cast<int>(last->bpm)] += event.duration * last->bpm;
+				max = std::max(max,event.bpm);
+				min = std::min(min,event.bpm);
+				last_bpm_change = &event;
+			}
+			else{ //if event is StopEvents
+				event.bpm = last_bpm_change->bpm;
+			}
 			last = &event;
 		}
 		bpm_length[last->bpm] += (out->lines.back().y - last->y) * last->bpm;
@@ -640,7 +668,7 @@ namespace bms{
 		SetSubtitle();
 		SetMode();
 		SetNotesAndEvents();
-		//SetNoteTime();
+		SetNoteTime();
 		SetBpm();
 		
 		return true;
