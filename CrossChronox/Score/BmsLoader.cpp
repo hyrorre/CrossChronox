@@ -359,7 +359,7 @@ namespace bms{
 				}
 				else if(boost::istarts_with(header, "RANK")){
 					int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
-					out->info.judge_ms = rank_to_judge_ms.at(atoi(GetArg()));
+					out->info.judge_ms = rank_to_judge_ms.at(i);
 				}
 				else if(boost::istarts_with(header, "BASEBPM")){
 					out->info.base_bpm = atof(GetArg());
@@ -528,7 +528,7 @@ namespace bms{
 						out->bpm_events.push_back(new StopEvent(tmp_note.global_pulse, 10 * stop.at(tmp_note.index)));
 					}
 					catch(std::out_of_range&){
-						throw ParseError("Some mistakes are found. (#STOP)");
+						throw ParseError("Some errors are found. (#STOP)");
 					}
 					break;
 					
@@ -650,7 +650,10 @@ namespace bms{
 			}
 			
 			//get extention from filename
-			extention = path.substr(path.find_last_of('.') + 1);
+			auto dot_pos = path.find_last_of('.');
+			if(dot_pos != std::string::npos){
+				extention = path.substr(dot_pos + 1);
+			}
 			
 			//start parsing
 			std::string line;
