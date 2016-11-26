@@ -18,8 +18,8 @@ LICENSE : LGPL v3
 
 # Building on macOS
 1. Install boost, jsoncpp and Crypto++ using homebrew.
-* Download SFML and sfeMovie, and put frameworks to /Library/Frameworks
-* Install Qt, and make symbolic links. (run following scripts on terminal)
+2. Download SFML and sfeMovie, and put frameworks to /Library/Frameworks
+3. Install Qt, and make symbolic links. (run following scripts on terminal)
 
 ```
 cd (Qt Application Directory)/(Qt Version)/clang_64/lib
