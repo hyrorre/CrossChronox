@@ -40,9 +40,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/string_ref.hpp>
-#include <boost/ptr_container/ptr_list.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/ptr_container/ptr_unordered_map.hpp>
+#include <boost/ptr_container/ptr_container.hpp>
 #include <boost/variant.hpp>
 #include <boost/function.hpp>
 #include <boost/xpressive/xpressive.hpp>
@@ -59,6 +57,8 @@
 #include <boost/algorithm/clamp.hpp>
 #include <boost/range/algorithm_ext.hpp>
 #include <boost/range/algorithm/binary_search.hpp>
+#include <boost/range/algorithm/lower_bound.hpp>
+#include <boost/range/algorithm/upper_bound.hpp>
 #include <boost/range/algorithm/sort.hpp>
 #include <boost/range.hpp>
 

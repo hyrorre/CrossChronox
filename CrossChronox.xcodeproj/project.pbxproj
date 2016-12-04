@@ -34,6 +34,7 @@
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
 		56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA071DCD943C00511911 /* SoundPlayer.cpp */; };
+		56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* SoundManager.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -93,6 +94,8 @@
 		56EACA051DCC509300511911 /* TimeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TimeManager.hpp; sourceTree = "<group>"; };
 		56EACA071DCD943C00511911 /* SoundPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundPlayer.cpp; sourceTree = "<group>"; };
 		56EACA081DCD943C00511911 /* SoundPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundPlayer.hpp; sourceTree = "<group>"; };
+		56F1CB491DEB2D78007BD827 /* SoundManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundManager.cpp; sourceTree = "<group>"; };
+		56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundManager.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -225,6 +228,10 @@
 				5614FD211DB0C2F30072FBC9 /* MD5.hpp */,
 				56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */,
 				56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */,
+				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
+				56EACA081DCD943C00511911 /* SoundPlayer.hpp */,
+				56F1CB491DEB2D78007BD827 /* SoundManager.cpp */,
+				56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */,
 			);
 			name = Score;
 			path = CrossChronox/Score;
@@ -236,8 +243,6 @@
 				5637B4831DE4806F00589544 /* Exception.hpp */,
 				56EACA041DCC509300511911 /* TimeManager.cpp */,
 				56EACA051DCC509300511911 /* TimeManager.hpp */,
-				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
-				56EACA081DCD943C00511911 /* SoundPlayer.hpp */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -334,6 +339,7 @@
 				563C711C1DAB3C9000CCD81F /* MusicSelect.cpp in Sources */,
 				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
 				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
+				56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */,
 				563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
 				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,

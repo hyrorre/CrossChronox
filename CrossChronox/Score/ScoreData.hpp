@@ -38,7 +38,16 @@ struct Note{
 // sound channel
 struct SoundChannel{
 	std::string name; // sound file name
+	sf::SoundBuffer buf;
 	std::vector<Note> notes;   // notes using this sound
+	
+	Note* GetNextNote(Note* note){
+		return const_cast<Note*>(GetNextNote(static_cast<const Note*>(note)));
+	}
+	const Note* GetNextNote(const Note* note) const{
+		if(note != &notes.back()) return ++note;
+		else return nullptr;
+	}
 };
 // bpm note
 struct BpmEvent{
@@ -146,7 +155,7 @@ struct ScoreData{
 	
 	std::vector<Note*>          all_note;       // Note timeline
 	
-	//pulse_t MsToPulse(ms_type ms) const;
+	pulse_t MsToPulse(ms_type ms) const;
 	//ms_type PulseToMs(pulse_t pulse) const;
 };
 
