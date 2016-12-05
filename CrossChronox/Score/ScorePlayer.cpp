@@ -9,10 +9,10 @@
 #include "ScorePlayer.hpp"
 #include "TimeManager.hpp"
 
-ScorePlayer::ScorePlayer(const ScoreData& score_ref): score(&score_ref){
+ScorePlayer::ScorePlayer(ScoreData& score_ref): score(&score_ref){
 }
 
-void ScorePlayer::SetScore(const ScoreData& score){
+void ScorePlayer::SetScore(ScoreData& score){
 	this->score = &score;
 }
 
@@ -43,7 +43,7 @@ bool ScorePlayer::Update(){
 	Note tmp_note;
 	tmp_note.y = last_pulse;
 //	Note* end = *score->all_note.end();
-//	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
+	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
 //	Note* note = *boost::upper_bound(score->all_note, tmp_note, pred);
 //	for(; note != end; ++note){
 //		if(now_pulse < note->y) break;
@@ -51,7 +51,7 @@ bool ScorePlayer::Update(){
 //	}
 	
 	for(auto& channel : score->sound_channels){
-		Note* note = &*boost::upper_bound(channel.notes, tmp_note);
+		Note* note = &*std::upper_bound(channel.notes.begin(),channel.notes.end(), tmp_note, pred);
 		Note* end = &*channel.notes.end();
 		for(; note != end; ++note){
 			if(now_pulse < note->y) break;

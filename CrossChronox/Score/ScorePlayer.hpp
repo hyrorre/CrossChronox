@@ -18,8 +18,8 @@ class ScorePlayer{
 	std::vector<sf::SoundBuffer> buf;
 public:
 	ScorePlayer(){}
-	ScorePlayer(const ScoreData& score);
-	void SetScore(const ScoreData& score);
+	ScorePlayer(ScoreData& score);
+	void SetScore(ScoreData& score);
 	bool Start();
 	bool Update();
 };
