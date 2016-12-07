@@ -25,7 +25,7 @@ struct BarLine{
 };
 // sound note
 struct Note{
-	int x;          // CrossChronox supports only beat and popn(integer lane)
+	int x;          // CrossChronox supports only beat and popn(that have integer lane)
 	pulse_t y;      // pulse number
 	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
 	bool c;         // continuation flag
