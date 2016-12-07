@@ -23,5 +23,5 @@ LICENSE : LGPL v3
 
 ```
 cd (Qt Application Directory)/(Qt Version)/clang_64/lib
-ln -s QtWidgets.framework QtCore.framework /Library/Frameworks
+sudo ln -s QtWidgets.framework QtCore.framework /Library/Frameworks
 ```
