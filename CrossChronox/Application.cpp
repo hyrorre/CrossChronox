@@ -89,7 +89,7 @@ Application::~Application(){
 }
 
 void Application::HandleException(std::exception& e){
-	QMessageBox msgBox;
+    QMessageBox msgBox;
 	QTextCodec* tc = QTextCodec::codecForLocale();
 	msgBox.setText(tc->toUnicode(e.what()));
 	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS

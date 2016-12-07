@@ -361,6 +361,12 @@ bool BmsLoader::TryParseHeaderLine(){
 				out->info.base_bpm = atof(GetArg());
 			}
 		}
+        else{
+            //if header command was not found
+            return 0;
+        }
+        //if command was found
+        return 1;
 	}
 	catch(std::out_of_range& e){
 		std::stringstream msg;

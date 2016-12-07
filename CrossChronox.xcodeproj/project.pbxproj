@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
+		562488BB1DF855EB00A9F1FE /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B81DF855EB00A9F1FE /* QtCore.framework */; };
+		562488BC1DF855EB00A9F1FE /* QtGui.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B91DF855EB00A9F1FE /* QtGui.framework */; };
+		562488BD1DF855EB00A9F1FE /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
@@ -26,11 +29,10 @@
 		563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsLoader.cpp */; };
 		563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C713D1DABD74800CCD81F /* ScoreData.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
-		563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; };
-		563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; };
-		563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 565414BD1DB28186001E608A /* libcryptopp.a */; };
+		567EB82D1DF85C3A00BBE5E5 /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488B81DF855EB00A9F1FE /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		567EB82E1DF85C3A00BBE5E5 /* QtGui.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488B91DF855EB00A9F1FE /* QtGui.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		567EB82F1DF85C3A00BBE5E5 /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
 		56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA071DCD943C00511911 /* SoundPlayer.cpp */; };
@@ -44,8 +46,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */,
-				563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */,
+				567EB82D1DF85C3A00BBE5E5 /* QtCore.framework in CopyFiles */,
+				567EB82E1DF85C3A00BBE5E5 /* QtGui.framework in CopyFiles */,
+				567EB82F1DF85C3A00BBE5E5 /* QtWidgets.framework in CopyFiles */,
 				563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -55,6 +58,9 @@
 /* Begin PBXFileReference section */
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
+		562488B81DF855EB00A9F1FE /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
+		562488B91DF855EB00A9F1FE /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtGui.framework; sourceTree = "<group>"; };
+		562488BA1DF855EB00A9F1FE /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
 		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
@@ -63,8 +69,8 @@
 		563C71011DAB3C9000CCD81F /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
 		563C71021DAB3C9000CCD81F /* InputManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputManager.hpp; sourceTree = "<group>"; };
 		563C71031DAB3C9000CCD81F /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		563C71051DAB3C9000CCD81F /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
-		563C71061DAB3C9000CCD81F /* Path_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Path_macOS.mm; sourceTree = "<group>"; };
+		563C71051DAB3C9000CCD81F /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Path.hpp; path = CrossChronox/Platform/Path.hpp; sourceTree = "<group>"; };
+		563C71061DAB3C9000CCD81F /* Path_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Path_macOS.mm; path = CrossChronox/Platform/Path_macOS.mm; sourceTree = SOURCE_ROOT; };
 		563C71071DAB3C9000CCD81F /* pch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pch.cpp; sourceTree = "<group>"; };
 		563C71081DAB3C9000CCD81F /* pch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pch.hpp; sourceTree = "<group>"; };
 		563C710A1DAB3C9000CCD81F /* Fade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Fade.cpp; sourceTree = "<group>"; };
@@ -85,8 +91,6 @@
 		563C713E1DABD74800CCD81F /* ScoreData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreData.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
 		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
-		563C71431DABECD400CCD81F /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
-		563C71461DABF07100CCD81F /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
 		565414BD1DB28186001E608A /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = ../../../../../usr/local/Cellar/cryptopp/5.6.4/lib/libcryptopp.a; sourceTree = "<group>"; };
 		56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScorePlayer.cpp; sourceTree = "<group>"; };
 		56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScorePlayer.hpp; sourceTree = "<group>"; };
@@ -103,9 +107,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				562488BB1DF855EB00A9F1FE /* QtCore.framework in Frameworks */,
+				562488BC1DF855EB00A9F1FE /* QtGui.framework in Frameworks */,
+				562488BD1DF855EB00A9F1FE /* QtWidgets.framework in Frameworks */,
 				565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */,
-				563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */,
-				563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */,
 				563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */,
 				563C71271DAB3D2B00CCD81F /* libboost_filesystem-mt.a in Frameworks */,
 				563C71281DAB3D2B00CCD81F /* libboost_filesystem.a in Frameworks */,
@@ -143,7 +148,7 @@
 				563C70FE1DAB3C9000CCD81F /* Application.hpp */,
 				563C71001DAB3C9000CCD81F /* Input */,
 				563C71031DAB3C9000CCD81F /* main.cpp */,
-				563C71041DAB3C9000CCD81F /* Path */,
+				563C71041DAB3C9000CCD81F /* Platform */,
 				563C71071DAB3C9000CCD81F /* pch.cpp */,
 				563C71081DAB3C9000CCD81F /* pch.hpp */,
 				563C71091DAB3C9000CCD81F /* Scene */,
@@ -180,12 +185,13 @@
 			path = Input;
 			sourceTree = "<group>";
 		};
-		563C71041DAB3C9000CCD81F /* Path */ = {
+		563C71041DAB3C9000CCD81F /* Platform */ = {
 			isa = PBXGroup;
 			children = (
 				563C71051DAB3C9000CCD81F /* Path.hpp */,
 				563C71061DAB3C9000CCD81F /* Path_macOS.mm */,
 			);
+			name = Platform;
 			path = Path;
 			sourceTree = "<group>";
 		};
@@ -207,9 +213,10 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				562488B81DF855EB00A9F1FE /* QtCore.framework */,
+				562488B91DF855EB00A9F1FE /* QtGui.framework */,
+				562488BA1DF855EB00A9F1FE /* QtWidgets.framework */,
 				565414BD1DB28186001E608A /* libcryptopp.a */,
-				563C71461DABF07100CCD81F /* QtCore.framework */,
-				563C71431DABECD400CCD81F /* QtWidgets.framework */,
 				563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */,
 				563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */,
 				563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */,

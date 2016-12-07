@@ -43,7 +43,7 @@ bool ScorePlayer::Update(){
 	Note tmp_note;
 	tmp_note.y = last_pulse;
 //	Note* end = *score->all_note.end();
-	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
+//	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
 //	Note* note = *boost::upper_bound(score->all_note, tmp_note, pred);
 //	for(; note != end; ++note){
 //		if(now_pulse < note->y) break;
@@ -51,7 +51,7 @@ bool ScorePlayer::Update(){
 //	}
 	
 	for(auto& channel : score->sound_channels){
-		Note* note = &*std::upper_bound(channel.notes.begin(),channel.notes.end(), tmp_note, pred);
+		Note* note = &*std::upper_bound(channel.notes.begin(), channel.notes.end(), tmp_note);
 		Note* end = &*channel.notes.end();
 		for(; note != end; ++note){
 			if(now_pulse < note->y) break;
@@ -64,5 +64,6 @@ bool ScorePlayer::Update(){
 		}
 		
 	}
+    return 0;
 }
 

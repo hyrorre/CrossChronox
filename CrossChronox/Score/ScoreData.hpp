@@ -34,6 +34,9 @@ struct Note{
 	Note(){}
 	Note(int x, pulse_t y, pulse_t l, bool c): x(x), y(y), l(l), c(c){}
 	Note(int x, pulse_t y, pulse_t l, bool c, size_t num): x(x), y(y), l(l), c(c), num(num){}
+    bool operator< (const Note& other) const{
+        return y < other.y;
+    }
 };
 // sound channel
 struct SoundChannel{
