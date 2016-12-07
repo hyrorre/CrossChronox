@@ -496,7 +496,7 @@
 					/Library/Frameworks/QtCore.framework/Headers,
 					/Library/Frameworks/QtWidgets.framework/Headers,
 				);
-				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
+				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -524,7 +524,7 @@
 					/Library/Frameworks/QtCore.framework/Headers,
 					/Library/Frameworks/QtWidgets.framework/Headers,
 				);
-				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
+				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
