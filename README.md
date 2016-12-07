@@ -22,6 +22,6 @@ LICENSE : LGPL v3
 3. Install Qt, and make symbolic links. (run following scripts on terminal)
 
 ```
-cd (Qt Application Directory)/(Qt Version)/clang_64/lib
-sudo ln -s QtWidgets.framework QtCore.framework /Library/Frameworks
+sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtCore.framework    /Library/Frameworks
+sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtWidgets.framework /Library/Frameworks
 ```
