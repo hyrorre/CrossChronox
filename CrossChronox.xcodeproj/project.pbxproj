@@ -57,7 +57,7 @@
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
 		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CrossChronox-Info.plist"; sourceTree = "<group>"; };
+		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
 		563C70FD1DAB3C9000CCD81F /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
 		563C70FE1DAB3C9000CCD81F /* Application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Application.hpp; sourceTree = "<group>"; };
 		563C71011DAB3C9000CCD81F /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
@@ -73,7 +73,7 @@
 		563C710D1DAB3C9000CCD81F /* MusicSelect.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MusicSelect.hpp; sourceTree = "<group>"; };
 		563C710E1DAB3C9000CCD81F /* SceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneManager.cpp; sourceTree = "<group>"; };
 		563C710F1DAB3C9000CCD81F /* SceneManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SceneManager.hpp; sourceTree = "<group>"; };
-		563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = KeyConfig_Default.json; sourceTree = "<group>"; };
+		563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = KeyConfig_Default.json; path = ../Resources/KeyConfig_Default.json; sourceTree = "<group>"; };
 		563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_filesystem-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem-mt.a"; sourceTree = "<group>"; };
 		563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem.a; sourceTree = "<group>"; };
 		563C71251DAB3D2B00CCD81F /* libboost_system-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_system-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_system-mt.a"; sourceTree = "<group>"; };
@@ -121,6 +121,8 @@
 			isa = PBXGroup;
 			children = (
 				563C70E71DAB3C5700CCD81F /* CrossChronox */,
+				563C70EF1DAB3C5700CCD81F /* Resources */,
+				563C70E81DAB3C5700CCD81F /* Supporting Files */,
 				563C70E61DAB3C5700CCD81F /* Products */,
 				563C71221DAB3D2B00CCD81F /* Frameworks */,
 			);
@@ -147,8 +149,6 @@
 				563C71091DAB3C9000CCD81F /* Scene */,
 				563C71361DABD71C00CCD81F /* Score */,
 				56EACA001DCC4FED00511911 /* System */,
-				563C70EF1DAB3C5700CCD81F /* Resources */,
-				563C70E81DAB3C5700CCD81F /* Supporting Files */,
 			);
 			path = CrossChronox;
 			sourceTree = "<group>";
@@ -159,6 +159,7 @@
 				563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */,
 			);
 			name = "Supporting Files";
+			path = CrossChronox;
 			sourceTree = "<group>";
 		};
 		563C70EF1DAB3C5700CCD81F /* Resources */ = {
@@ -167,6 +168,7 @@
 				563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */,
 			);
 			name = Resources;
+			path = CrossChronox;
 			sourceTree = "<group>";
 		};
 		563C71001DAB3C9000CCD81F /* Input */ = {
