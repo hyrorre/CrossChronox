@@ -1,0 +1,43 @@
+{
+    "VirtualKey": {
+        "Beat": {
+            "1pE1": [0],
+            "1pE2": [1],
+            "1pE3": [2],
+            "1pE4": [3],
+            "1pKey1": [25],
+            "1pKey2": [24],
+            "1pKey3": [23],
+            "1pKey4": [22],
+            "1pKey5": [21],
+            "1pKey6": [20],
+            "1pKey7": [19],
+            "1pScrUp": [18],
+            "1pScrDown": [17]
+        }
+    },
+    "VirtualKeyFunc": {
+        "Option": {
+            "Beat": ["1pE1"]
+        },
+        "FlipOption": {
+            "Beat": ["1pE2"]
+        },
+        "CloseFolder": {
+            "Beat": ["1pKey2", "1pKey4", "1pKey6"]
+        },
+        "DecideMusic": {
+            "Beat": ["1pKey1", "1pKey3", "1pKey5", "1pKey7"]
+        },
+		"UpMusic": {
+			"Beat": ["1pScrUp"]
+		},
+		"DownMusic": {
+			"Beat": ["1pScrDown"]
+		}
+	},
+	"AnalogScratch": {
+		"Use1pAnalogScratch": false
+        "1pSensivity": 1.0
+	}
+}

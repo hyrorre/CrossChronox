@@ -9,6 +9,7 @@
 #include "Application.hpp"
 #include "Path.hpp"
 #include "BmsLoader.hpp"
+#include "TimeManager.hpp"
 
 void Application::ParseArgs(int argc, char *argv[]){
 	if(argc > 0) executable_path = argv[0];
@@ -62,13 +63,18 @@ int Application::Run(){
 		sf::Event event;
 		while(window.pollEvent(event)){
 			//「クローズが要求された」イベント：ウインドウを閉じる
-			if(event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)){
+			if(event.type == sf::Event::Closed){
 				window.close();
+			}
+			if(event.type == sf::Event::KeyPressed){
+				if(event.key.code == sf::Keyboard::Escape){
+					window.close();
+				}
 			}
 		}
 		
-		window.clear();     //画面をクリア
-		renderer.clear(sf::Color::Black);  //バッファ画面を黒でクリア
+		//update time
+		TimeManager::Update();
 		
 		//Scene Update and Draw
 		
@@ -78,6 +84,7 @@ int Application::Run(){
 		window.draw(sprite);    //バッファ画面テクスチャの入ったスプライトを画面に描画
 		//ちなみにsf::SpriteのPositionの初期値は(0,0)です。
 		window.display();   //描画アップデート
+		renderer.clear(sf::Color::Black);  //バッファ画面を黒でクリア
 	}
 	return 0;
 }
@@ -91,7 +98,7 @@ Application::~Application(){
 }
 
 void Application::HandleException(std::exception& e){
-	QMessageBox msgBox;
+    QMessageBox msgBox;
 	QTextCodec* tc = QTextCodec::codecForLocale();
 	msgBox.setText(tc->toUnicode(e.what()));
 	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS

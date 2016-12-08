@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5614FD1F1DB0A5770072FBC9 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD1E1DB0A5770072FBC9 /* README.md */; };
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
+		562488BB1DF855EB00A9F1FE /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B81DF855EB00A9F1FE /* QtCore.framework */; };
+		562488BC1DF855EB00A9F1FE /* QtGui.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B91DF855EB00A9F1FE /* QtGui.framework */; };
+		562488BD1DF855EB00A9F1FE /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
@@ -27,11 +29,14 @@
 		563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsLoader.cpp */; };
 		563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C713D1DABD74800CCD81F /* ScoreData.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
-		563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; };
-		563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71431DABECD400CCD81F /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; };
-		563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C71461DABF07100CCD81F /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 565414BD1DB28186001E608A /* libcryptopp.a */; };
+		567EB82D1DF85C3A00BBE5E5 /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488B81DF855EB00A9F1FE /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		567EB82E1DF85C3A00BBE5E5 /* QtGui.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488B91DF855EB00A9F1FE /* QtGui.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		567EB82F1DF85C3A00BBE5E5 /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
+		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
+		56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA071DCD943C00511911 /* SoundPlayer.cpp */; };
+		56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* SoundManager.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,8 +46,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				563C71481DABF07A00CCD81F /* QtCore.framework in CopyFiles */,
-				563C71451DABECE200CCD81F /* QtWidgets.framework in CopyFiles */,
+				567EB82D1DF85C3A00BBE5E5 /* QtCore.framework in CopyFiles */,
+				567EB82E1DF85C3A00BBE5E5 /* QtGui.framework in CopyFiles */,
+				567EB82F1DF85C3A00BBE5E5 /* QtWidgets.framework in CopyFiles */,
 				563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,18 +56,21 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5614FD1E1DB0A5770072FBC9 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
+		562488B81DF855EB00A9F1FE /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
+		562488B91DF855EB00A9F1FE /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtGui.framework; sourceTree = "<group>"; };
+		562488BA1DF855EB00A9F1FE /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
+		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CrossChronox-Info.plist"; sourceTree = "<group>"; };
+		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
 		563C70FD1DAB3C9000CCD81F /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
 		563C70FE1DAB3C9000CCD81F /* Application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Application.hpp; sourceTree = "<group>"; };
 		563C71011DAB3C9000CCD81F /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
 		563C71021DAB3C9000CCD81F /* InputManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputManager.hpp; sourceTree = "<group>"; };
 		563C71031DAB3C9000CCD81F /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		563C71051DAB3C9000CCD81F /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
-		563C71061DAB3C9000CCD81F /* Path_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Path_macOS.mm; sourceTree = "<group>"; };
+		563C71051DAB3C9000CCD81F /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Path.hpp; path = CrossChronox/Platform/Path.hpp; sourceTree = "<group>"; };
+		563C71061DAB3C9000CCD81F /* Path_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Path_macOS.mm; path = CrossChronox/Platform/Path_macOS.mm; sourceTree = SOURCE_ROOT; };
 		563C71071DAB3C9000CCD81F /* pch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pch.cpp; sourceTree = "<group>"; };
 		563C71081DAB3C9000CCD81F /* pch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pch.hpp; sourceTree = "<group>"; };
 		563C710A1DAB3C9000CCD81F /* Fade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Fade.cpp; sourceTree = "<group>"; };
@@ -70,7 +79,7 @@
 		563C710D1DAB3C9000CCD81F /* MusicSelect.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MusicSelect.hpp; sourceTree = "<group>"; };
 		563C710E1DAB3C9000CCD81F /* SceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneManager.cpp; sourceTree = "<group>"; };
 		563C710F1DAB3C9000CCD81F /* SceneManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SceneManager.hpp; sourceTree = "<group>"; };
-		563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = KeyConfig_Default.json; sourceTree = "<group>"; };
+		563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = KeyConfig_Default.json; path = ../Resources/KeyConfig_Default.json; sourceTree = "<group>"; };
 		563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_filesystem-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem-mt.a"; sourceTree = "<group>"; };
 		563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = ../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_filesystem.a; sourceTree = "<group>"; };
 		563C71251DAB3D2B00CCD81F /* libboost_system-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_system-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.61.0_1/lib/libboost_system-mt.a"; sourceTree = "<group>"; };
@@ -82,9 +91,15 @@
 		563C713E1DABD74800CCD81F /* ScoreData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreData.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
 		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
-		563C71431DABECD400CCD81F /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
-		563C71461DABF07100CCD81F /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
 		565414BD1DB28186001E608A /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = ../../../../../usr/local/Cellar/cryptopp/5.6.4/lib/libcryptopp.a; sourceTree = "<group>"; };
+		56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScorePlayer.cpp; sourceTree = "<group>"; };
+		56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScorePlayer.hpp; sourceTree = "<group>"; };
+		56EACA041DCC509300511911 /* TimeManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeManager.cpp; sourceTree = "<group>"; };
+		56EACA051DCC509300511911 /* TimeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TimeManager.hpp; sourceTree = "<group>"; };
+		56EACA071DCD943C00511911 /* SoundPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundPlayer.cpp; sourceTree = "<group>"; };
+		56EACA081DCD943C00511911 /* SoundPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundPlayer.hpp; sourceTree = "<group>"; };
+		56F1CB491DEB2D78007BD827 /* SoundManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundManager.cpp; sourceTree = "<group>"; };
+		56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundManager.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,9 +107,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				562488BB1DF855EB00A9F1FE /* QtCore.framework in Frameworks */,
+				562488BC1DF855EB00A9F1FE /* QtGui.framework in Frameworks */,
+				562488BD1DF855EB00A9F1FE /* QtWidgets.framework in Frameworks */,
 				565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */,
-				563C71471DABF07100CCD81F /* QtCore.framework in Frameworks */,
-				563C71441DABECD400CCD81F /* QtWidgets.framework in Frameworks */,
 				563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */,
 				563C71271DAB3D2B00CCD81F /* libboost_filesystem-mt.a in Frameworks */,
 				563C71281DAB3D2B00CCD81F /* libboost_filesystem.a in Frameworks */,
@@ -110,6 +126,8 @@
 			isa = PBXGroup;
 			children = (
 				563C70E71DAB3C5700CCD81F /* CrossChronox */,
+				563C70EF1DAB3C5700CCD81F /* Resources */,
+				563C70E81DAB3C5700CCD81F /* Supporting Files */,
 				563C70E61DAB3C5700CCD81F /* Products */,
 				563C71221DAB3D2B00CCD81F /* Frameworks */,
 			);
@@ -130,13 +148,12 @@
 				563C70FE1DAB3C9000CCD81F /* Application.hpp */,
 				563C71001DAB3C9000CCD81F /* Input */,
 				563C71031DAB3C9000CCD81F /* main.cpp */,
-				563C71041DAB3C9000CCD81F /* Path */,
+				563C71041DAB3C9000CCD81F /* Platform */,
 				563C71071DAB3C9000CCD81F /* pch.cpp */,
 				563C71081DAB3C9000CCD81F /* pch.hpp */,
 				563C71091DAB3C9000CCD81F /* Scene */,
 				563C71361DABD71C00CCD81F /* Score */,
-				563C70EF1DAB3C5700CCD81F /* Resources */,
-				563C70E81DAB3C5700CCD81F /* Supporting Files */,
+				56EACA001DCC4FED00511911 /* System */,
 			);
 			path = CrossChronox;
 			sourceTree = "<group>";
@@ -144,10 +161,10 @@
 		563C70E81DAB3C5700CCD81F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				5614FD1E1DB0A5770072FBC9 /* README.md */,
 				563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */,
 			);
 			name = "Supporting Files";
+			path = CrossChronox;
 			sourceTree = "<group>";
 		};
 		563C70EF1DAB3C5700CCD81F /* Resources */ = {
@@ -156,6 +173,7 @@
 				563C71201DAB3CFA00CCD81F /* KeyConfig_Default.json */,
 			);
 			name = Resources;
+			path = CrossChronox;
 			sourceTree = "<group>";
 		};
 		563C71001DAB3C9000CCD81F /* Input */ = {
@@ -167,12 +185,13 @@
 			path = Input;
 			sourceTree = "<group>";
 		};
-		563C71041DAB3C9000CCD81F /* Path */ = {
+		563C71041DAB3C9000CCD81F /* Platform */ = {
 			isa = PBXGroup;
 			children = (
 				563C71051DAB3C9000CCD81F /* Path.hpp */,
 				563C71061DAB3C9000CCD81F /* Path_macOS.mm */,
 			);
+			name = Platform;
 			path = Path;
 			sourceTree = "<group>";
 		};
@@ -194,9 +213,10 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				562488B81DF855EB00A9F1FE /* QtCore.framework */,
+				562488B91DF855EB00A9F1FE /* QtGui.framework */,
+				562488BA1DF855EB00A9F1FE /* QtWidgets.framework */,
 				565414BD1DB28186001E608A /* libcryptopp.a */,
-				563C71461DABF07100CCD81F /* QtCore.framework */,
-				563C71431DABECD400CCD81F /* QtWidgets.framework */,
 				563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */,
 				563C71231DAB3D2B00CCD81F /* libboost_filesystem-mt.a */,
 				563C71241DAB3D2B00CCD81F /* libboost_filesystem.a */,
@@ -215,10 +235,26 @@
 				563C713E1DABD74800CCD81F /* ScoreData.hpp */,
 				5614FD201DB0C2F30072FBC9 /* MD5.cpp */,
 				5614FD211DB0C2F30072FBC9 /* MD5.hpp */,
+				56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */,
+				56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */,
+				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
+				56EACA081DCD943C00511911 /* SoundPlayer.hpp */,
+				56F1CB491DEB2D78007BD827 /* SoundManager.cpp */,
+				56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */,
 			);
 			name = Score;
 			path = CrossChronox/Score;
 			sourceTree = SOURCE_ROOT;
+		};
+		56EACA001DCC4FED00511911 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				5637B4831DE4806F00589544 /* Exception.hpp */,
+				56EACA041DCC509300511911 /* TimeManager.cpp */,
+				56EACA051DCC509300511911 /* TimeManager.hpp */,
+			);
+			path = System;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -248,7 +284,7 @@
 		563C70DC1DAB3C5700CCD81F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = hyrorre;
 				TargetAttributes = {
 					563C70E41DAB3C5700CCD81F = {
@@ -307,15 +343,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56EACA061DCC509300511911 /* TimeManager.cpp in Sources */,
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
 				563C711C1DAB3C9000CCD81F /* MusicSelect.cpp in Sources */,
 				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
 				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
+				56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */,
 				563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
-				5614FD1F1DB0A5770072FBC9 /* README.md in Sources */,
+				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,
 				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
 				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,
+				56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */,
 				563C711B1DAB3C9000CCD81F /* Fade.cpp in Sources */,
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
 				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
@@ -329,14 +368,31 @@
 		563C70F81DAB3C5700CCD81F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					/Library/Frameworks/,
 					"$(inherited)",
 				);
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include/,
 					"$(inherited)",
@@ -346,6 +402,7 @@
 					"$(inherited)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"$(SFML_SYSTEM)",
@@ -373,14 +430,30 @@
 		563C70F91DAB3C5700CCD81F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					/Library/Frameworks/,
 					"$(inherited)",
 				);
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include/,
 					"$(inherited)",
@@ -426,14 +499,19 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Library/Frameworks/QtCore.framework/Headers,
+					/Library/Frameworks/QtWidgets.framework/Headers,
+				);
+				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/boost/1.61.0_1/lib,
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -450,14 +528,19 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				INFOPLIST_FILE = "CrossChronox/CrossChronox-Info.plist";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Library/Frameworks/QtCore.framework/Headers,
+					/Library/Frameworks/QtWidgets.framework/Headers,
+				);
+				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/boost/1.61.0_1/lib,
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

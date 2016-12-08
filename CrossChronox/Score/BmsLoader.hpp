@@ -11,26 +11,8 @@
 
 #include "pch.hpp"
 #include "ScoreData.hpp"
+#include "Exception.hpp"
 
-namespace bms{
-	//exceptions
-	class LoadError : public std::runtime_error{
-	public:
-		LoadError(const std::string& msg): std::runtime_error(msg){}
-		virtual ~LoadError(){}
-	};
-	class OpenError : public LoadError{
-	public:
-		OpenError(const std::string& msg): LoadError(msg){}
-		virtual ~OpenError(){}
-	};
-	class ParseError : public LoadError{
-	public:
-		ParseError(const std::string& msg): LoadError(msg){}
-		virtual ~ParseError(){}
-	};
-	
-	bool Load(const std::string& path, ScoreData* out);
-}
+void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError);
 
 #endif /* BmsLoader_hpp */

@@ -10,53 +10,90 @@
 #define ScoreData_hpp
 
 #include "pch.hpp"
+#include "TimeManager.hpp"
 
-//Define class ScoreData based on bmson specs
-//http://bmson-spec.readthedocs.io/en/master/doc/index.html
+// Define class ScoreData based on bmson specs
+// http://bmson-spec.readthedocs.io/en/master/doc/index.html
+
+using pulse_t = unsigned long;
+using event_id_t = unsigned long;
 
 // bar-line event
 struct BarLine{
-	unsigned long y; // pulse number
+	pulse_t y; // pulse number
+	BarLine(pulse_t y): y(y){}
 };
 // sound note
 struct Note{
-	//boost::any x;    // lane
-	int x;           // CrossChronox supports only beat and popn(integer lane)
-	unsigned long y; // pulse number
-	unsigned long l; // length (0: normal note; greater than zero (length in pulses): long note)
-	bool c;          // continuation flag
+	int x;          // CrossChronox supports only beat and popn(that have integer lane)
+	pulse_t y;      // pulse number
+	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
+	bool c;         // continuation flag
+	size_t num = 0; // playable note count (0から始まる)
+	ms_type ms;     // time(ms) that the note should be handled.
 	Note(){}
-	Note(int x, unsigned long y, unsigned long l, bool c): x(x), y(y), l(l), c(c){}
+	Note(int x, pulse_t y, pulse_t l, bool c): x(x), y(y), l(l), c(c){}
+	Note(int x, pulse_t y, pulse_t l, bool c, size_t num): x(x), y(y), l(l), c(c), num(num){}
+    bool operator< (const Note& other) const{
+        return y < other.y;
+    }
 };
 // sound channel
 struct SoundChannel{
 	std::string name; // sound file name
+	sf::SoundBuffer buf;
 	std::vector<Note> notes;   // notes using this sound
+	
+	Note* GetNextNote(Note* note){
+		return const_cast<Note*>(GetNextNote(static_cast<const Note*>(note)));
+	}
+	const Note* GetNextNote(const Note* note) const{
+		if(note != &notes.back()) return ++note;
+		else return nullptr;
+	}
 };
 // bpm note
 struct BpmEvent{
-	unsigned long y; // pulse number
-	double bpm;      // bpm
+	pulse_t y = 0;  // pulse number
+	double bpm = 0; // bpm
+	pulse_t duration = 0; // pulses from the event to switch next bpm
 	BpmEvent(){}
-	BpmEvent(unsigned long y, double bpm): y(y), bpm(bpm){}
+	BpmEvent(pulse_t y, double bpm = 0, pulse_t duration = 0): y(y), bpm(bpm), duration(duration){}
+	virtual ~BpmEvent(){}
+	bool operator<(const BpmEvent& other) const{
+		return other > *this;
+	}
+	bool operator>(const BpmEvent& other) const{
+		return y > other.y;
+	}
+	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
+		return MinToMs((pulse - y) / (bpm * resolution));
+	}
 };
 // stop note
-struct StopEvent{
-	unsigned long y;        // pulse number
-	unsigned long duration; // stop duration (pulses to stop)
+struct StopEvent : public BpmEvent{
 	StopEvent(){}
-	StopEvent(unsigned long y, unsigned long d): y(y), duration(d){}
+	StopEvent(pulse_t y, pulse_t d): BpmEvent(y, 0, d){}
+	bool operator<(const BpmEvent& other) const{
+		return y <= other.y;
+	}
+	bool operator>(const BpmEvent& other) const{
+		return y > other.y;
+	}
+	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
+		return MinToMs((pulse + duration - y) / (bpm * resolution));
+	}
 };
 
 // picture file
 struct BGAHeader{
-	unsigned long id; // self-explanatory
+	event_id_t id;      // self-explanatory
 	std::string name;   // picture file name
 };
 // bga note
 struct BGAEvent{
-	unsigned long y;	// pulse number
-	unsigned long id;	// corresponds to BGAHeader.id
+	pulse_t y;	    // pulse number
+	event_id_t id;	// corresponds to BGAHeader.id
 };
 // bga
 struct BGA{
@@ -90,7 +127,7 @@ struct ScoreInfo{
 	Mode          mode;
 	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int           difficulty = 0;
-	unsigned long level = 0;             // self-explanatory
+	size_t        level = 0;             // self-explanatory
 	double        init_bpm = 130;        // self-explanatory
 	//double        judge_rank = 100;      // relative judge width
 	judge_ms_type judge_ms;
@@ -100,27 +137,29 @@ struct ScoreInfo{
 	std::string   eyecatch_image;        // eyecatch image filename
 	std::string   banner_image;          // banner image filename
 	std::string   preview_music;         // preview music filename
-	unsigned long resolution = 240;      // pulses per quarter note
+	pulse_t resolution = 240;            // pulses per quarter note
 	
-	double max_bpm;        // calc from the data
-	double min_bpm;        // calc from the data
-	double base_bpm = 0;   // calc from the data
-	unsigned long note_count;            // calc from the data
+	double max_bpm;                      // calc from the data
+	double min_bpm;                      // calc from the data
+	double base_bpm = 0;                 // calc from the data
+	size_t note_count = 0;               // calc from the data
 	std::string   md5;                   // use to identify score in level table and IR
-	//int peek_vol;                        //use it if replaygain is implemented
-	bool random_flag = false;              // if #RANDOM is used, it should not be registered IR
+	//int peek_vol;                        // use it if replaygain is implemented
+	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
 };
 
 struct ScoreData{
-	std::string               version;        // bmson version
-	ScoreInfo                 info;           // information, e.g. title, artist, …
-	std::vector<BarLine>      lines;          // location of bar-lines in pulses
-	std::vector<BpmEvent>     bpm_events;     // bpm changes
-	std::vector<StopEvent>    stop_events;    // stop events
-	std::vector<SoundChannel> sound_channels; // note data
-	BGA                       bga;            // bga data
+	std::string                 version;        // bmson version
+	ScoreInfo                   info;           // information, e.g. title, artist, …
+	std::vector<BarLine>        lines;          // location of bar-lines in pulses
+	boost::ptr_vector<BpmEvent> bpm_events;     // bpm events and stop events
+	std::vector<SoundChannel>   sound_channels; // note data
+	BGA                         bga;            // bga data
 	
-	//void Init();
+	std::vector<Note*>          all_note;       // Note timeline
+	
+	pulse_t MsToPulse(ms_type ms) const;
+	//ms_type PulseToMs(pulse_t pulse) const;
 };
 
 #endif /* ScoreData_hpp */
