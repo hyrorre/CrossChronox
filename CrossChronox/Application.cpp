@@ -47,7 +47,7 @@ int Application::Run(){
 	ScoreData score;
 	score.info.title = "TITLE";
 	
-	bms::Load("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &score);
+	LoadBms("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &score);
 	
 	std::cout << score.info.title << std::endl;
 	std::cout << score.info.genre << std::endl;

@@ -586,20 +586,56 @@ void BmsLoader::SetBpm(){
 	double init = out->info.init_bpm;
 	double max = init, min = init;
 	
-	bool BmsLoader::Init(ScoreData* const out){
-		*out = ScoreData();
-		out->sound_channels.resize(MAX_INDEX); //bug???
-		
-		exbpm.clear();
-		lnobj.clear();
-		line_num = random_num = 0;
-		parse_nextline_flag = true;
+	std::unordered_map<int, double> bpm_length;
+	BpmEvent init_bpm_event(0, init);
+	const BpmEvent* last = &init_bpm_event;
+	const BpmEvent* last_bpm_change = &init_bpm_event;
+	
+	for(auto& event : out->bpm_events){
+		if(event.duration == 0){ //if event is BpmEvents
+			event.duration = event.y - last_bpm_change->y;
+			bpm_length[static_cast<int>(last->bpm)] += event.duration * last->bpm;
+			max = std::max(max,event.bpm);
+			min = std::min(min,event.bpm);
+			last_bpm_change = &event;
+		}
+		else{ //if event is StopEvents
+			event.bpm = last_bpm_change->bpm;
+		}
+		last = &event;
 	}
 	bpm_length[last->bpm] += (out->lines.back().y - last->y) * last->bpm;
 	
-	bool BmsLoader::Load(const std::string& path, ScoreData* const out){
-		this->out = out;
-		Init(out);
+	using pair_t = std::pair<int, double>;
+	auto pred = [](const pair_t& a, const pair_t& b)->bool{
+		return a.second < b.second;
+	};
+	auto it = std::max_element(bpm_length.begin(), bpm_length.end(), pred);
+	out->info.base_bpm = it->first;
+	out->info.max_bpm = max;
+	out->info.min_bpm = min;
+}
+
+void BmsLoader::Init(ScoreData* out){
+	*out = ScoreData();
+	out->sound_channels.resize(MAX_INDEX);
+	
+	exbpm.clear();
+	lnobj.clear();
+	line_num = random_num = 0;
+	parse_nextline_flag = true;
+}
+
+void BmsLoader::Load(const std::string& path, ScoreData* out){
+	this->out = out;
+	Init(out);
+	{
+		fs::ifstream ifs(path);
+		if(!ifs){
+			throw OpenError(std::string("\"") + path + "\" could not be opened.");
+		}
+		
+		//Get MD5 of the file
 		{
 			std::istreambuf_iterator<char> it(ifs);
 			std::istreambuf_iterator<char> last;
