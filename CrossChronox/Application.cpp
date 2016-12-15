@@ -35,7 +35,6 @@ void Application::Init(){
 	//set up rendertexture
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
 	renderer.setSmooth(true);
-	qDebug("Application was initialized.");
 }
 
 Application::Application(int argc, char *argv[]): qapp(argc, argv){
