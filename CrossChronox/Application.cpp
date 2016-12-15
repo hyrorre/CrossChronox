@@ -35,9 +35,10 @@ void Application::Init(){
 	//set up rendertexture
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
 	renderer.setSmooth(true);
+	qDebug("Application was initialized.");
 }
 
-Application::Application(int argc, char *argv[]){ //: qapp(argc, argv){
+Application::Application(int argc, char *argv[]): qapp(argc, argv){
 	ParseArgs(argc, argv);
 }
 
@@ -89,10 +90,10 @@ Application::~Application(){
 }
 
 void Application::HandleException(std::exception& e){
-//    QMessageBox msgBox;
-//	QTextCodec* tc = QTextCodec::codecForLocale();
-//	msgBox.setText(tc->toUnicode(e.what()));
-//	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS
-//	msgBox.setIcon(QMessageBox::Icon::Critical);
-//	msgBox.exec();
+    QMessageBox msgBox;
+	QTextCodec* tc = QTextCodec::codecForLocale();
+	msgBox.setText(tc->toUnicode(e.what()));
+	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS
+	msgBox.setIcon(QMessageBox::Icon::Critical);
+	msgBox.exec();
 }

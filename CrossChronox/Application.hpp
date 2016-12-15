@@ -13,7 +13,7 @@
 
 class Application{
 	static const unsigned int w = 800, h = 600, bpp = 32;
-	//QApplication qapp;
+	QApplication qapp;
 	
 	sf::RenderWindow window;
 	sf::RenderTexture renderer;
