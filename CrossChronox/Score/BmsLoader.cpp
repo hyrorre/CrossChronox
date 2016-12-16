@@ -570,14 +570,15 @@ void BmsLoader::SetNotesAndEvents(){
 }
 
 void BmsLoader::SetNoteTime(){
-    BpmEvent* bpm_event = out->bpm_events.cbegin()->get();
-	BpmEvent* end = out->bpm_events.cend()->get();
-	BpmEvent* next_bpm_event = bpm_event + 1;
+	auto it = out->bpm_events.cbegin();
+	auto end = out->bpm_events.cend();
+	BpmEvent* bpm_event = it->get();
+	BpmEvent* next_bpm_event = (++it)->get();
 	const auto resolution = out->info.resolution;
     for(auto& note : out->notes){
-		while(next_bpm_event != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
-			++bpm_event;
-			++next_bpm_event;
+		while(it != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
+			bpm_event = next_bpm_event;
+			next_bpm_event = (++it)->get();
 		}
 		note->ms = bpm_event->NextEventMs(note->y, resolution);
 	}
