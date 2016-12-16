@@ -13,7 +13,10 @@
 #include "ScoreData.hpp"
 #include "WavManager.hpp"
 
+class Application;
+
 class ScorePlayer{
+	friend Application;
 	ScoreData score;
 	WavManager wav_manager;
 	static ms_type start_ms;

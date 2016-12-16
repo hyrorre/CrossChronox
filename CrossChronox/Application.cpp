@@ -8,6 +8,7 @@
 
 #include "Application.hpp"
 #include "Path.hpp"
+#include "ScorePlayer.hpp"
 #include "BmsLoader.hpp"
 #include "TimeManager.hpp"
 
@@ -44,19 +45,10 @@ Application::Application(int argc, char *argv[]){
 #include <iostream>
 
 int Application::Run(){
-	ScoreData score;
-	score.info.title = "TITLE";
+	ScorePlayer player;
 	
-	LoadBms("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &score);
-	
-	std::cout << score.info.title << std::endl;
-	std::cout << score.info.genre << std::endl;
-	std::cout << score.info.init_bpm << std::endl;
-	
-//	if(!scorefile_path.empty()){
-//		bms::Load(scorefile_path.string(), &score);
-//	}
-	
+	LoadBms("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &player.score);
+	player.Start();
 	
 	//ウインドウが開いている（ゲームループ）
 	while(window.isOpen()){
@@ -77,6 +69,7 @@ int Application::Run(){
 		TimeManager::Update();
 		
 		//Scene Update and Draw
+		player.Update();
 		
 		//描画終わり
 		renderer.display();    //バッファ画面をアップデート
