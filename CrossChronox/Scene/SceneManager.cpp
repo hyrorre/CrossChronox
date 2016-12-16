@@ -8,5 +8,5 @@
 
 #include "SceneManager.hpp"
 
-using stack_type = boost::ptr_list<IScene>;
-stack_type scene_stack;
+using scene_stack_type = std::stack<std::forward_list<std::unique_ptr<IScene>>>;
+scene_stack_type scene_stack;

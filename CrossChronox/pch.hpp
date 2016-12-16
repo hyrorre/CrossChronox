@@ -36,16 +36,12 @@
 #include <cryptopp/md5.h>
 
 //boost
-#include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/string_ref.hpp>
-#include <boost/ptr_container/ptr_container.hpp>
 #include <boost/variant.hpp>
 #include <boost/function.hpp>
-#include <boost/xpressive/xpressive.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/bind.hpp>
 #include <boost/rational.hpp>
 #include <boost/integer_traits.hpp>
@@ -67,7 +63,7 @@
 #include <cmath>
 
 //C++ std
-#include <list>
+#include <forward_list>
 #include <vector>
 #include <unordered_map>
 #include <array>
@@ -87,10 +83,18 @@
 #include <utility>
 #include <numeric>
 
-//using
+//using (namespace)
 namespace fs = boost::filesystem;
 
-//global variables and constants
+//global funcs
+template<class T>
+struct ptr_less{
+	bool operator()(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) const{
+        return *a < *b;
+    }
+};
+
+//global variables
 extern std::mt19937 mt_rand;
 
 #endif /* pch_hpp */

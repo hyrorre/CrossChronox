@@ -11,15 +11,15 @@
 
 #include "pch.hpp"
 #include "ScoreData.hpp"
+#include "WavManager.hpp"
 
 class ScorePlayer{
-	ScoreData* score = nullptr;
-	ms_type start_ms;
-	std::vector<sf::SoundBuffer> buf;
+	ScoreData score;
+	WavManager wav_manager;
+	static ms_type start_ms;
 public:
 	ScorePlayer(){}
-	ScorePlayer(ScoreData& score);
-	void SetScore(ScoreData& score);
+	//void SetScore(ScoreData& score);
 	bool Start();
 	bool Update();
 };

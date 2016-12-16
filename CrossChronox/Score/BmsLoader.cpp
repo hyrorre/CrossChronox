@@ -40,7 +40,7 @@ class BmsLoader : private boost::noncopyable{
 		pulse_t global_pulse = 0;
 		
 		TmpNoteData(){}
-		TmpNoteData(int bar, int channel, int index, int tmp_bar_linepulse, int tmp_bar_lineresolution): bar(bar), channel(channel), index(index), bar_pulse( 4 * BEAT_RESOLUTION * tmp_bar_linepulse / tmp_bar_lineresolution){}
+		TmpNoteData(int bar, int channel, int index, int tmp_bar_linepulse, int tmp_bar_lineresolution): bar(bar), channel(channel), index(index), bar_pulse(4 * BEAT_RESOLUTION * tmp_bar_linepulse / tmp_bar_lineresolution){}
 		
 		bool operator < (const TmpNoteData& b) const{
 			return global_pulse < b.global_pulse;
@@ -48,7 +48,7 @@ class BmsLoader : private boost::noncopyable{
 	};
 	std::array<BarInfo,1001> bar_info;
 	int max_bar = 0;
-	boost::ptr_vector<TmpNoteData> tmp_notes;
+	std::vector<std::unique_ptr<TmpNoteData>> tmp_notes;
 	std::unordered_map<int, double> exbpm;
 	std::unordered_map<int, int> stop;
 	std::vector<int> lnobj;
@@ -76,6 +76,7 @@ class BmsLoader : private boost::noncopyable{
 	void SetNotesAndEvents();
 	void SetNoteTime();
 	void SetBpm();
+	void LoadWavs(const std::string& path);
 
 	BmsLoader(){}
 	void Load(const std::string& path, ScoreData* out);
@@ -265,7 +266,7 @@ bool BmsLoader::TryParseObjLine(){
 		for(int i = 0; i < resolution; ++i){
 			int index = GetIndex(arg + i * 2, base);
 			if(index){
-				tmp_notes.push_back(new TmpNoteData(bar, channel, index, i, resolution));
+				tmp_notes.emplace_back(new TmpNoteData(bar, channel, index, i, resolution));
 			}
 		}
 	}
@@ -294,7 +295,9 @@ bool BmsLoader::TryParseHeaderLine(){
 			//読み込みを高速化するため、定義が出てきやすいヘッダーを先に判定する
 			//WAVやBPM,LNOBJ,STOPは複数個出てきやすい
 			if(boost::istarts_with(header, "WAV")){
-				out->sound_channels[GetIndex()].name = GetArg();
+				//out->sound_channels[GetIndex()].name = GetArg();
+				auto it = out->wavbufs.cbegin() + GetIndex();
+                out->wavbufs.emplace(it, new WavBuffer(GetArg()));
 			}
 			else if(boost::istarts_with(header, "BPM")){
 				//0123456
@@ -302,7 +305,7 @@ bool BmsLoader::TryParseHeaderLine(){
 				//BPM01 130
 				if(std::isblank(header[3])){
 					int bpm = out->info.init_bpm = atof(GetArg());
-					out->bpm_events.push_back(new BpmEvent(0, bpm));
+					out->bpm_events.emplace_back(new BpmEvent(0, bpm));
 				}
 				else{
 					exbpm[GetIndex()] = atof(GetArg());
@@ -487,11 +490,11 @@ void BmsLoader::SetNotesAndEvents(){
 	
 	//Set bar_pulse and global_pulse to tmp_notes
 	for(auto& note : tmp_notes){
-		note.global_pulse = bar_info[note.bar].start_pulse + note.bar_pulse;
+		note->global_pulse = bar_info[note->bar].start_pulse + note->bar_pulse;
 	}
-	
+    
 	//Sort tmp_notes
-	tmp_notes.sort();
+    boost::sort(tmp_notes, ptr_less<TmpNoteData>());
 	
 	//Sort lnobj
 	boost::sort(lnobj);
@@ -500,11 +503,11 @@ void BmsLoader::SetNotesAndEvents(){
 	
 	//tmp_notes -> ScoreData
 	bool ln_pushing[MAX_X] = {false};  //fill by 'false'
-	std::array<Note*, MAX_X> last_note; //last note of the lane
+    std::array<Note*, MAX_X> last_note = {nullptr}; //last note of the lane
 	for(const auto& tmp_note : tmp_notes){
-		switch(tmp_note.channel){
+		switch(tmp_note->channel){
 			case CHANNEL_METER:
-				break; //ignore (出てくるはずがない)
+                assert(false);
 				
 			case CHANNEL_BGABASE:
 			case CHANNEL_BGAPOOR:
@@ -512,22 +515,22 @@ void BmsLoader::SetNotesAndEvents(){
 				break; //ignore //TODO: implement
 				
 			case CHANNEL_BPM:
-				out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, tmp_note.index));
+				out->bpm_events.emplace_back(new BpmEvent(tmp_note->global_pulse, tmp_note->index));
 				break;
 				
 			case CHANNEL_EXBPM:
 				try{
-					out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, exbpm.at(tmp_note.index)));
+					out->bpm_events.emplace_back(new BpmEvent(tmp_note->global_pulse, exbpm.at(tmp_note->index)));
 				}
 				catch(std::out_of_range&){
 					//default of exBPM is 120
-					out->bpm_events.push_back(new BpmEvent(tmp_note.global_pulse, 120));
+					out->bpm_events.emplace_back(new BpmEvent(tmp_note->global_pulse, 120));
 				}
 				break;
 				
 			case CHANNEL_STOPS:
 				try{
-					out->bpm_events.push_back(new StopEvent(tmp_note.global_pulse, 10 * stop.at(tmp_note.index)));
+					out->bpm_events.emplace_back(new StopEvent(tmp_note->global_pulse, 10 * stop.at(tmp_note->index)));
 				}
 				catch(std::out_of_range&){
 					throw ParseError("Some errors are found. (#STOP)");
@@ -536,47 +539,46 @@ void BmsLoader::SetNotesAndEvents(){
 				
 			case CHANNEL_BGM:
 			default: //Normal note, LN (invisible note is not implemented yet)
-				bool ln_channel_flag = (51 <= tmp_note.channel && tmp_note.channel <= 69);
-				int x = ChannelToX(tmp_note.channel);
+				bool ln_channel_flag = (51 <= tmp_note->channel && tmp_note->channel <= 69);
+				int x = ChannelToX(tmp_note->channel);
 				bool lnend_flag = false;
 				
 				if(ln_channel_flag){
 					if(ln_pushing[x]) lnend_flag = true;
 					ln_pushing[x] = !ln_pushing[x];
 				}
-				else if(boost::binary_search(lnobj,tmp_note.index)) lnend_flag = true;
+				else if(boost::binary_search(lnobj,tmp_note->index)) lnend_flag = true;
 				if(lnend_flag){
-					last_note[x]->l = tmp_note.global_pulse - last_note[x]->y;
+					last_note[x]->l = tmp_note->global_pulse - last_note[x]->y;
 					break;
 				}
 				if(0 <= x){
+					size_t num = 0;
 					if(0 < x){
-						out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false, note_count);
+						num = note_count;
 						++note_count;
 					}
-					else{
-						out->sound_channels[tmp_note.index].notes.emplace_back(x, tmp_note.global_pulse, 0, false);
-					}
-					out->all_note.push_back(&out->sound_channels[tmp_note.index].notes.back());
-					last_note[x] = &out->sound_channels[tmp_note.index].notes.back();
+					out->notes.emplace_back(new Note(x, tmp_note->global_pulse, 0, num, out->wavbufs[tmp_note->index].get()));
+					last_note[x] = out->notes.back().get();
 				}
 				break;
 		}
 	}
-	//(last index) + 1 is the number of notes
-	//最後のインデックス+1がノーツの個数
+	//(last note count) + 1 is the number of notes
+	//最後のnote_count+1がノーツの個数
 	out->info.note_count = note_count + 1;
 }
 
 void BmsLoader::SetNoteTime(){
-	auto bpm_event = out->bpm_events.cbegin();
+	auto it = out->bpm_events.cbegin();
 	auto end = out->bpm_events.cend();
-	auto next_bpm_event = bpm_event + 1;
+	BpmEvent* bpm_event = it->get();
+	BpmEvent* next_bpm_event = (++it)->get();
 	const auto resolution = out->info.resolution;
-	for(Note* note : out->all_note){
-		while(next_bpm_event != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
-			++bpm_event;
-			++next_bpm_event;
+    for(auto& note : out->notes){
+		while(it != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
+			bpm_event = next_bpm_event;
+			next_bpm_event = (++it)->get();
 		}
 		note->ms = bpm_event->NextEventMs(note->y, resolution);
 	}
@@ -592,17 +594,17 @@ void BmsLoader::SetBpm(){
 	const BpmEvent* last_bpm_change = &init_bpm_event;
 	
 	for(auto& event : out->bpm_events){
-		if(event.duration == 0){ //if event is BpmEvents
-			event.duration = event.y - last_bpm_change->y;
-			bpm_length[static_cast<int>(last->bpm)] += event.duration * last->bpm;
-			max = std::max(max,event.bpm);
-			min = std::min(min,event.bpm);
-			last_bpm_change = &event;
+		if(event->duration == 0){ //if event is BpmEvents
+			event->duration = event->y - last_bpm_change->y;
+			bpm_length[static_cast<int>(last->bpm)] += event->duration * last->bpm;
+			max = std::max(max,event->bpm);
+			min = std::min(min,event->bpm);
+			last_bpm_change = event.get();
 		}
 		else{ //if event is StopEvents
-			event.bpm = last_bpm_change->bpm;
+			event->bpm = last_bpm_change->bpm;
 		}
-		last = &event;
+		last = event.get();
 	}
 	bpm_length[last->bpm] += (out->lines.back().y - last->y) * last->bpm;
 	
@@ -616,9 +618,19 @@ void BmsLoader::SetBpm(){
 	out->info.min_bpm = min;
 }
 
+void BmsLoader::LoadWavs(const std::string& path){
+	auto pos = path.find_last_of("/\\");
+	std::string score_directory = path.substr(0, pos);
+	for(auto& wavbuf : out->wavbufs){
+		if(wavbuf){
+			wavbuf->Load(score_directory);
+		}
+	}
+}
+
 void BmsLoader::Init(ScoreData* out){
-	*out = ScoreData();
-	out->sound_channels.resize(MAX_INDEX);
+	out->Clear();
+	out->wavbufs.resize(MAX_INDEX);
 	
 	exbpm.clear();
 	lnobj.clear();
@@ -649,9 +661,10 @@ void BmsLoader::Load(const std::string& path, ScoreData* out){
 		
 		//get extention from filename
 		auto dot_pos = path.find_last_of('.');
-		if(dot_pos != std::string::npos){
+		if(dot_pos != std::string::npos && dot_pos != path.length() - 1){
 			extention = path.substr(dot_pos + 1);
 		}
+        else extention = "";
 		
 		//start parsing
 		std::string line;
@@ -671,14 +684,11 @@ void BmsLoader::Load(const std::string& path, ScoreData* out){
 	SetNotesAndEvents();
 	SetNoteTime();
 	SetBpm();
+	LoadWavs(path);
 }
 
 void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError){
 	BmsLoader loader;
 	loader.Load(path, out);
 }
-
-
-
-
 

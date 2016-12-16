@@ -11,6 +11,8 @@
 		562488BB1DF855EB00A9F1FE /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B81DF855EB00A9F1FE /* QtCore.framework */; };
 		562488BC1DF855EB00A9F1FE /* QtGui.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488B91DF855EB00A9F1FE /* QtGui.framework */; };
 		562488BD1DF855EB00A9F1FE /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; };
+		562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DA1DFBAA0500E46B65 /* WavBuffer.cpp */; };
+		562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
@@ -35,8 +37,7 @@
 		567EB82F1DF85C3A00BBE5E5 /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 562488BA1DF855EB00A9F1FE /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
-		56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA071DCD943C00511911 /* SoundPlayer.cpp */; };
-		56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* SoundManager.cpp */; };
+		56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* WavManager.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -61,6 +62,10 @@
 		562488B81DF855EB00A9F1FE /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<group>"; };
 		562488B91DF855EB00A9F1FE /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtGui.framework; sourceTree = "<group>"; };
 		562488BA1DF855EB00A9F1FE /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = ../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<group>"; };
+		562C45DA1DFBAA0500E46B65 /* WavBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavBuffer.cpp; sourceTree = "<group>"; };
+		562C45DB1DFBAA0500E46B65 /* WavBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavBuffer.hpp; sourceTree = "<group>"; };
+		562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavPlayer.cpp; sourceTree = "<group>"; };
+		562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavPlayer.hpp; sourceTree = "<group>"; };
 		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
@@ -96,10 +101,8 @@
 		56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScorePlayer.hpp; sourceTree = "<group>"; };
 		56EACA041DCC509300511911 /* TimeManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeManager.cpp; sourceTree = "<group>"; };
 		56EACA051DCC509300511911 /* TimeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TimeManager.hpp; sourceTree = "<group>"; };
-		56EACA071DCD943C00511911 /* SoundPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundPlayer.cpp; sourceTree = "<group>"; };
-		56EACA081DCD943C00511911 /* SoundPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundPlayer.hpp; sourceTree = "<group>"; };
-		56F1CB491DEB2D78007BD827 /* SoundManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SoundManager.cpp; sourceTree = "<group>"; };
-		56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SoundManager.hpp; sourceTree = "<group>"; };
+		56F1CB491DEB2D78007BD827 /* WavManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavManager.cpp; sourceTree = "<group>"; };
+		56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavManager.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -237,10 +240,12 @@
 				5614FD211DB0C2F30072FBC9 /* MD5.hpp */,
 				56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */,
 				56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */,
-				56EACA071DCD943C00511911 /* SoundPlayer.cpp */,
-				56EACA081DCD943C00511911 /* SoundPlayer.hpp */,
-				56F1CB491DEB2D78007BD827 /* SoundManager.cpp */,
-				56F1CB4A1DEB2D78007BD827 /* SoundManager.hpp */,
+				56F1CB491DEB2D78007BD827 /* WavManager.cpp */,
+				56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */,
+				562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */,
+				562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */,
+				562C45DA1DFBAA0500E46B65 /* WavBuffer.cpp */,
+				562C45DB1DFBAA0500E46B65 /* WavBuffer.hpp */,
 			);
 			name = Score;
 			path = CrossChronox/Score;
@@ -348,13 +353,14 @@
 				563C711C1DAB3C9000CCD81F /* MusicSelect.cpp in Sources */,
 				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
 				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
-				56F1CB4B1DEB2D78007BD827 /* SoundManager.cpp in Sources */,
+				562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */,
+				56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */,
 				563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
 				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,
+				562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */,
 				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
 				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,
-				56EACA091DCD943C00511911 /* SoundPlayer.cpp in Sources */,
 				563C711B1DAB3C9000CCD81F /* Fade.cpp in Sources */,
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
 				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
