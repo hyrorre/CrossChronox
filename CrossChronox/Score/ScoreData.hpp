@@ -44,21 +44,6 @@ struct Note{
     }
 };
 
-//// sound channel
-//struct SoundChannel{
-//	std::string name; // sound file name
-//	sf::SoundBuffer buf;
-//	std::vector<Note> notes;   // notes using this sound
-//	
-//	Note* GetNextNote(Note* note){
-//		return const_cast<Note*>(GetNextNote(static_cast<const Note*>(note)));
-//	}
-//	const Note* GetNextNote(const Note* note) const{
-//		if(note != &notes.back()) return ++note;
-//		else return nullptr;
-//	}
-//};
-
 // bpm note
 struct BpmEvent{
 	pulse_t y = 0;  // pulse number
@@ -158,7 +143,7 @@ struct ScoreInfo{
 	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
 };
 
-struct ScoreData{
+struct ScoreData : boost::noncopyable{
 	std::string                 version;        // bmson version
 	ScoreInfo                   info;           // information, e.g. title, artist, …
 	std::vector<BarLine>        lines;          // location of bar-lines in pulses
@@ -171,6 +156,16 @@ struct ScoreData{
 	
 	pulse_t MsToPulse(ms_type ms) const;
 	//ms_type PulseToMs(pulse_t pulse) const;
+	
+	void Clear(){
+		version.clear();
+		info = ScoreInfo();
+		lines.clear();
+		bpm_events.clear();
+		bga = BGA();
+		notes.clear();
+		wavbufs.clear();
+	}
 };
 
 #endif /* ScoreData_hpp */

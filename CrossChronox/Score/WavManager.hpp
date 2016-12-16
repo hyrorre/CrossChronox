@@ -11,11 +11,18 @@
 
 #include "pch.hpp"
 #include "WavPlayer.hpp"
+#include "ScoreData.hpp"
 
 class WavManager{
     using container_t = std::forward_list<std::unique_ptr<WavPlayer>>;
-	
 	container_t player;
+	
+public:
+	void Update();
+	void PlayWav(const Note* note);
+	bool Empty() const{
+		return player.empty();
+	}
 };
 
 #endif /* WavManager_hpp */

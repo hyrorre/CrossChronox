@@ -629,7 +629,7 @@ void BmsLoader::LoadWavs(const std::string& path){
 }
 
 void BmsLoader::Init(ScoreData* out){
-	*out = ScoreData();
+	out->Clear();
 	out->wavbufs.resize(MAX_INDEX);
 	
 	exbpm.clear();

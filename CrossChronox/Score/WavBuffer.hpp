@@ -11,7 +11,10 @@
 
 #include "pch.hpp"
 
+class WavPlayer;
+
 class WavBuffer{
+	friend WavPlayer;
     sf::SoundBuffer buf;
 public:
     std::string filename;

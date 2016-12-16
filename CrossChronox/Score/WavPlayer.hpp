@@ -13,8 +13,23 @@
 #include "ScoreData.hpp"
 
 class WavPlayer{
-    Note* note_ptr = nullptr;
+    const Note* note_ptr = nullptr;
     sf::Sound sound;
+
+public:
+	sf::SoundSource::Status GetStatus() const{
+		return sound.getStatus();
+	}
+	void Pause(){
+		sound.pause();
+	}
+	
+	WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
+		sound.play();
+	}
+	~WavPlayer(){
+		sound.stop();
+	}
 };
 
 #endif /* WavPlayer_hpp */

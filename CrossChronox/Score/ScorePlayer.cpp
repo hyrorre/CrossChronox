@@ -9,12 +9,12 @@
 #include "ScorePlayer.hpp"
 #include "TimeManager.hpp"
 
-ScorePlayer::ScorePlayer(ScoreData& score_ref): score(&score_ref){
-}
+//static variables
+ms_type ScorePlayer::start_ms = 0;
 
-void ScorePlayer::SetScore(ScoreData& score){
-	this->score = &score;
-}
+//void ScorePlayer::SetScore(ScoreData& score){
+//	this->score = &score;
+//}
 
 bool ScorePlayer::Start(){
 	start_ms = now_ms;
@@ -24,31 +24,21 @@ bool ScorePlayer::Start(){
 bool ScorePlayer::Update(){
 	ms_type play_ms = now_ms - start_ms;
 	ms_type last_play_ms = play_ms - delta_ms;
-	pulse_t now_pulse = score->MsToPulse(play_ms);
-	pulse_t last_pulse = score->MsToPulse(last_play_ms);
+	pulse_t now_pulse = score.MsToPulse(play_ms);
+	pulse_t last_pulse = score.MsToPulse(last_play_ms);
 	
-//	Note tmp_note;
-//	tmp_note.y = last_pulse;
-//	auto begin = score->notes.begin();
-//	auto end = score->notes.end();
-//	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
-//	auto note = std::upper_bound(begin, end, tmp_note, pred);
-//	
-//	for(; note != end; ++note){
-//		if(now_pulse < note->y) break;
-//		
-//	}
+	wav_manager.Update();
 	
-//	// last_frameで処理したNoteより後のNoteだけを処理
-	Note tmp_note;
-	tmp_note.y = last_pulse;
-//	Note* end = *score->notes.end();
-//	auto pred = [](const Note* a, const Note* b){ return a->y < b->y; };
-//	Note* note = *boost::upper_bound(score->notes, tmp_note, pred);
-//	for(; note != end; ++note){
-//		if(now_pulse < note->y) break;
-//		
-//	}
+	std::unique_ptr<Note> tmp_note(new Note());
+	tmp_note->y = last_pulse;
+	auto begin = score.notes.begin();
+	auto end = score.notes.end();
+	auto note_it = std::upper_bound(begin, end, tmp_note, ptr_less<Note>());
+	for(; note_it != end; ++note_it){
+		Note& note = *(*note_it);
+		if(now_pulse < note.y) break;
+		wav_manager.PlayWav(&note);
+	}
 	
     return 0;
 }
