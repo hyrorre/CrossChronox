@@ -620,7 +620,7 @@ void BmsLoader::SetBpm(){
 
 void BmsLoader::LoadWavs(const std::string& path){
 	auto pos = path.find_last_of("/\\");
-	std::string score_directory = path.substr(0, pos);
+	std::string score_directory = path.substr(0, pos + 1);
 	for(auto& wavbuf : out->wavbufs){
 		if(wavbuf){
 			wavbuf->Load(score_directory);
