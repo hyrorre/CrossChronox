@@ -179,10 +179,10 @@ const auto PmeChannelToX = [](int channel){
 const int MAX_X = 20;
 
 int BmsLoader::GetIndex(){
-	const char* line = nowline;
-	while(!std::isblank(*line)) ++line;
-	std::string tmp = { line - 2, line - 1 };
-	return std::stoi(tmp, nullptr, 36);
+	boost::string_ref line = nowline;
+	auto pos = line.find_first_of("vVpP");
+	assert(pos != std::string::npos);
+	return GetIndex(nowline + pos + 1);
 }
 
 int BmsLoader::GetIndex(const char* str, int base){
@@ -244,7 +244,7 @@ bool BmsLoader::TryParseObjLine(){
 	//parse '#nnncc:'
 	std::string tmps = { nowline[1], nowline[2], nowline[3] };
 	int bar = std::stoi(tmps, nullptr, 10);
-	int channel = GetIndex(nowline + 4);
+	int channel = GetIndex(nowline + 4, 10);
 	max_bar = std::max(max_bar, bar);
 	
 	//parse maindata (ex)'112A33ZZ'
