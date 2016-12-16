@@ -20,13 +20,16 @@ public:
 };
 
 class SceneManager{
+	using scene_stack_type = std::stack<std::vector<std::unique_ptr<IScene>>>;
+	scene_stack_type scenes;
+	
 public:
 	//argument is raw pointer (not smart pointer)
-	static void push(IScene* new_scene);
-	static void pop();
+	static void Push(IScene* new_scene);
+	static void Pop();
 	//static IScene* top();
 	//static const IScene* ctop();
-	static void clear();
+	static void Clear();
 };
 
 #endif /* SceneManager_hpp */

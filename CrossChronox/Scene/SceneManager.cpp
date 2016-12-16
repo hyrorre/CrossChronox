@@ -8,5 +8,3 @@
 
 #include "SceneManager.hpp"
 
-using scene_stack_type = std::stack<std::forward_list<std::unique_ptr<IScene>>>;
-scene_stack_type scene_stack;
