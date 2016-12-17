@@ -495,6 +495,7 @@ void BmsLoader::SetNotesAndEvents(){
     
 	//Sort tmp_notes
     boost::sort(tmp_notes, ptr_less<TmpNoteData>());
+	out->info.end_y = tmp_notes.back()->global_pulse;
 	
 	//Sort lnobj
 	boost::sort(lnobj);
@@ -629,7 +630,7 @@ void BmsLoader::LoadWavs(const std::string& path){
 }
 
 void BmsLoader::Init(ScoreData* out){
-	out->Clear();
+	out->Init();
 	out->wavbufs.resize(MAX_INDEX);
 	
 	exbpm.clear();

@@ -25,6 +25,17 @@ struct BarLine{
 	BarLine(pulse_t y): y(y){}
 };
 
+enum Judge{
+	YET = -1,
+	PGREAT = 0,
+	GREAT,
+	GOOD,
+	BAD,
+	POOR,
+	
+	MAX
+};
+
 // sound note
 struct Note{
 	using lane_t = int;
@@ -33,6 +44,7 @@ struct Note{
 	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
 	size_t num = 0; // playable note count (0から始まる)
 	WavBuffer* wavbuf_ptr = nullptr;
+	Judge judge = Judge::YET;
 	
 	ms_type ms;     // time(ms) that the note should be handled.
     
@@ -133,6 +145,7 @@ struct ScoreInfo{
 	std::string   banner_image;          // banner image filename
 	std::string   preview_music;         // preview music filename
 	pulse_t resolution = 240;            // pulses per quarter note
+	pulse_t end_y = 0;
 	
 	double max_bpm;                      // calc from the data
 	double min_bpm;                      // calc from the data
@@ -157,7 +170,7 @@ struct ScoreData : boost::noncopyable{
 	pulse_t MsToPulse(ms_type ms) const;
 	//ms_type PulseToMs(pulse_t pulse) const;
 	
-	void Clear(){
+	void Init(){
 		version.clear();
 		info = ScoreInfo();
 		lines.clear();

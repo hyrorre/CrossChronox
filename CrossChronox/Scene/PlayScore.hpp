@@ -10,5 +10,19 @@
 #define PlayScore_hpp
 
 #include "pch.hpp"
+#include "Scene.hpp"
+#include "ScorePlayer.hpp"
+
+class PlayScore : public Scene{
+	static const int MAX_PLAYER = 1;
+	std::array<ScorePlayer, MAX_PLAYER> players;
+	
+public:
+	void Init();
+	Scene* Update();
+	void Draw() const;
+};
+
+extern PlayScore* scene_play_score_ptr;
 
 #endif /* PlayScore_hpp */
