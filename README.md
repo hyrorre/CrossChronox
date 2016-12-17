@@ -1,5 +1,5 @@
 # CrossChronox
-CrossChronox is a Cross-platform rhythm game based on C++, SFML2 and Qt  
+CrossChronox is a Cross-platform rhythm game based on C++ and OpenGL (SFML2)  
 It works on Windows, macOS, and Linux.  
 We can play bms, bme, bml, pms, and bmson.  
 Read Wiki for more information.
@@ -24,4 +24,5 @@ LICENSE : LGPL v3
 ```
 sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtCore.framework    /Library/Frameworks
 sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtWidgets.framework /Library/Frameworks
+sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtGui.framework /Library/Frameworks
 ```

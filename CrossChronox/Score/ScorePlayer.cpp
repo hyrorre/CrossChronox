@@ -16,12 +16,11 @@ ms_type ScorePlayer::start_ms = 0;
 //	this->score = &score;
 //}
 
-bool ScorePlayer::Start(){
+void ScorePlayer::Start(){
 	start_ms = now_ms;
-	return true;
 }
 
-bool ScorePlayer::Update(){
+ScorePlayer::State ScorePlayer::Update(){
 	ms_type play_ms = now_ms - start_ms;
 	ms_type last_play_ms = play_ms - delta_ms;
 	pulse_t now_pulse = score.MsToPulse(play_ms);
@@ -39,7 +38,7 @@ bool ScorePlayer::Update(){
 		if(now_pulse < note.y) break;
 		wav_manager.PlayWav(&note);
 	}
-	
-    return 0;
+	if(score.info.end_y < now_pulse) return State::FINISH;
+	else return State::CONTINUE;
 }
 

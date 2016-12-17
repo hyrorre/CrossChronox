@@ -7,3 +7,27 @@
 //
 
 #include "PlayScore.hpp"
+
+PlayScore scene_play_score;
+
+PlayScore* scene_play_score_ptr = &scene_play_score;
+
+void PlayScore::Init(){
+	for(auto& player : players){
+		player.Init();
+	}
+	ScorePlayer::Start();
+}
+
+Scene* PlayScore::Update(){
+	int continue_flag = 0;
+	for(auto& player : players){
+		continue_flag += player.Update();
+	}
+	if(continue_flag) return scene_play_score_ptr;
+	else return nullptr;
+}
+
+void PlayScore::Draw() const{
+	
+}

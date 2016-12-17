@@ -23,6 +23,9 @@ public:
 	bool Empty() const{
 		return player.empty();
 	}
+	void Init(){
+		player.clear();
+	}
 };
 
 #endif /* WavManager_hpp */

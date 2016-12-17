@@ -12,6 +12,7 @@
 #include "pch.hpp"
 #include "ScoreData.hpp"
 #include "WavManager.hpp"
+#include "Result.hpp"
 
 class Application;
 
@@ -19,12 +20,23 @@ class ScorePlayer{
 	friend Application;
 	ScoreData score;
 	WavManager wav_manager;
+	Result result;
+	
 	static ms_type start_ms;
+
 public:
+	enum State{
+		FINISH,
+		CONTINUE
+	};
 	ScorePlayer(){}
-	//void SetScore(ScoreData& score);
-	bool Start();
-	bool Update();
+	static void Start();
+	State Update();
+	void Init(){
+		score.Init();
+		wav_manager.Init();
+		result = Result();
+	}
 };
 
 #endif /* ScorePlayer_hpp */
