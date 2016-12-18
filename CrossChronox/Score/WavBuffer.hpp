@@ -22,10 +22,7 @@ public:
     WavBuffer(){}
     WavBuffer(const std::string& filename): filename(filename){}
 	WavBuffer(const char* filename): filename(filename){}
-    bool Load(const std::string& score_directory){
-        assert(score_directory.back() == '/' || score_directory.back() == '\\');
-        return buf.loadFromFile(score_directory + filename);
-    }
+	bool Load(const std::string& score_directory);
 };
 
 #endif /* WavBuffer_hpp */
