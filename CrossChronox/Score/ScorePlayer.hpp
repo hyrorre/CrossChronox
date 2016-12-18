@@ -30,13 +30,9 @@ public:
 		CONTINUE
 	};
 	ScorePlayer(){}
+	void Init();
 	static void Start();
 	State Update();
-	void Init(){
-		score.Init();
-		wav_manager.Init();
-		result = Result();
-	}
 };
 
 #endif /* ScorePlayer_hpp */

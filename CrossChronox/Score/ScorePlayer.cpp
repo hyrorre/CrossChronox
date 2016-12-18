@@ -8,13 +8,17 @@
 
 #include "ScorePlayer.hpp"
 #include "TimeManager.hpp"
+#include "BmsLoader.hpp"
+#include "Application.hpp"
 
 //static variables
 ms_type ScorePlayer::start_ms = 0;
 
-//void ScorePlayer::SetScore(ScoreData& score){
-//	this->score = &score;
-//}
+void ScorePlayer::Init(){
+	LoadBms(Application::GetScoreFilePath().string(), &score);
+	wav_manager.Init();
+	result = Result();
+}
 
 void ScorePlayer::Start(){
 	start_ms = now_ms;
