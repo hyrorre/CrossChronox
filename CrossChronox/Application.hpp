@@ -19,7 +19,7 @@ class Application{
 	sf::RenderTexture renderer;
 	
 	fs::path executable_path;
-	fs::path scorefile_path;
+	static fs::path scorefile_path;
 	
 	void ParseArgs(int argc, char *argv[]);
 	

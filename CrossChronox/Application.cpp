@@ -11,6 +11,8 @@
 #include "BmsLoader.hpp"
 #include "TimeManager.hpp"
 
+fs::path Application::scorefile_path;
+
 void Application::ParseArgs(int argc, char *argv[]){
 	if(argc > 0) executable_path = argv[0];
 	if(argc > 1){
