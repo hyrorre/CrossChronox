@@ -19,6 +19,7 @@ class PlayScore : public Scene{
 	
 public:
 	void Init();
+	void Deinit();
 	Scene* Update();
 	void Draw() const;
 };

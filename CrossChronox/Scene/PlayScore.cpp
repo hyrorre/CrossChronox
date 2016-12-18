@@ -19,6 +19,13 @@ void PlayScore::Init(){
 	ScorePlayer::Start();
 }
 
+void PlayScore::Deinit(){
+	//これが無いと恐らくリソースの解放順の問題で強制終了する
+	for(auto& player : players){
+		player.Clear();
+	}
+}
+
 Scene* PlayScore::Update(){
 	int continue_flag = 0;
 	for(auto& player : players){

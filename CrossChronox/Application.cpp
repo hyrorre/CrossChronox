@@ -11,6 +11,7 @@
 #include "ScorePlayer.hpp"
 #include "BmsLoader.hpp"
 #include "TimeManager.hpp"
+#include "SceneManager.hpp"
 
 fs::path Application::scorefile_path;
 
@@ -38,6 +39,13 @@ void Application::Init(){
 	//set up rendertexture
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
 	renderer.setSmooth(true);
+	
+	//for testing
+	//if file was not found, this will be ignored.
+	scorefile_path = "/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml";
+	
+	//set up SceneManager
+	SceneManager::Init();
 }
 
 Application::Application(int argc, char *argv[]): qapp(argc, argv){
@@ -47,22 +55,19 @@ Application::Application(int argc, char *argv[]): qapp(argc, argv){
 #include <iostream>
 
 int Application::Run(){
-	ScorePlayer player;
-	
-	LoadBms("/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml", &player.score);
-	player.Start();
 	
 	//ウインドウが開いている（ゲームループ）
+	bool endflag = false;
 	while(window.isOpen()){
 		sf::Event event;
 		while(window.pollEvent(event)){
 			//「クローズが要求された」イベント：ウインドウを閉じる
 			if(event.type == sf::Event::Closed){
-				window.close();
+				endflag = true;
 			}
 			if(event.type == sf::Event::KeyPressed){
 				if(event.key.code == sf::Keyboard::Escape){
-					window.close();
+					endflag = true;
 				}
 			}
 		}
@@ -71,7 +76,17 @@ int Application::Run(){
 		TimeManager::Update();
 		
 		//Scene Update and Draw
-		player.Update();
+		if(SceneManager::Update() == SceneManager::State::FINISH){
+			SceneManager::Deinit();
+			endflag = true;
+		}
+		
+		//終了処理 finalize application
+		if(endflag == true){
+			SceneManager::Deinit();
+			window.close();
+			break;
+		}
 		
 		//描画終わり
 		renderer.display();    //バッファ画面をアップデート

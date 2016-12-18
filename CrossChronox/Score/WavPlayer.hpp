@@ -27,9 +27,6 @@ public:
 	WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
 		sound.play();
 	}
-	~WavPlayer(){
-		sound.stop();
-	}
 };
 
 #endif /* WavPlayer_hpp */

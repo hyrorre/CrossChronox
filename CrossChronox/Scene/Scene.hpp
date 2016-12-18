@@ -21,7 +21,9 @@ public:
 //	using scene_stack_t = std::stack<std::unique_ptr<SubScene>, std::vector<std::unique_ptr<SubScene>>>;
 //	scene_stack_t sub_scenes;
 	
-	virtual void Init(){}            // called when scene switched
+	virtual void Init(){}            // called when scene switch in
+	virtual void Deinit(){}        // called when scene switch out
+	
 	virtual Scene* Update() = 0;     // update data
 	virtual void Draw() const = 0;   // シーンの描画
 };

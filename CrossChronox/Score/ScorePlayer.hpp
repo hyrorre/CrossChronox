@@ -17,9 +17,8 @@
 class Application;
 
 class ScorePlayer{
-	friend Application;
-	ScoreData score;
 	WavManager wav_manager;
+	ScoreData score;
 	Result result;
 	
 	static ms_type start_ms;
@@ -31,6 +30,10 @@ public:
 	};
 	ScorePlayer(){}
 	void Init();
+	void Clear(){
+		wav_manager.Clear();
+		score.Init();
+	}
 	static void Start();
 	State Update();
 };

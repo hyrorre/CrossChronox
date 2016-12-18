@@ -17,9 +17,10 @@ namespace SceneManager{
 		FINISH,
 		CONTINUE
 	};
-	
+	void Init();
 	State Update();
 	void Draw();
+	void Deinit();
 };
 
 #endif /* SceneManager_hpp */

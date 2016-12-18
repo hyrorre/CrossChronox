@@ -42,7 +42,7 @@ ScorePlayer::State ScorePlayer::Update(){
 		if(now_pulse < note.y) break;
 		wav_manager.PlayWav(&note);
 	}
-	if(score.info.end_y < now_pulse) return State::FINISH;
+	if(score.info.end_y < now_pulse && wav_manager.Empty()) return State::FINISH;
 	else return State::CONTINUE;
 }
 

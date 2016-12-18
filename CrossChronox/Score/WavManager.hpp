@@ -26,6 +26,9 @@ public:
 	void Init(){
 		player.clear();
 	}
+	void Clear(){
+		player.clear();
+	}
 };
 
 #endif /* WavManager_hpp */
