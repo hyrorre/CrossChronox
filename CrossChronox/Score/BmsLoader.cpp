@@ -180,9 +180,19 @@ const int MAX_X = 20;
 
 int BmsLoader::GetIndex(){
 	boost::string_ref line = nowline;
-	auto pos = line.find_first_of("vVpP");
-	assert(pos != std::string::npos);
-	return GetIndex(nowline + pos + 1);
+	//#WAV01 music.wav
+	auto pos = line.find_first_of("vV");
+	if(pos != std::string::npos){
+		++pos;
+	}
+	else{
+		//#BPM01 120, #BMP01 image.bmp
+		pos = line.find_first_of("mMpP");
+		if(pos != std::string::npos){
+			pos += 2;
+		}
+	}
+	return GetIndex(nowline + pos);
 }
 
 int BmsLoader::GetIndex(const char* str, int base){
@@ -591,12 +601,12 @@ void BmsLoader::SetBpm(){
 	
 	std::unordered_map<int, double> bpm_length;
 	BpmEvent init_bpm_event(0, init);
-	const BpmEvent* last = &init_bpm_event;
-	const BpmEvent* last_bpm_change = &init_bpm_event;
+	BpmEvent* last = &init_bpm_event;
+	BpmEvent* last_bpm_change = &init_bpm_event;
 	
 	for(auto& event : out->bpm_events){
 		if(event->duration == 0){ //if event is BpmEvents
-			event->duration = event->y - last_bpm_change->y;
+			last->duration = event->y - last_bpm_change->y;
 			bpm_length[static_cast<int>(last->bpm)] += event->duration * last->bpm;
 			max = std::max(max,event->bpm);
 			min = std::min(min,event->bpm);

@@ -42,7 +42,7 @@ void Application::Init(){
 	
 	//for testing
 	//if file was not found, this will be ignored.
-	scorefile_path = "/Volumes/Attached/BMS/white_enchantment/_white enchantment.bml";
+	scorefile_path = "/Volumes/Attached/BMS/[xi] Halcyon/_hal_A.bml";
 	
 	//set up SceneManager
 	SceneManager::Init();
