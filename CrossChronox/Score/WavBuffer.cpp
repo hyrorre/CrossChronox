@@ -16,7 +16,7 @@ bool WavBuffer::Load(const std::string& score_directory){
 		static const std::vector<std::string> extentions = {
 			"ogg",
 			"wav"
-#if !defined(_WIN64) && !defined(_WIN32)
+#if !defined(_WIN64) && !defined(_WIN32) //if not Windows
 			,
 			"Ogg",
 			"OGG",
