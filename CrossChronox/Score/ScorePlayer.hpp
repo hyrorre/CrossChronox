@@ -34,6 +34,12 @@ public:
 		wav_manager.Clear();
 		score.Init();
 	}
+	static ms_type GetPlayMs(){
+		return now_ms - start_ms;
+	}
+	const ScoreData& GetScore() const{
+		return score;
+	}
 	static void Start();
 	State Update();
 };

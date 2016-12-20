@@ -25,7 +25,7 @@ void ScorePlayer::Start(){
 }
 
 ScorePlayer::State ScorePlayer::Update(){
-	ms_type play_ms = now_ms - start_ms;
+	ms_type play_ms = GetPlayMs();
 	ms_type last_play_ms = play_ms - delta_ms;
 	pulse_t now_pulse = score.MsToPulse(play_ms);
 	pulse_t last_pulse = score.MsToPulse(last_play_ms);

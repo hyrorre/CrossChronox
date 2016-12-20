@@ -21,7 +21,7 @@ public:
 	void Init();
 	void Deinit();
 	Scene* Update();
-	void Draw() const;
+	void Draw(sf::RenderTarget& render_target) const;
 };
 
 extern PlayScore* scene_play_score_ptr;

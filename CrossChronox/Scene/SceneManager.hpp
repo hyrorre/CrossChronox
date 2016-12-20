@@ -19,7 +19,7 @@ namespace SceneManager{
 	};
 	void Init();
 	State Update();
-	void Draw();
+	void Draw(sf::RenderTarget& render_target);
 	void Deinit();
 };
 

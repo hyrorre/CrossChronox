@@ -25,7 +25,7 @@ public:
 	virtual void Deinit(){}        // called when scene switch out
 	
 	virtual Scene* Update() = 0;     // update data
-	virtual void Draw() const = 0;   // シーンの描画
+	virtual void Draw(sf::RenderTarget& render_target) const = 0;   // シーンの描画
 };
 
 #endif /* Scene_hpp */

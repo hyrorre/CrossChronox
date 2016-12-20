@@ -77,7 +77,6 @@ int Application::Run(){
 		
 		//Scene Update and Draw
 		if(SceneManager::Update() == SceneManager::State::FINISH){
-			SceneManager::Deinit();
 			endflag = true;
 		}
 		
@@ -88,12 +87,16 @@ int Application::Run(){
 			break;
 		}
 		
+		//描画 drawing
+		SceneManager::Draw(window);
+		
 		//描画終わり
 		renderer.display();    //バッファ画面をアップデート
 		sf::Sprite sprite(renderer.getTexture());  //バッファ画面用のスプライトを作る
-		window.draw(sprite);    //バッファ画面テクスチャの入ったスプライトを画面に描画
+		//window.draw(sprite);    //バッファ画面テクスチャの入ったスプライトを画面に描画
 		//ちなみにsf::SpriteのPositionの初期値は(0,0)です。
 		window.display();   //描画アップデート
+		window.clear();
 		renderer.clear(sf::Color::Black);  //バッファ画面を黒でクリア
 	}
 	return 0;

@@ -30,8 +30,8 @@ namespace SceneManager{
 		return CONTINUE;
 	}
 	
-	void Draw(){
-		if(now_scene) now_scene->Draw();
+	void Draw(sf::RenderTarget& render_target){
+		if(now_scene) now_scene->Draw(render_target);
 	}
 	
 	void Deinit(){
