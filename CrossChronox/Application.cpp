@@ -35,6 +35,7 @@ void Application::Init(){
 	window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", sf::Style::Titlebar | sf::Style::Close);
 	window.setSize(sf::Vector2u(w * 2, h * 2));
 	window.setKeyRepeatEnabled(false);
+	window.setVerticalSyncEnabled(true);
 	
 	//set up rendertexture
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
@@ -42,7 +43,7 @@ void Application::Init(){
 	
 	//for testing
 	//if file was not found, this will be ignored.
-	scorefile_path = "/Volumes/Attached/BMS/[xi] Halcyon/_hal_A.bml";
+	scorefile_path = "/Volumes/Attached/BMS/to_soar/to_soar(SPA).bml";
 	
 	//set up SceneManager
 	SceneManager::Init();

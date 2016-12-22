@@ -14,21 +14,24 @@
 #include "ScoreData.hpp"
 
 class WavManager{
-    using container_t = std::forward_list<std::unique_ptr<WavPlayer>>;
-	container_t player;
+	static const int MAX_SOUND = 64;
+    using container_t = std::vector<WavPlayer>;
+	container_t players;
 	
 public:
 	void Update();
 	void PlayWav(const Note* note);
 	bool Empty() const{
-		return player.empty();
+		return players.empty();
 	}
 	void Init(){
-		player.clear();
+		players.resize(MAX_SOUND);
 	}
 	void Clear(){
-		player.clear();
+		players.clear();
 	}
+	
+	WavManager(): players(MAX_SOUND){}
 };
 
 #endif /* WavManager_hpp */

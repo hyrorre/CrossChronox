@@ -9,12 +9,16 @@
 #include "WavManager.hpp"
 
 void WavManager::Update(){
-	auto l = [](std::unique_ptr<WavPlayer>& p){ return p->GetStatus() == sf::SoundSource::Status::Stopped; };
-	player.remove_if(l);
+	
 }
 
 void WavManager::PlayWav(const Note* note){
 	if(note && note->wavbuf_ptr){
-		player.emplace_front(new WavPlayer(note));
+		for(auto& player : players){
+			if(player.GetStatus() == sf::Sound::Status::Stopped){
+				player.ResetSound(note);
+				break;
+			}
+		}
 	}
 }

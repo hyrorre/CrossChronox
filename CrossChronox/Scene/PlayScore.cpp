@@ -42,20 +42,33 @@ float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
 
 float judgeline_y = 640 - 165;
 
-sf::RectangleShape white_shape(sf::Vector2f(white_w, note_h));
+sf::Texture white_shape;
+sf::Sprite white_sprite;
 
-sf::RectangleShape black_shape(sf::Vector2f(black_w, note_h));
+sf::Texture black_shape;
+sf::Sprite black_sprite;
 
-sf::RectangleShape scr_shape(sf::Vector2f(scr_w, note_h));
+sf::Texture scr_shape;
+sf::Sprite scr_sprite;
 
-sf::RectangleShape judgeline_shape(sf::Vector2f(judgeline_w, note_h));
+sf::Texture judgeline_shape;
+sf::Sprite judgeline_sprite;
 
 void PlayScore::Init(){
-	judgeline_shape.setPosition(scr_x, judgeline_y);
-	white_shape.setFillColor(sf::Color::White);
-	black_shape.setFillColor(sf::Color::Cyan);
-	scr_shape.setFillColor(sf::Color::Magenta);
-	judgeline_shape.setFillColor(sf::Color::Red);
+	sf::Image tmp_image;
+	tmp_image.create(white_w, note_h, sf::Color::White);
+	white_shape.loadFromImage(tmp_image);
+	white_sprite.setTexture(white_shape);
+	tmp_image.create(black_w, note_h, sf::Color::Cyan);
+	black_shape.loadFromImage(tmp_image);
+	black_sprite.setTexture(black_shape);
+	tmp_image.create(scr_w, note_h, sf::Color::Magenta);
+	scr_shape.loadFromImage(tmp_image);
+	scr_sprite.setTexture(scr_shape);
+	tmp_image.create(judgeline_w, note_h, sf::Color::Red);
+	judgeline_shape.loadFromImage(tmp_image);
+	judgeline_sprite.setTexture(judgeline_shape);
+	judgeline_sprite.setPosition(scr_x, judgeline_y);
 	
 	for(auto& player : players){
 		player.Init();
@@ -81,19 +94,19 @@ float GetNoteX(Note::lane_t lane){
 	}
 }
 
-sf::RectangleShape* GetRecangleShapePtr(Note::lane_t lane){
+sf::Sprite* GetSpritePtr(Note::lane_t lane){
 	switch(lane){
 		case 8:
-			return &scr_shape;
+			return &scr_sprite;
 		case 1:
 		case 3:
 		case 5:
 		case 7:
-			return &white_shape;
+			return &white_sprite;
 		case 2:
 		case 4:
 		case 6:
-			return &black_shape;
+			return &black_sprite;
 		default:
 			//qDebug("lane:%d", lane);
 			return nullptr;
@@ -103,7 +116,7 @@ sf::RectangleShape* GetRecangleShapePtr(Note::lane_t lane){
 float global_scroll = .7f * 240;
 
 void PlayScore::Draw(sf::RenderTarget& render_target) const{
-	render_target.draw(judgeline_shape);
+	render_target.draw(judgeline_sprite);
 	for(auto& player : players){
 		ms_type play_ms = player.GetPlayMs();
 		//ms_type last_play_ms = play_ms - delta_ms;
@@ -113,12 +126,12 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 		const ScoreData& score = player.GetScore();
 		for(const auto& note : score.notes){
 			if(note->y < now_pulse) continue;
-			sf::RectangleShape* shape = GetRecangleShapePtr(note->x);
-			if(shape){
+			sf::Sprite* sprite = GetSpritePtr(note->x);
+			if(sprite){
 				float note_y = judgeline_y - static_cast<int>((note->y - now_pulse) * global_scroll / score.info.resolution);
 				if(note_y + note_h < 0) break;
-				shape->setPosition(GetNoteX(note->x), note_y);
-				render_target.draw(*shape);
+				sprite->setPosition(GetNoteX(note->x), note_y);
+				render_target.draw(*sprite);
 			}
 		}
 	}

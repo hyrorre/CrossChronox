@@ -18,13 +18,24 @@ class WavPlayer{
 
 public:
 	sf::SoundSource::Status GetStatus() const{
-		return sound.getStatus();
+		if(note_ptr) return sound.getStatus();
+		else return sf::Sound::Status::Stopped;
 	}
 	void Pause(){
 		sound.pause();
 	}
+	void Stop(){
+		sound.stop();
+	}
 	
+	WavPlayer(){}
 	WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
+		sound.play();
+	}
+	
+	void ResetSound(const Note* note_ptr){
+		this->note_ptr = note_ptr;
+		sound.setBuffer(note_ptr->wavbuf_ptr->buf);
 		sound.play();
 	}
 };
