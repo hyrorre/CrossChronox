@@ -10,6 +10,9 @@
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DA1DFBAA0500E46B65 /* WavBuffer.cpp */; };
 		562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */; };
+		56305A631E0BD87100750B13 /* SelectMusic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A611E0BD87100750B13 /* SelectMusic.cpp */; };
+		56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A681E0BDCAF00750B13 /* ScoreInfoBase.cpp */; };
+		56305A6D1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A6B1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
@@ -63,6 +66,12 @@
 		562C45DB1DFBAA0500E46B65 /* WavBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavBuffer.hpp; sourceTree = "<group>"; };
 		562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavPlayer.cpp; sourceTree = "<group>"; };
 		562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavPlayer.hpp; sourceTree = "<group>"; };
+		56305A611E0BD87100750B13 /* SelectMusic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectMusic.cpp; sourceTree = "<group>"; };
+		56305A621E0BD87100750B13 /* SelectMusic.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SelectMusic.hpp; sourceTree = "<group>"; };
+		56305A681E0BDCAF00750B13 /* ScoreInfoBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreInfoBase.cpp; sourceTree = "<group>"; };
+		56305A691E0BDCAF00750B13 /* ScoreInfoBase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreInfoBase.hpp; sourceTree = "<group>"; };
+		56305A6B1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreDirectoryInfo.cpp; sourceTree = "<group>"; };
+		56305A6C1E0BDE3B00750B13 /* ScoreDirectoryInfo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreDirectoryInfo.hpp; sourceTree = "<group>"; };
 		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
@@ -125,6 +134,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56305A641E0BD97E00750B13 /* Filesystem */ = {
+			isa = PBXGroup;
+			children = (
+				5614FD201DB0C2F30072FBC9 /* MD5.cpp */,
+				5614FD211DB0C2F30072FBC9 /* MD5.hpp */,
+				56305A681E0BDCAF00750B13 /* ScoreInfoBase.cpp */,
+				56305A691E0BDCAF00750B13 /* ScoreInfoBase.hpp */,
+				56305A6B1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp */,
+				56305A6C1E0BDE3B00750B13 /* ScoreDirectoryInfo.hpp */,
+			);
+			path = Filesystem;
+			sourceTree = "<group>";
+		};
 		563C70DB1DAB3C5700CCD81F = {
 			isa = PBXGroup;
 			children = (
@@ -149,6 +171,7 @@
 			children = (
 				563C70FD1DAB3C9000CCD81F /* Application.cpp */,
 				563C70FE1DAB3C9000CCD81F /* Application.hpp */,
+				56305A641E0BD97E00750B13 /* Filesystem */,
 				563C71001DAB3C9000CCD81F /* Input */,
 				563C71031DAB3C9000CCD81F /* main.cpp */,
 				563C71041DAB3C9000CCD81F /* Platform */,
@@ -207,6 +230,8 @@
 				56D4A2671E05416800198EF6 /* Scene.hpp */,
 				563C710E1DAB3C9000CCD81F /* SceneManager.cpp */,
 				563C710F1DAB3C9000CCD81F /* SceneManager.hpp */,
+				56305A611E0BD87100750B13 /* SelectMusic.cpp */,
+				56305A621E0BD87100750B13 /* SelectMusic.hpp */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -234,8 +259,6 @@
 				563C71381DABD71C00CCD81F /* BmsLoader.hpp */,
 				563C713D1DABD74800CCD81F /* ScoreData.cpp */,
 				563C713E1DABD74800CCD81F /* ScoreData.hpp */,
-				5614FD201DB0C2F30072FBC9 /* MD5.cpp */,
-				5614FD211DB0C2F30072FBC9 /* MD5.hpp */,
 				56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */,
 				56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */,
 				56F1CB491DEB2D78007BD827 /* WavManager.cpp */,
@@ -360,11 +383,14 @@
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
 				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,
 				562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */,
+				56305A6D1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp in Sources */,
+				56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */,
 				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
 				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
 				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
 				5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */,
+				56305A631E0BD87100750B13 /* SelectMusic.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

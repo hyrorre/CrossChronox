@@ -12,6 +12,7 @@
 #include "pch.hpp"
 #include "TimeManager.hpp"
 #include "WavBuffer.hpp"
+#include "ScoreInfoBase.hpp"
 
 // Define class ScoreData based on bmson specs
 // http://bmson-spec.readthedocs.io/en/master/doc/index.html
@@ -122,7 +123,7 @@ enum Mode{
 	MODE_POPN_9K,
 };
 
-struct ScoreInfo{
+struct ScoreInfo : public ScoreInfoBase{
 	using judge_ms_type = std::array<int,3>;
 	
 	std::string   title;                 // self-explanatory
@@ -154,6 +155,10 @@ struct ScoreInfo{
 	std::string   md5;                   // use to identify score in level table and IR
 	//int peek_vol;                        // use it if replaygain is implemented
 	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
+	
+	std::string GetTitleSubtitle() const{
+		return title + ' ' + subtitle;
+	}
 };
 
 struct ScoreData : boost::noncopyable{
