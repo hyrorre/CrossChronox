@@ -22,7 +22,12 @@ public:
 	void Update();
 	void PlayWav(const Note* note);
 	bool Empty() const{
-		return players.empty();
+		for(auto& player : players){
+			if(player.GetStatus() != sf::Sound::Status::Stopped){
+				return false;
+			}
+		}
+		return true;
 	}
 	void Init(){
 		players.resize(MAX_SOUND);

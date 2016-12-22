@@ -125,13 +125,31 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 		
 		const ScoreData& score = player.GetScore();
 		for(const auto& note : score.notes){
-			if(note->y < now_pulse) continue;
+			float lnstart_y = judgeline_y - static_cast<int>((note->y - now_pulse) * global_scroll / score.info.resolution);
+			float note_y = judgeline_y - static_cast<int>((note->y + note->l - now_pulse) * global_scroll / score.info.resolution);
+			if(judgeline_y + note_h < note_y) continue;
+			if(lnstart_y + note_h < 0) break;
 			sf::Sprite* sprite = GetSpritePtr(note->x);
 			if(sprite){
-				float note_y = judgeline_y - static_cast<int>((note->y - now_pulse) * global_scroll / score.info.resolution);
-				if(note_y + note_h < 0) break;
-				sprite->setPosition(GetNoteX(note->x), note_y);
-				render_target.draw(*sprite);
+				if(note->l == 0){ //if note is not LN
+					sprite->setPosition(GetNoteX(note->x), note_y);
+					render_target.draw(*sprite);
+				}
+				else{ //if note is LN
+					sf::Sprite ln_sprite = *sprite;
+					if(note->y < now_pulse){
+						lnstart_y = judgeline_y;
+					}
+					float lnend_y = note_y;
+					float note_x = GetNoteX(note->x);
+					sprite->setPosition(note_x, lnstart_y);
+					render_target.draw(*sprite);
+					sprite->setPosition(note_x, lnend_y);
+					render_target.draw(*sprite);
+					ln_sprite.setPosition(note_x, lnend_y);
+					ln_sprite.setScale(1, (lnstart_y - lnend_y) / note_h);
+					render_target.draw(ln_sprite);
+				}
 			}
 		}
 	}

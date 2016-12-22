@@ -100,7 +100,7 @@ const int CHANNEL_EXBPM = 8;
 const int CHANNEL_STOPS = 9;
 
 const auto BmsChannelToX = [](int channel){
-	if(61 <= channel) channel -= 40;
+	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
 			return 0;
@@ -134,7 +134,7 @@ const auto BmsChannelToX = [](int channel){
 };
 
 const auto PmsChannelToX = [](int channel){
-	if(61 <= channel) channel -= 40;
+	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
 			return 0;
@@ -155,7 +155,7 @@ const auto PmsChannelToX = [](int channel){
 };
 
 const auto PmeChannelToX = [](int channel){
-	if(61 <= channel) channel -= 40;
+	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
 			return 0;
