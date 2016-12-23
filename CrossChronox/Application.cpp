@@ -43,7 +43,7 @@ void Application::Init(){
 	
 	//for testing
 	//if file was not found, this will be ignored.
-	scorefile_path = "/Volumes/Attached/BMS/to_soar/to_soar(SPA).bml";
+	scorefile_path = "/Volumes/Attached/BMS/lb_b/expert2a.bme";
 	
 	//set up SceneManager
 	SceneManager::Init();

@@ -7,6 +7,7 @@
 //
 
 #include "PlayScore.hpp"
+#include "Path.hpp"
 
 PlayScore scene_play_score;
 
@@ -54,6 +55,12 @@ sf::Sprite scr_sprite;
 sf::Texture judgeline_shape;
 sf::Sprite judgeline_sprite;
 
+sf::Font font;
+sf::Text text_fps;
+
+sf::Clock clock_fps;
+int fps_count = 0;
+
 void PlayScore::Init(){
 	sf::Image tmp_image;
 	tmp_image.create(white_w, note_h, sf::Color::White);
@@ -69,6 +76,12 @@ void PlayScore::Init(){
 	judgeline_shape.loadFromImage(tmp_image);
 	judgeline_sprite.setTexture(judgeline_shape);
 	judgeline_sprite.setPosition(scr_x, judgeline_y);
+	
+	font.loadFromFile((Path::appdata / "Fonts/kazesawa/Kazesawa-Regular.ttf").string());
+	text_fps.setFont(font);
+	text_fps.setFillColor(sf::Color::White);
+	
+	clock_fps.restart();
 	
 	for(auto& player : players){
 		player.Init();
@@ -153,6 +166,13 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 			}
 		}
 	}
+	++fps_count;
+	if(sf::seconds(1) < clock_fps.getElapsedTime()){
+		clock_fps.restart();
+		text_fps.setString((std::stringstream() << fps_count << "fps").str());
+		fps_count = 0;
+	}
+	render_target.draw(text_fps);
 }
 
 
