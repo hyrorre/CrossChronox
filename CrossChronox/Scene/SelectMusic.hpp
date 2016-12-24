@@ -11,6 +11,7 @@
 
 #include "pch.hpp"
 #include "Scene.hpp"
+#include "ScoreInfoBase.hpp"
 
 class SelectMusic : public Scene{
 public:

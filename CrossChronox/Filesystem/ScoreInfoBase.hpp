@@ -12,8 +12,13 @@
 #include "pch.hpp"
 
 class ScoreInfoBase{
+protected:
+public:
 	std::string GetTitleSubtitle() const;
 	fs::path path;
+	
+	ScoreInfoBase(){}
+	ScoreInfoBase(fs::path path): path(path){}
 };
 
 #endif /* ScoreInfoBase_hpp */

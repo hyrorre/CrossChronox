@@ -16,7 +16,7 @@
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
 class BmsLoader : private boost::noncopyable{
-	friend void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError);
+	//friend void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError);
 	
 	static const pulse_t BEAT_RESOLUTION = 240;
 	
@@ -63,6 +63,8 @@ class BmsLoader : private boost::noncopyable{
 	std::string extention;
 	std::function<int(int)> ChannelToX;
 	
+	bool load_header_only_flag = false;
+	
 	const char* GetArg();
 	int GetIndex();
 	int GetIndex(const char* str, int base = 36);
@@ -78,8 +80,9 @@ class BmsLoader : private boost::noncopyable{
 	void SetBpm();
 	void LoadWavs(const std::string& path);
 
+public:
 	BmsLoader(){}
-	void Load(const std::string& path, ScoreData* out);
+	void Load(const std::string& path, ScoreData* out, bool load_header_only_flag = false);
 };
 
 const int MAX_INDEX = 36 * 36; //ZZ(36)
@@ -304,10 +307,9 @@ bool BmsLoader::TryParseHeaderLine(){
 		else if(parse_nextline_flag){
 			//読み込みを高速化するため、定義が出てきやすいヘッダーを先に判定する
 			//WAVやBPM,LNOBJ,STOPは複数個出てきやすい
-			if(boost::istarts_with(header, "WAV")){
-				//out->sound_channels[GetIndex()].name = GetArg();
+			if(!load_header_only_flag && boost::istarts_with(header, "WAV")){
 				auto it = out->wavbufs.cbegin() + GetIndex();
-                out->wavbufs.emplace(it, new WavBuffer(GetArg()));
+				out->wavbufs.emplace(it, new WavBuffer(GetArg()));
 			}
 			else if(boost::istarts_with(header, "BPM")){
 				//0123456
@@ -649,8 +651,9 @@ void BmsLoader::Init(ScoreData* out){
 	parse_nextline_flag = true;
 }
 
-void BmsLoader::Load(const std::string& path, ScoreData* out){
+void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_only_flag){
 	this->out = out;
+	this->load_header_only_flag = load_header_only_flag;
 	Init(out);
 	{
 		fs::ifstream ifs(path);
@@ -682,7 +685,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out){
 		while(std::getline(ifs, line)){
 			//if CRLF and LF mixed, remove CR('\r')
 			if(line.back() == '\r'){
-				line.erase(line.end() - 1);
+				line.pop_back(); //.erase(line.end() - 1);
 			}
 			nowline = line.c_str();
 			TryParseLine();
@@ -695,11 +698,10 @@ void BmsLoader::Load(const std::string& path, ScoreData* out){
 	SetNotesAndEvents();
 	SetNoteTime();
 	SetBpm();
-	LoadWavs(path);
+	if(!load_header_only_flag) LoadWavs(path);
 }
 
-void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError){
+void LoadBms(const std::string& path, ScoreData* out, bool load_header_only_flag) throw(LoadError, OpenError, ParseError){
 	BmsLoader loader;
-	loader.Load(path, out);
+	loader.Load(path, out, load_header_only_flag);
 }
-

@@ -13,6 +13,6 @@
 #include "ScoreData.hpp"
 #include "Exception.hpp"
 
-void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError);
+void LoadBms(const std::string& path, ScoreData* out, bool load_header_only_flag = false) throw(LoadError, OpenError, ParseError);
 
 #endif /* BmsLoader_hpp */

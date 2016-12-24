@@ -159,6 +159,9 @@ struct ScoreInfo : public ScoreInfoBase{
 	std::string GetTitleSubtitle() const{
 		return title + ' ' + subtitle;
 	}
+	
+	ScoreInfo(){}
+	ScoreInfo(fs::path path): ScoreInfoBase(path){}
 };
 
 struct ScoreData : boost::noncopyable{
