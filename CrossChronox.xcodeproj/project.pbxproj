@@ -10,6 +10,8 @@
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DA1DFBAA0500E46B65 /* WavBuffer.cpp */; };
 		562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */; };
+		562F3BA61E0E12100022E9DA /* ScoreDirectoryLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562F3BA41E0E12100022E9DA /* ScoreDirectoryLoader.cpp */; };
+		562F3BA91E0E32370022E9DA /* DefaultFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562F3BA71E0E32370022E9DA /* DefaultFont.cpp */; };
 		56305A631E0BD87100750B13 /* SelectMusic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A611E0BD87100750B13 /* SelectMusic.cpp */; };
 		56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A681E0BDCAF00750B13 /* ScoreInfoBase.cpp */; };
 		56305A6D1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56305A6B1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp */; };
@@ -66,6 +68,10 @@
 		562C45DB1DFBAA0500E46B65 /* WavBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavBuffer.hpp; sourceTree = "<group>"; };
 		562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavPlayer.cpp; sourceTree = "<group>"; };
 		562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavPlayer.hpp; sourceTree = "<group>"; };
+		562F3BA41E0E12100022E9DA /* ScoreDirectoryLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreDirectoryLoader.cpp; sourceTree = "<group>"; };
+		562F3BA51E0E12100022E9DA /* ScoreDirectoryLoader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreDirectoryLoader.hpp; sourceTree = "<group>"; };
+		562F3BA71E0E32370022E9DA /* DefaultFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DefaultFont.cpp; sourceTree = "<group>"; };
+		562F3BA81E0E32370022E9DA /* DefaultFont.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DefaultFont.hpp; sourceTree = "<group>"; };
 		56305A611E0BD87100750B13 /* SelectMusic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectMusic.cpp; sourceTree = "<group>"; };
 		56305A621E0BD87100750B13 /* SelectMusic.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SelectMusic.hpp; sourceTree = "<group>"; };
 		56305A681E0BDCAF00750B13 /* ScoreInfoBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreInfoBase.cpp; sourceTree = "<group>"; };
@@ -143,6 +149,8 @@
 				56305A691E0BDCAF00750B13 /* ScoreInfoBase.hpp */,
 				56305A6B1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp */,
 				56305A6C1E0BDE3B00750B13 /* ScoreDirectoryInfo.hpp */,
+				562F3BA41E0E12100022E9DA /* ScoreDirectoryLoader.cpp */,
+				562F3BA51E0E12100022E9DA /* ScoreDirectoryLoader.hpp */,
 			);
 			path = Filesystem;
 			sourceTree = "<group>";
@@ -280,6 +288,8 @@
 				5637B4831DE4806F00589544 /* Exception.hpp */,
 				56EACA041DCC509300511911 /* TimeManager.cpp */,
 				56EACA051DCC509300511911 /* TimeManager.hpp */,
+				562F3BA71E0E32370022E9DA /* DefaultFont.cpp */,
+				562F3BA81E0E32370022E9DA /* DefaultFont.hpp */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -371,6 +381,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				562F3BA61E0E12100022E9DA /* ScoreDirectoryLoader.cpp in Sources */,
 				56EACA061DCC509300511911 /* TimeManager.cpp in Sources */,
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
 				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
@@ -384,6 +395,7 @@
 				56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */,
 				562C45DC1DFBAA0500E46B65 /* WavBuffer.cpp in Sources */,
 				56305A6D1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp in Sources */,
+				562F3BA91E0E32370022E9DA /* DefaultFont.cpp in Sources */,
 				56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */,
 				563C71191DAB3C9000CCD81F /* Path_macOS.mm in Sources */,
 				563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */,

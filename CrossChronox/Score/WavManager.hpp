@@ -36,7 +36,7 @@ public:
 		players.clear();
 	}
 	
-	WavManager(): players(MAX_SOUND){}
+	WavManager(){}
 };
 
 #endif /* WavManager_hpp */

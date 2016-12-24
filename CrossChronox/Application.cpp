@@ -12,6 +12,7 @@
 #include "BmsLoader.hpp"
 #include "TimeManager.hpp"
 #include "SceneManager.hpp"
+#include "DefaultFont.hpp"
 
 fs::path Application::scorefile_path;
 
@@ -28,6 +29,8 @@ void Application::ParseArgs(int argc, char *argv[]){
 void Application::Init(){
 	//GetPaths
 	Path::Init();
+	
+	if(!InitDefaultFont()) throw InitError("Default font was not found.");
 	
 	//If necessary, set locale
 	

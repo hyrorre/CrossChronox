@@ -8,6 +8,7 @@
 
 #include "PlayScore.hpp"
 #include "Path.hpp"
+#include "DefaultFont.hpp"
 
 PlayScore scene_play_score;
 
@@ -55,7 +56,6 @@ sf::Sprite scr_sprite;
 sf::Texture judgeline_shape;
 sf::Sprite judgeline_sprite;
 
-sf::Font font;
 sf::Text text_fps;
 
 sf::Clock clock_fps;
@@ -77,8 +77,7 @@ void PlayScore::Init(){
 	judgeline_sprite.setTexture(judgeline_shape);
 	judgeline_sprite.setPosition(scr_x, judgeline_y);
 	
-	font.loadFromFile((Path::appdata / "Fonts/kazesawa/Kazesawa-Regular.ttf").string());
-	text_fps.setFont(font);
+	text_fps.setFont(font_default);
 	text_fps.setFillColor(sf::Color::White);
 	
 	clock_fps.restart();

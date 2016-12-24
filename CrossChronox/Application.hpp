@@ -35,6 +35,9 @@ public:
 	static fs::path& GetScoreFilePath(){
 		return scorefile_path;
 	}
+	static void SetScoreFilePath(const fs::path& path){
+		scorefile_path = path;
+	}
 	
 	class InitError : public std::runtime_error{
 	public:

@@ -14,7 +14,7 @@
 class ScoreInfoBase{
 protected:
 public:
-	std::string GetTitleSubtitle() const;
+	virtual std::string GetTitleSubtitle() const = 0;
 	fs::path path;
 	
 	ScoreInfoBase(){}

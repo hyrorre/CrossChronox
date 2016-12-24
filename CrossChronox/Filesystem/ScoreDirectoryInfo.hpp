@@ -32,7 +32,7 @@ public:
 	}
 	const ScoreInfoBase* At(int index) const{
 		int true_index = (cursor + index);
-		for(; 0 <= true_index; true_index += children.size() * 10);
+		for(; true_index < 0; true_index += children.size() * 10);
 		true_index %= children.size();
 		return children[true_index].get();
 	}
