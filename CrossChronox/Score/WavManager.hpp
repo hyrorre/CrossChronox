@@ -14,7 +14,7 @@
 #include "ScoreData.hpp"
 
 class WavManager{
-	static const int MAX_SOUND = 64;
+	static const int MAX_SOUND = 128;
     using container_t = std::vector<WavPlayer>;
 	container_t players;
 	

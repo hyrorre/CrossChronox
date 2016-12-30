@@ -19,10 +19,15 @@ namespace TimeManager{
 	const ms_type& now_ms = now_ms_;
 	const ms_type& delta_ms = delta_ms_;
 	
+	static const sf::Clock g_clock;
+	
 	void Update(){
-		static const sf::Clock g_clock;
 		lastframe_ms_ = now_ms_;
 		now_ms_ = g_clock.getElapsedTime().asMilliseconds();
 		delta_ms_ = now_ms_ - lastframe_ms_;
+	}
+	
+	ms_type GetRealtime(){
+		return g_clock.getElapsedTime().asMilliseconds();
 	}
 }
