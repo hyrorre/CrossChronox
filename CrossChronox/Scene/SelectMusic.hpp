@@ -18,6 +18,7 @@ class SelectMusic : public Scene{
 	bool inited = false;
 	ScoreDirectoryInfo root;
 	ScoreDirectoryInfo* now_directory = &root;
+	int cursor = 0;
 public:
 	void Init();
 	void Deinit(){}

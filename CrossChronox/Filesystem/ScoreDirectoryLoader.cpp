@@ -38,11 +38,19 @@ const std::vector<std::string> bmson_extentions = {
 
 bool IsScoreFolder(const fs::path& path){
 	for(fs::directory_iterator it(path); it != end; ++it){
+		std::string file_extention = it->path().extension().string();
+		if(!file_extention.empty() && file_extention[0] == '.'){
+			file_extention = file_extention.substr(1);
+		}
 		for(const auto& extention : bms_extentions){
-			if(it->path().extension() == extention) return true;
+			if(file_extention == extention){
+				return true;
+			}
 		}
 		for(const auto& extention : bmson_extentions){
-			if(it->path().extension() == extention) return true;
+			if(file_extention == extention){
+				return true;
+			}
 		}
 	}
 	return false;
@@ -51,8 +59,10 @@ bool IsScoreFolder(const fs::path& path){
 void ScoreDirectoryLoader::LoadScores(const fs::path& path, ScoreDirectoryInfo* out){
 	for(fs::directory_iterator it(path); it != end; ++it){
 		if(fs::is_directory(*it)) continue;
+		std::string file_extention = it->path().extension().string();
+		if(!file_extention.empty() && file_extention.front() == '.') file_extention = file_extention.substr(1);
 		for(const auto& extention : bms_extentions){
-			if(it->path().extension() == extention){
+			if(file_extention == extention){
 				LoadBms(it->path().string(), &tmp_data);
 				out->children.emplace_back(new ScoreInfo(tmp_data.info));
 			}
@@ -64,11 +74,12 @@ void ScoreDirectoryLoader::Load(const fs::path& path, ScoreDirectoryInfo* out){
 	for(fs::directory_iterator it(path); it != end; ++it){
 		if(fs::is_directory(*it)){
 			if(IsScoreFolder(it->path())){
-				LoadScores(path, out);
+				LoadScores(it->path(), out);
 			}
 			else{
 				auto* child = new ScoreDirectoryInfo(it->path());
 				out->children.emplace_back(child);
+				child->parent = out;
 				child->title = it->path().leaf().string();
 				Load(it->path(), child);
 			}

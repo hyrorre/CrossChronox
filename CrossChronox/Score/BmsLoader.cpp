@@ -673,6 +673,9 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 			}
 		}
 		
+		//set path to ScoreInfo
+		out->info.path = path;
+		
 		//get extention from filename
 		auto dot_pos = path.find_last_of('.');
 		if(dot_pos != std::string::npos && dot_pos != path.length() - 1){

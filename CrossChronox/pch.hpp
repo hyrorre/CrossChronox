@@ -28,7 +28,11 @@
 #include <QTextCodec>
 
 //jsoncpp
-#include <json/json.h>
+//#include <json/json.h>
+
+//picojson
+#define PICOJSON_USE_INT64
+#include <picojson/picojson.h>
 
 //Crypto++ (cryptopp)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5

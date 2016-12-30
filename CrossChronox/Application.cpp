@@ -12,6 +12,7 @@
 #include "BmsLoader.hpp"
 #include "TimeManager.hpp"
 #include "SceneManager.hpp"
+#include "InputManager.hpp"
 #include "DefaultFont.hpp"
 
 fs::path Application::scorefile_path;
@@ -50,6 +51,10 @@ void Application::Init(){
 	
 	//set up SceneManager
 	SceneManager::Init();
+	
+	//set up InputManager
+	InputManager::LoadConfig((Path::appdata / "Config/KeyConfig.json").string());
+	InputManager::SetMode("Beat");
 }
 
 Application::Application(int argc, char *argv[]): qapp(argc, argv){
@@ -78,6 +83,9 @@ int Application::Run(){
 		
 		//update time
 		TimeManager::Update();
+		
+		//update InputManager
+		InputManager::Update();
 		
 		//Scene Update and Draw
 		if(SceneManager::Update() == SceneManager::State::FINISH){

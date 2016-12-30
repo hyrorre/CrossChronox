@@ -8,12 +8,39 @@
 
 #include "SelectMusic.hpp"
 #include "DefaultFont.hpp"
+#include "InputManager.hpp"
+#include "Application.hpp"
+#include "PlayScore.hpp"
 
 SelectMusic scene_select_music;
 
 SelectMusic* scene_select_music_ptr = &scene_select_music;
 
 Scene* SelectMusic::Update(){
+	if(InputManager::GetKeyFuncState("UpMusic").now == 1){
+		--cursor;
+	}
+	if(InputManager::GetKeyFuncState("DownMusic").now == 1){
+		++cursor;
+	}
+	if(InputManager::GetKeyFuncState("CloseFolder").now == 1){
+		if(now_directory->GetParent()){
+			now_directory = now_directory->GetParent();
+		}
+	}
+	if(InputManager::GetKeyFuncState("DecideMusic").now == 1){
+		ScoreInfoBase* tmp_info = now_directory->At(cursor);
+		if(typeid(*tmp_info) == typeid(ScoreDirectoryInfo)){
+			ScoreDirectoryInfo* tmp_directory = static_cast<ScoreDirectoryInfo*>(tmp_info);
+			if(!tmp_directory->Empty()){
+				now_directory = tmp_directory;
+			}
+		}
+		else{
+			Application::SetScoreFilePath(tmp_info->path);
+			return scene_play_score_ptr;
+		}
+	}
 	return scene_select_music_ptr;
 }
 
@@ -35,7 +62,7 @@ void SelectMusic::Draw(sf::RenderTarget& render_target) const{
 	str_songlist.clear();
 	for(int i = -2; i < 4; ++i){
 		if(i == 0) str_songlist += "->";
-		str_songlist += now_directory->At(i)->GetTitleSubtitle();
+		str_songlist += now_directory->At(i + cursor)->GetTitleSubtitle();
 		str_songlist.push_back('\n');
 		str_songlist.push_back('\n');
 	}
