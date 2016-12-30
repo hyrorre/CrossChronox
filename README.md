@@ -17,7 +17,7 @@ LICENSE : LGPL v3
 * Crypto++
 
 # Building on macOS(Xcode)
-1. Install boost and Crypto++ using homebrew.
+1. Install boost and Crypto++ with homebrew.
 1. Download SFML and sfeMovie, and copy frameworks to /Library/Frameworks
 1. Download picojson, and copy picojson.h to /usr/local/include/picojson
 1. Install Qt, and make symbolic links. (run following scripts on terminal)
