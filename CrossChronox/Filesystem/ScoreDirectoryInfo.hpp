@@ -35,6 +35,9 @@ public:
 	ScoreDirectoryInfo* GetParent(){
 		return parent;
 	}
+	void SetParent(ScoreDirectoryInfo* parent){
+		this->parent = parent;
+	}
 	const ScoreInfoBase* At(int index) const{
 		int true_index = (cursor + index);
 		for(; true_index < 0; true_index += children.size() * 10);
@@ -50,7 +53,24 @@ public:
 	
 	ScoreDirectoryInfo(){}
 	ScoreDirectoryInfo(fs::path path): ScoreInfoBase(path){}
+	
+//	template<class Archive>
+//	void serialize__(Archive& ar, unsigned int ver){
+//	}
+private: // ここがシリアライズ処理の実装
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive& ar, unsigned int ver){
+		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
+		ar & boost::serialization::make_nvp("children", children);
+		ar & boost::serialization::make_nvp("title", title);
+		for(const auto& child : children){
+			child->SetParent(this);
+		}
+	}
 };
 
+//BOOST_CLASS_EXPORT_GUID(ScoreDirectoryInfo, "ScoreDirectoryInfo");
+BOOST_CLASS_VERSION(ScoreDirectoryInfo, 1);
 
 #endif /* ScoreDirectoryInfo_hpp */

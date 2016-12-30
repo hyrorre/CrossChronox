@@ -47,7 +47,7 @@ void Application::Init(){
 	
 	//for testing
 	//if file was not found, this will be ignored.
-	scorefile_path = "/Volumes/Attached/BMS/lb_b/expert2a.bme";
+	scorefile_path = Path::appdata / "Songs/BOF2016/有限会社Aoi/[Aoi]Shadowgaze_ogg/_ANOTHER.bml";
 	
 	//set up SceneManager
 	SceneManager::Init();

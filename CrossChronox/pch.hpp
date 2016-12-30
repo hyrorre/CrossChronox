@@ -62,6 +62,16 @@
 #include <boost/range/algorithm/sort.hpp>
 #include <boost/range.hpp>
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp> // std::vectorをシリアライズしたい場合必要
+#include <boost/serialization/string.hpp> // std::stringをシリアライズしたい場合必要
+#include <boost/serialization/export.hpp>
+
 
 //C std
 #include <cmath>

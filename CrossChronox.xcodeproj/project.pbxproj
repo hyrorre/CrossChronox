@@ -30,6 +30,9 @@
 		563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsLoader.cpp */; };
 		563C713F1DABD74800CCD81F /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C713D1DABD74800CCD81F /* ScoreData.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
+		5645D3291E1657E700AFBB16 /* ScoreInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5645D3271E1657E700AFBB16 /* ScoreInfo.cpp */; };
+		5645D32F1E16C5C500AFBB16 /* libboost_serialization-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5645D32D1E16C5C500AFBB16 /* libboost_serialization-mt.a */; };
+		5645D3301E16C5C500AFBB16 /* libboost_serialization.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5645D32E1E16C5C500AFBB16 /* libboost_serialization.a */; };
 		565414BE1DB28186001E608A /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 565414BD1DB28186001E608A /* libcryptopp.a */; };
 		56D4A2681E05416800198EF6 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56D4A2661E05416800198EF6 /* Scene.cpp */; };
 		56E4C14E1E05756E008A4D0C /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E4C14B1E05756E008A4D0C /* QtCore.framework */; };
@@ -102,6 +105,10 @@
 		563C713E1DABD74800CCD81F /* ScoreData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreData.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
 		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
+		5645D3271E1657E700AFBB16 /* ScoreInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreInfo.cpp; sourceTree = "<group>"; };
+		5645D3281E1657E700AFBB16 /* ScoreInfo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreInfo.hpp; sourceTree = "<group>"; };
+		5645D32D1E16C5C500AFBB16 /* libboost_serialization-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_serialization-mt.a"; path = "../../../../../usr/local/Cellar/boost/1.62.0/lib/libboost_serialization-mt.a"; sourceTree = "<group>"; };
+		5645D32E1E16C5C500AFBB16 /* libboost_serialization.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_serialization.a; path = ../../../../../usr/local/Cellar/boost/1.62.0/lib/libboost_serialization.a; sourceTree = "<group>"; };
 		565414BD1DB28186001E608A /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = ../../../../../usr/local/Cellar/cryptopp/5.6.4/lib/libcryptopp.a; sourceTree = "<group>"; };
 		56D4A2661E05416800198EF6 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		56D4A2671E05416800198EF6 /* Scene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
@@ -123,6 +130,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5645D32F1E16C5C500AFBB16 /* libboost_serialization-mt.a in Frameworks */,
+				5645D3301E16C5C500AFBB16 /* libboost_serialization.a in Frameworks */,
 				56E4C14E1E05756E008A4D0C /* QtCore.framework in Frameworks */,
 				56E4C14F1E05756E008A4D0C /* QtGui.framework in Frameworks */,
 				56E4C1501E05756E008A4D0C /* QtWidgets.framework in Frameworks */,
@@ -244,6 +253,8 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5645D32D1E16C5C500AFBB16 /* libboost_serialization-mt.a */,
+				5645D32E1E16C5C500AFBB16 /* libboost_serialization.a */,
 				56E4C14B1E05756E008A4D0C /* QtCore.framework */,
 				56E4C14C1E05756E008A4D0C /* QtGui.framework */,
 				56E4C14D1E05756E008A4D0C /* QtWidgets.framework */,
@@ -264,6 +275,8 @@
 				563C71381DABD71C00CCD81F /* BmsLoader.hpp */,
 				563C713D1DABD74800CCD81F /* ScoreData.cpp */,
 				563C713E1DABD74800CCD81F /* ScoreData.hpp */,
+				5645D3271E1657E700AFBB16 /* ScoreInfo.cpp */,
+				5645D3281E1657E700AFBB16 /* ScoreInfo.hpp */,
 				56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */,
 				56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */,
 				56F1CB491DEB2D78007BD827 /* WavManager.cpp */,
@@ -382,6 +395,7 @@
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
 				563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */,
 				563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */,
+				5645D3291E1657E700AFBB16 /* ScoreInfo.cpp in Sources */,
 				562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */,
 				56D4A2681E05416800198EF6 /* Scene.cpp in Sources */,
 				56E4C1621E059730008A4D0C /* Result.cpp in Sources */,
@@ -550,6 +564,7 @@
 					"$(inherited)",
 					/usr/local/Cellar/boost/1.61.0_1/lib,
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
+					/usr/local/Cellar/boost/1.62.0/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -579,6 +594,7 @@
 					"$(inherited)",
 					/usr/local/Cellar/boost/1.61.0_1/lib,
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
+					/usr/local/Cellar/boost/1.62.0/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -8,6 +8,7 @@
 
 #include "ScoreDirectoryLoader.hpp"
 #include "BmsLoader.hpp"
+#include "Path.hpp"
 
 const fs::directory_iterator end;
 
@@ -71,6 +72,9 @@ void ScoreDirectoryLoader::LoadScores(const fs::path& path, ScoreDirectoryInfo* 
 }
 
 void ScoreDirectoryLoader::Load(const fs::path& path, ScoreDirectoryInfo* out){
+	std::string xml_path = (Path::appdata / "Database/Song.xml").string();
+	std::ifstream ifs(xml_path);
+	
 	for(fs::directory_iterator it(path); it != end; ++it){
 		if(fs::is_directory(*it)){
 			if(IsScoreFolder(it->path())){

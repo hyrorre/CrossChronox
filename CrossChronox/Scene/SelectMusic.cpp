@@ -49,7 +49,22 @@ sf::Text text_songlist;
 void SelectMusic::Init(){
 	if(!inited){
 		inited = true;
-		ScoreDirectoryLoader().Load(Path::appdata / "Songs", &root);
+		std::string path = (Path::appdata / "Database/Song.xml").string();
+		std::ifstream ifs(path);
+		if(!ifs){ //if score info cache does not exist
+			ScoreDirectoryLoader().Load(Path::appdata / "Songs", &root);
+			std::ofstream ofs(path);
+			boost::archive::xml_oarchive oarchive(ofs);
+			oarchive.register_type<ScoreInfo>();
+			oarchive.register_type<ScoreDirectoryInfo>();
+			oarchive << boost::serialization::make_nvp("root", root);
+		}
+		else{ //cache exists
+			boost::archive::xml_iarchive iarchive(ifs);
+			iarchive.register_type<ScoreInfo>();
+			iarchive.register_type<ScoreDirectoryInfo>();
+			iarchive >> boost::serialization::make_nvp("root", root);
+		}
 		
 		text_songlist.setFont(font_default);
 		text_songlist.setPosition(320, 50);

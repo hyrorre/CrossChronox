@@ -11,7 +11,7 @@
 #include "SelectMusic.hpp"
 
 namespace SceneManager{
-	Scene* now_scene = scene_select_music_ptr;
+	Scene* now_scene = scene_play_score_ptr;
 	
 	void Init(){
 		now_scene->Init();
