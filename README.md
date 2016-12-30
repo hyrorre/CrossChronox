@@ -19,7 +19,7 @@ LICENSE : LGPL v3
 # Building on macOS(Xcode)
 1. Install boost and Crypto++ using homebrew.
 2. Download SFML and sfeMovie, and copy frameworks to /Library/Frameworks
-3. Download picojson, and copy picojson.h to /usr/local/include
+3. Download picojson, and copy picojson.h to /usr/local/include/picojson
 4. Install Qt, and make symbolic links. (run following scripts on terminal)
 5. Open CrossChronox.xcodeproj and build!
 
