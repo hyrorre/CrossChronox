@@ -49,7 +49,9 @@ sf::Text text_songlist;
 void SelectMusic::Init(){
 	if(!inited){
 		inited = true;
-		std::string path = (Path::appdata / "Database/Song.xml").string();
+		fs::path database = Path::appdata / "Database";
+		if(!fs::exists(database)) fs::create_directories(database);
+		std::string path = (database / "Song.xml").string();
 		std::ifstream ifs(path);
 		if(!ifs){ //if score info cache does not exist
 			ScoreDirectoryLoader().Load(Path::appdata / "Songs", &root);
