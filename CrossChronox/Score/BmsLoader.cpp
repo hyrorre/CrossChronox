@@ -15,6 +15,9 @@
 //BMS command memo (Japanese)
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
+const int MAX_X = 20;
+const int MAX_NOTE_CHANNEL = 30;
+
 class BmsLoader : private boost::noncopyable{
 	//friend void LoadBms(const std::string& path, ScoreData* out) throw(LoadError, OpenError, ParseError);
 	
@@ -55,7 +58,7 @@ class BmsLoader : private boost::noncopyable{
 	ScoreData* out = nullptr;
 	const char* nowline = nullptr;
 	int line_num = 0; //行番号
-	std::bitset<30> channel_used_flag; //false filled
+	bool channel_used_flag[MAX_NOTE_CHANNEL] = {false}; //false filled
 	
 	int random_num = 0;
 	bool parse_nextline_flag = true;
@@ -299,8 +302,6 @@ const auto PmeChannelToX = [](int channel){
 			return -1;
 	}
 };
-
-const int MAX_X = 20;
 
 int BmsLoader::GetIndex(){
 	boost::string_ref line = nowline;
@@ -550,7 +551,7 @@ void BmsLoader::SetSubtitle(){
 		boost::wstring_ref title = out->info.title;
 		for(delim_type delim : delim_list){
 			if(title.back() == delim.second){
-				auto pos_delim1 = title.rfind(delim.first);
+				auto pos_delim1 = title.substr(0, title.length() - 1).find_last_of(delim.first);
 				if(pos_delim1 != std::string::npos && pos_delim1 != 0){
 					out->info.subtitle = title.substr(pos_delim1).to_string();
 					out->info.title = title.substr(0, pos_delim1).to_string();
@@ -563,9 +564,9 @@ void BmsLoader::SetSubtitle(){
 }
 
 void BmsLoader::SetMode(){
-	int used_channel_max = 29;
+	int used_channel_max = MAX_NOTE_CHANNEL - 1;
 	for(;;){
-		if(channel_used_flag[used_channel_max] == false) break;
+		if(channel_used_flag[used_channel_max]) break;
 		if(used_channel_max == 11) break;
 		--used_channel_max;
 	}
