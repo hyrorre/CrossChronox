@@ -21,6 +21,7 @@ class ScoreInfoBase{
 protected:
 public:
 	virtual std::wstring GetTitleSubtitle() const = 0;
+	virtual std::wstring GetInfoStr() const = 0;
 	virtual void SetParent(ScoreDirectoryInfo* parent){}
 	fs::wpath path;
 	

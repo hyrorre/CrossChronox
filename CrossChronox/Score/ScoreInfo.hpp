@@ -18,13 +18,15 @@ const bool TOTAL_RELATIVE = false;
 const bool TOTAL_ABSOLUTE = true;
 
 enum Mode{
-	MODE_BEAT_5K,
+	MODE_BEAT_5K = 0,
 	MODE_BEAT_7K,
 	MODE_BEAT_10K,
 	MODE_BEAT_14K,
 	MODE_POPN_5K,
 	MODE_POPN_9K,
 };
+
+const std::string& GetModeString(Mode mode);
 
 struct ScoreInfo : public ScoreInfoBase{
 	using judge_ms_type = std::array<int,3>;
@@ -65,12 +67,10 @@ struct ScoreInfo : public ScoreInfoBase{
 		return ss.str();
 	}
 	
+	std::wstring GetInfoStr() const;
+	
 	ScoreInfo(){}
 	ScoreInfo(fs::wpath path): ScoreInfoBase(path){}
-	
-	template<class Archive>
-	void serialize__(Archive& ar, unsigned int ver){
-	}
 	
 private: // ここがシリアライズ処理の実装
 	BOOST_SERIALIZATION_SPLIT_MEMBER();

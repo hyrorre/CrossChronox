@@ -54,6 +54,10 @@ public:
 		children.clear();
 	}
 	
+	std::wstring GetInfoStr() const{
+		return L"";
+	}
+	
 	ScoreDirectoryInfo(){}
 	ScoreDirectoryInfo(fs::wpath path): ScoreInfoBase(path){}
 	
