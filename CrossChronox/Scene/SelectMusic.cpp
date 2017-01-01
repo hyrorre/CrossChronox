@@ -18,10 +18,10 @@ SelectMusic* scene_select_music_ptr = &scene_select_music;
 
 Scene* SelectMusic::Update(){
 	if(InputManager::GetKeyFuncState("UpMusic").now == 1){
-		--cursor;
+		now_directory->UpMusic();
 	}
 	if(InputManager::GetKeyFuncState("DownMusic").now == 1){
-		++cursor;
+		now_directory->DownMusic();
 	}
 	if(InputManager::GetKeyFuncState("CloseFolder").now == 1){
 		if(now_directory->GetParent()){
@@ -29,7 +29,7 @@ Scene* SelectMusic::Update(){
 		}
 	}
 	if(InputManager::GetKeyFuncState("DecideMusic").now == 1){
-		ScoreInfoBase* tmp_info = now_directory->At(cursor);
+		ScoreInfoBase* tmp_info = now_directory->At(0);
 		if(typeid(*tmp_info) == typeid(ScoreDirectoryInfo)){
 			ScoreDirectoryInfo* tmp_directory = static_cast<ScoreDirectoryInfo*>(tmp_info);
 			if(!tmp_directory->Empty()){
@@ -52,20 +52,34 @@ void SelectMusic::Init(){
 		fs::path database = Path::appdata / "Database";
 		if(!fs::exists(database)) fs::create_directories(database);
 		std::string path = (database / "Song.xml").string();
-		std::ifstream ifs(path);
-		if(!ifs){ //if score info cache does not exist
+		bool load_score_directory_flag = false;
+		{
+			std::ifstream ifs(path);
+			ifs.imbue(std::locale(""));
+			if(!ifs){ //if score info cache does not exist
+				load_score_directory_flag = true;
+			}
+			else{ //cache exists
+				try{
+					boost::archive::xml_iarchive iarchive(ifs);
+					iarchive.register_type<ScoreInfo>();
+					iarchive.register_type<ScoreDirectoryInfo>();
+					iarchive >> boost::serialization::make_nvp("root", root);
+				}
+				catch(std::exception& e){
+					root.Clear();
+					load_score_directory_flag = true;
+				}
+			}
+		}
+		if(load_score_directory_flag){
 			ScoreDirectoryLoader().Load(Path::appdata / "Songs", &root);
 			std::ofstream ofs(path);
+			ofs.imbue(std::locale(""));
 			boost::archive::xml_oarchive oarchive(ofs);
 			oarchive.register_type<ScoreInfo>();
 			oarchive.register_type<ScoreDirectoryInfo>();
 			oarchive << boost::serialization::make_nvp("root", root);
-		}
-		else{ //cache exists
-			boost::archive::xml_iarchive iarchive(ifs);
-			iarchive.register_type<ScoreInfo>();
-			iarchive.register_type<ScoreDirectoryInfo>();
-			iarchive >> boost::serialization::make_nvp("root", root);
 		}
 		
 		text_songlist.setFont(font_default);
@@ -73,15 +87,14 @@ void SelectMusic::Init(){
 	}
 }
 
-std::string str_songlist;
+std::wstring str_songlist;
 
 void SelectMusic::Draw(sf::RenderTarget& render_target) const{
 	str_songlist.clear();
 	for(int i = -2; i < 4; ++i){
-		if(i == 0) str_songlist += "->";
-		str_songlist += now_directory->At(i + cursor)->GetTitleSubtitle();
-		str_songlist.push_back('\n');
-		str_songlist.push_back('\n');
+		if(i == 0) str_songlist += L"->";
+		str_songlist += now_directory->At(i)->GetTitleSubtitle();
+		str_songlist += L"\n\n";
 	}
 	text_songlist.setString(str_songlist);
 	render_target.draw(text_songlist);

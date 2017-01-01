@@ -20,16 +20,16 @@ class ScoreDirectoryInfo : public ScoreInfoBase{
 	ScoreDirectoryInfo* parent = nullptr;
 	std::vector<std::unique_ptr<ScoreInfoBase>> children;
 	int cursor = 0;
-	std::string title;
+	std::wstring title;
 	
 public:
-	void MusicDown(){
+	void DownMusic(){
 		++cursor;
 	}
-	void MusicUp(){
+	void UpMusic(){
 		--cursor;
 	}
-	std::string GetTitleSubtitle() const{
+	std::wstring GetTitleSubtitle() const{
 		return title;
 	}
 	ScoreDirectoryInfo* GetParent(){
@@ -50,20 +50,33 @@ public:
 	bool Empty(){
 		return children.empty();
 	}
+	void Clear(){
+		children.clear();
+	}
 	
 	ScoreDirectoryInfo(){}
-	ScoreDirectoryInfo(fs::path path): ScoreInfoBase(path){}
+	ScoreDirectoryInfo(fs::wpath path): ScoreInfoBase(path){}
 	
 //	template<class Archive>
 //	void serialize__(Archive& ar, unsigned int ver){
 //	}
 private: // ここがシリアライズ処理の実装
+	BOOST_SERIALIZATION_SPLIT_MEMBER();
 	friend class boost::serialization::access;
 	template<class Archive>
-	void serialize(Archive& ar, unsigned int ver){
+	void save(Archive& ar, const unsigned int version) const{
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
 		ar & boost::serialization::make_nvp("children", children);
 		ar & boost::serialization::make_nvp("title", title);
+	}
+	template<class Archive>
+	void load(Archive& ar, const unsigned int version){
+		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
+		ar & boost::serialization::make_nvp("children", children);
+		std::string tmp;
+		std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
+		ar & boost::serialization::make_nvp("title", tmp);
+		title = cv.from_bytes(tmp);
 		for(const auto& child : children){
 			child->SetParent(this);
 		}

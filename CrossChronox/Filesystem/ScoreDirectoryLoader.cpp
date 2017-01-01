@@ -72,9 +72,6 @@ void ScoreDirectoryLoader::LoadScores(const fs::path& path, ScoreDirectoryInfo* 
 }
 
 void ScoreDirectoryLoader::Load(const fs::path& path, ScoreDirectoryInfo* out){
-	std::string xml_path = (Path::appdata / "Database/Song.xml").string();
-	std::ifstream ifs(xml_path);
-	
 	for(fs::directory_iterator it(path); it != end; ++it){
 		if(fs::is_directory(*it)){
 			if(IsScoreFolder(it->path())){
@@ -84,7 +81,7 @@ void ScoreDirectoryLoader::Load(const fs::path& path, ScoreDirectoryInfo* out){
 				auto* child = new ScoreDirectoryInfo(it->path());
 				out->children.emplace_back(child);
 				child->parent = out;
-				child->title = it->path().leaf().string();
+				child->title = it->path().leaf().wstring();
 				Load(it->path(), child);
 			}
 		}

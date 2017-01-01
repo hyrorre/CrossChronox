@@ -29,14 +29,14 @@ enum Mode{
 struct ScoreInfo : public ScoreInfoBase{
 	using judge_ms_type = std::array<int,3>;
 	
-	std::string   title;                 // self-explanatory
-	std::string   subtitle;              // self-explanatory
-	std::string   artist;                // self-explanatory
-	std::vector<std::string> subartists; // ["key:value"]
-	std::string   genre;                 // self-explanatory
+	std::wstring   title;                 // self-explanatory
+	std::wstring   subtitle;              // self-explanatory
+	std::wstring   artist;                // self-explanatory
+	std::vector<std::wstring> subartists; // ["key:value"]
+	std::wstring   genre;                 // self-explanatory
 	//std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
 	Mode          mode;
-	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
+	std::wstring   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int           difficulty = 0;
 	size_t        level = 0;             // self-explanatory
 	double        init_bpm = 130;        // self-explanatory
@@ -44,10 +44,10 @@ struct ScoreInfo : public ScoreInfoBase{
 	judge_ms_type judge_ms;
 	bool          total_type = TOTAL_RELATIVE;
 	double        total = 100;           // relative or absolute lifebar gain
-	std::string   back_image;            // background image filename
-	std::string   eyecatch_image;        // eyecatch image filename
-	std::string   banner_image;          // banner image filename
-	std::string   preview_music;         // preview music filename
+	std::wstring   back_image;            // background image filename
+	std::wstring   eyecatch_image;        // eyecatch image filename
+	std::wstring   banner_image;          // banner image filename
+	std::wstring   preview_music;         // preview music filename
 	pulse_t resolution = 240;            // pulses per quarter note
 	pulse_t end_y = 0;
 	
@@ -59,23 +59,24 @@ struct ScoreInfo : public ScoreInfoBase{
 	//int peek_vol;                        // use it if replaygain is implemented
 	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
 	
-	std::string GetTitleSubtitle() const{
-		std::stringstream ss;
+	std::wstring GetTitleSubtitle() const{
+		std::wstringstream ss;
 		ss << level << ' ' << title << ' ' << subtitle;
 		return ss.str();
 	}
 	
 	ScoreInfo(){}
-	ScoreInfo(fs::path path): ScoreInfoBase(path){}
+	ScoreInfo(fs::wpath path): ScoreInfoBase(path){}
 	
 	template<class Archive>
 	void serialize__(Archive& ar, unsigned int ver){
 	}
 	
 private: // ここがシリアライズ処理の実装
+	BOOST_SERIALIZATION_SPLIT_MEMBER();
 	friend class boost::serialization::access;
 	template<class Archive>
-	void serialize(Archive& ar, unsigned int ver){
+	void save(Archive& ar, const unsigned int version) const{
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
 		ar & boost::serialization::make_nvp("title", title);
 		ar & boost::serialization::make_nvp("subtitle", subtitle);
@@ -94,6 +95,48 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("eyecatch_image", eyecatch_image);
 		ar & boost::serialization::make_nvp("banner_image", banner_image);
 		ar & boost::serialization::make_nvp("preview_music", preview_music);
+		ar & boost::serialization::make_nvp("resolution", resolution);
+		ar & boost::serialization::make_nvp("end_y", end_y);
+		ar & boost::serialization::make_nvp("max_bpm", max_bpm);
+		ar & boost::serialization::make_nvp("min_bpm", min_bpm);
+		ar & boost::serialization::make_nvp("base_bpm", base_bpm);
+		ar & boost::serialization::make_nvp("note_count", note_count);
+		ar & boost::serialization::make_nvp("md5", md5);
+		ar & boost::serialization::make_nvp("random_flag", random_flag);
+	}
+	
+	template<class Archive>
+	void load(Archive& ar, const unsigned int version){
+		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
+		std::string tmp;
+		std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
+#define MAKE_WSTRING_NVP(x) \
+	boost::serialization::make_nvp(#x, tmp); \
+	x = cv.from_bytes(tmp)
+		
+		ar & MAKE_WSTRING_NVP(title);
+		ar & MAKE_WSTRING_NVP(subtitle);
+		ar & MAKE_WSTRING_NVP(artist);
+		std::vector<std::string> tmpvec;
+		ar & boost::serialization::make_nvp("subartists", tmpvec);
+		subartists.clear();
+		for(int i = 0; i < tmpvec.size(); ++i){
+			subartists.emplace_back(cv.from_bytes(tmpvec[i]));
+		}
+		ar & MAKE_WSTRING_NVP(genre);
+		
+		ar & boost::serialization::make_nvp("mode", mode);
+		ar & MAKE_WSTRING_NVP(chart_name);
+		ar & boost::serialization::make_nvp("difficulty", difficulty);
+		ar & boost::serialization::make_nvp("level", level);
+		ar & boost::serialization::make_nvp("init_bpm", init_bpm);
+		ar & boost::serialization::make_nvp("judge_ms", judge_ms);
+		ar & boost::serialization::make_nvp("total_type", total_type);
+		ar & boost::serialization::make_nvp("total", total);
+		ar & MAKE_WSTRING_NVP(back_image);
+		ar & MAKE_WSTRING_NVP(eyecatch_image);
+		ar & MAKE_WSTRING_NVP(banner_image);
+		ar & MAKE_WSTRING_NVP(preview_music);
 		ar & boost::serialization::make_nvp("resolution", resolution);
 		ar & boost::serialization::make_nvp("end_y", end_y);
 		ar & boost::serialization::make_nvp("max_bpm", max_bpm);

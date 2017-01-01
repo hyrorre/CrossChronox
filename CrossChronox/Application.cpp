@@ -33,7 +33,9 @@ void Application::Init(){
 	
 	if(!InitDefaultFont()) throw InitError("Default font was not found.");
 	
-	//If necessary, set locale
+	//set locale
+	setlocale(LC_ALL, "");
+	//std::locale::global(std::locale(""));
 	
 	//set up window
 	window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", sf::Style::Titlebar | sf::Style::Close);

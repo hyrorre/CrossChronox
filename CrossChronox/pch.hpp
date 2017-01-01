@@ -65,6 +65,8 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/unique_ptr.hpp>
@@ -72,9 +74,15 @@
 #include <boost/serialization/string.hpp> // std::stringをシリアライズしたい場合必要
 #include <boost/serialization/export.hpp>
 
+//libguess
+//#include <libguess/libguess.h>
+
+//iconv
+#include <iconv.h>
 
 //C std
 #include <cmath>
+#include <cwchar>
 
 //C++ std
 #include <forward_list>
@@ -96,6 +104,7 @@
 #include <fstream>
 #include <utility>
 #include <numeric>
+#include <codecvt>
 
 //using (namespace)
 namespace fs = boost::filesystem;
