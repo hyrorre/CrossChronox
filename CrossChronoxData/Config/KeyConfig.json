@@ -90,7 +90,8 @@
             "CloseFolder": ["1pKey2", "1pKey4", "1pKey6", "Left"],
             "DecideMusic": ["1pKey1", "1pKey3", "1pKey5", "1pKey7", "Return", "Right"],
     		"UpMusic": ["1pScrUp", "Up"],
-    		"DownMusic": ["1pScrDown", "Down"]
+    		"DownMusic": ["1pScrDown", "Down"],
+    		"RelodeFolder": ["8"]
     	}
     }
 }

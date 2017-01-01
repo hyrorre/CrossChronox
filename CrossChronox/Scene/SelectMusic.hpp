@@ -11,7 +11,7 @@
 
 #include "pch.hpp"
 #include "Scene.hpp"
-#include "ScoreDirectoryLoader.hpp"
+#include "ScoreDirectoryInfo.hpp"
 #include "Path.hpp"
 
 class SelectMusic : public Scene{

@@ -48,43 +48,22 @@ Scene* SelectMusic::Update(){
 			return scene_play_score_ptr;
 		}
 	}
+	if(InputManager::GetKeyFuncState("RelodeFolder").now == 1){
+		root.LoadScoreDirectory();
+		root.SaveScoreDirectoryCache();
+	}
+	
 	return scene_select_music_ptr;
 }
 
 void SelectMusic::Init(){
 	if(!inited){
 		inited = true;
-		fs::path database = Path::appdata / "Database";
-		if(!fs::exists(database)) fs::create_directories(database);
-		std::string path = (database / "Song.xml").string();
-		bool load_score_directory_flag = false;
-		{
-			std::ifstream ifs(path);
-			ifs.imbue(std::locale(""));
-			if(!ifs){ //if score info cache does not exist
-				load_score_directory_flag = true;
-			}
-			else{ //cache exists
-				try{
-					boost::archive::xml_iarchive iarchive(ifs);
-					iarchive.register_type<ScoreInfo>();
-					iarchive.register_type<ScoreDirectoryInfo>();
-					iarchive >> boost::serialization::make_nvp("root", root);
-				}
-				catch(std::exception& e){
-					root.Clear();
-					load_score_directory_flag = true;
-				}
-			}
+		if(root.TryLoadScoreDirectoryCache()){
+			root.SaveScoreDirectoryCache();
 		}
-		if(load_score_directory_flag){
-			ScoreDirectoryLoader().Load(Path::appdata / "Songs", &root);
-			std::ofstream ofs(path);
-			ofs.imbue(std::locale(""));
-			boost::archive::xml_oarchive oarchive(ofs);
-			oarchive.register_type<ScoreInfo>();
-			oarchive.register_type<ScoreDirectoryInfo>();
-			oarchive << boost::serialization::make_nvp("root", root);
+		else{
+			root.LoadScoreDirectory();
 		}
 		
 		text_songlist.setFont(font_default);

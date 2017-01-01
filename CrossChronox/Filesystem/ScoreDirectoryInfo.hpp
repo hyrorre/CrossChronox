@@ -58,6 +58,14 @@ public:
 		return L"";
 	}
 	
+	void LoadScoreDirectory();
+	void SaveScoreDirectoryCache() const;
+	void LoadScoreDirectorySaveCache(){
+		LoadScoreDirectory();
+		SaveScoreDirectoryCache();
+	}
+	bool TryLoadScoreDirectoryCache();
+	
 	ScoreDirectoryInfo(){}
 	ScoreDirectoryInfo(fs::wpath path): ScoreInfoBase(path){}
 	
