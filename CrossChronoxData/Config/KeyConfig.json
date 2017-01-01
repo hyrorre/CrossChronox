@@ -55,6 +55,8 @@
             "Quote": [51],
             "Slash": [52],
             "BackSlash": [53],
+            "Return": [58],
+            "BackSpace": [59],
             "Left": [71],
             "Right": [72],
             "Up": [73],
@@ -87,7 +89,7 @@
         "KeyFunc": {
             "Option": ["1pStart"],
             "FlipOption": ["1pSelect"],
-            "CloseFolder": ["1pKey2", "1pKey4", "1pKey6", "Left"],
+            "CloseFolder": ["1pKey2", "1pKey4", "1pKey6", "Left", "BackSpace"],
             "DecideMusic": ["1pKey1", "1pKey3", "1pKey5", "1pKey7", "Return", "Right"],
     		"UpMusic": ["1pScrUp", "Up"],
     		"DownMusic": ["1pScrDown", "Down"],
