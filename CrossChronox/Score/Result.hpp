@@ -50,6 +50,8 @@ public:
 	void SetNowCombo(size_t value){
 		now_combo = value;
 	}
+	
+	std::wstring GetResultStr() const;
 };
 
 

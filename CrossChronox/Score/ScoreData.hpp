@@ -42,7 +42,7 @@ struct Note{
 	lane_t x;          // CrossChronox supports only beat and popn(that have integer lane)
 	pulse_t y;      // pulse number
 	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
-	size_t num = 0; // playable note count (0から始まる)
+	size_t num = 0; // playable note count (1から始まる)
 	WavBuffer* wavbuf_ptr = nullptr;
 	Judge judge = Judge::YET;
 	

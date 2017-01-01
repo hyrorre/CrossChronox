@@ -57,6 +57,7 @@ sf::Texture judgeline_shape;
 sf::Sprite judgeline_sprite;
 
 sf::Text text_fps;
+sf::Text text_info_play;
 
 sf::Clock clock_fps;
 int fps_count = 0;
@@ -79,6 +80,10 @@ void PlayScore::Init(){
 	
 	text_fps.setFont(font_default);
 	text_fps.setFillColor(sf::Color::White);
+	
+	text_info_play.setFont(font_default);
+	text_info_play.setCharacterSize(15);
+	text_info_play.setPosition(400, 0);
 	
 	clock_fps.restart();
 	
@@ -127,15 +132,26 @@ sf::Sprite* GetSpritePtr(Note::lane_t lane){
 
 float global_scroll = .7f * 240;
 
+#define SS(x) ss << #x L": " << x << L'\n'
+
 void PlayScore::Draw(sf::RenderTarget& render_target) const{
+	std::wstringstream ss;
+	
 	render_target.draw(judgeline_sprite);
 	for(auto& player : players){
 		ms_type play_ms = player.GetPlayMs();
-		//ms_type last_play_ms = play_ms - delta_ms;
+		ms_type last_play_ms = play_ms - delta_ms;
 		pulse_t now_pulse = player.GetScore().MsToPulse(play_ms);
-		//pulse_t last_pulse = player.GetScore().MsToPulse(last_play_ms);
+		pulse_t last_pulse = player.GetScore().MsToPulse(last_play_ms);
+		
+		SS(play_ms);
+		SS(last_play_ms);
+		SS(now_pulse);
+		SS(last_pulse);
 		
 		const ScoreData& score = player.GetScore();
+		ss << score.info.GetInfoStr();
+		ss << player.GetResult().GetResultStr() << std::endl;
 		for(const auto& note : score.notes){
 			float lnstart_y = judgeline_y - static_cast<int>((note->y - now_pulse) * global_scroll / score.info.resolution);
 			float note_y = judgeline_y - static_cast<int>((note->y + note->l - now_pulse) * global_scroll / score.info.resolution);
@@ -172,6 +188,9 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 		fps_count = 0;
 	}
 	render_target.draw(text_fps);
+	
+	text_info_play.setString(ss.str());
+	render_target.draw(text_info_play);
 }
 
 

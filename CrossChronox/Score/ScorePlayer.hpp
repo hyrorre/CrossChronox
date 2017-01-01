@@ -40,6 +40,9 @@ public:
 	const ScoreData& GetScore() const{
 		return score;
 	}
+	const Result& GetResult() const{
+		return result;
+	}
 	static void Start();
 	State Update();
 };

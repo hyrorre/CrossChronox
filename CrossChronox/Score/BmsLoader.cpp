@@ -693,8 +693,7 @@ void BmsLoader::SetNotesAndEvents(){
 				if(0 <= x){
 					size_t num = 0;
 					if(0 < x){
-						num = note_count;
-						++note_count;
+						num = ++note_count;
 					}
 					out->notes.emplace_back(new Note(x, tmp_note->global_pulse, 0, num, out->wavbufs[tmp_note->index].get()));
 					last_note[x] = out->notes.back().get();
@@ -702,9 +701,9 @@ void BmsLoader::SetNotesAndEvents(){
 				break;
 		}
 	}
-	//(last note count) + 1 is the number of notes
-	//最後のnote_count+1がノーツの個数
-	out->info.note_count = note_count + 1;
+	//(last note count) is the number of notes
+	//最後のnote_countがノーツの個数
+	out->info.note_count = note_count;
 }
 
 void BmsLoader::SetNoteTime(){
