@@ -43,11 +43,8 @@ ScorePlayer::State ScorePlayer::Update(){
 		if(now_pulse < note.y) break;
 		wav_manager.PlayWav(&note);
 		if(note.num){
-			size_t combo = note.num;
-			result.SetNowCombo(combo);
-			result.SetMaxCombo(combo);
-			result.SetJudge(Judge::PGREAT, combo);
-			result.SetExScore(result.GetExScore() + 2);
+			Side side = static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= note.x);
+			result.Push(side, play_ms, Judge::PGREAT, false);
 		}
 	}
 	if(score.info.end_y < now_pulse && wav_manager.Empty()) return State::FINISH;

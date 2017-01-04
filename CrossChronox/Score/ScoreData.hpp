@@ -26,15 +26,19 @@ struct BarLine{
 };
 
 enum Judge{
-	YET = -1,
+	JUDGE_YET = -1,
 	PGREAT = 0,
 	GREAT,
 	GOOD,
 	BAD,
 	POOR,
 	
-	MAX
+	MAX_JUDGE
 };
+
+inline bool IsComboContinuous(Judge judge){
+	return (Judge::PGREAT <= judge && judge <= Judge::GOOD);
+}
 
 // sound note
 struct Note{
@@ -44,7 +48,7 @@ struct Note{
 	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
 	size_t num = 0; // playable note count (1から始まる)
 	WavBuffer* wavbuf_ptr = nullptr;
-	Judge judge = Judge::YET;
+	Judge judge = JUDGE_YET;
 	
 	ms_type ms;     // time(ms) that the note should be handled.
     

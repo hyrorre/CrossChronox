@@ -18,12 +18,12 @@ const bool TOTAL_RELATIVE = false;
 const bool TOTAL_ABSOLUTE = true;
 
 enum Mode{
-	MODE_BEAT_5K = 0,
-	MODE_BEAT_7K,
-	MODE_BEAT_10K,
-	MODE_BEAT_14K,
-	MODE_POPN_5K,
-	MODE_POPN_9K,
+	BEAT_5K = 0,
+	BEAT_7K,
+	BEAT_10K,
+	BEAT_14K,
+	POPN_5K,
+	POPN_9K,
 };
 
 const std::string& GetModeString(Mode mode);

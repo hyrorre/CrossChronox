@@ -10,11 +10,11 @@
 
 std::wstring Result::GetResultStr() const{
 	std::wstringstream ss;
-	ss << L"PGREAT: " << GetJudge(Judge::PGREAT) << L'\n';
-	ss << L"GREAT: " << GetJudge(Judge::GREAT) << L'\n';
-	ss << L"GOOD: " << GetJudge(Judge::GOOD) << L'\n';
-	ss << L"BAD: " << GetJudge(Judge::BAD) << L'\n';
-	ss << L"POOR: " << GetJudge(Judge::POOR) << L'\n';
+	ss << L"PGREAT: " << GetJudgeCount(Judge::PGREAT) << L'\n';
+	ss << L"GREAT: " << GetJudgeCount(Judge::GREAT) << L'\n';
+	ss << L"GOOD: " << GetJudgeCount(Judge::GOOD) << L'\n';
+	ss << L"BAD: " << GetJudgeCount(Judge::BAD) << L'\n';
+	ss << L"POOR: " << GetJudgeCount(Judge::POOR) << L'\n';
 	ss << L"CB: " << GetComboBreak() << L'\n';
 	ss << L"EXSCORE: " << GetExScore() << L'\n';
 	ss << L"COMBO: " << GetNowCombo() << L'\n';

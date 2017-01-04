@@ -44,6 +44,10 @@ float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
 
 float judgeline_y = 640 - 165;
 
+float judge_combo_x = scr_x + 40;
+
+float judge_combo_y = judgeline_y - 130;
+
 sf::Texture white_shape;
 sf::Sprite white_sprite;
 
@@ -61,6 +65,56 @@ sf::Text text_info_play;
 
 sf::Clock clock_fps;
 int fps_count = 0;
+
+sf::Color color_judge_combo[] = {
+	sf::Color::Cyan,   //PGREAT
+	sf::Color::Yellow, //GREAT
+	sf::Color::Yellow, //GOOD
+	sf::Color::Red,    //BAD
+	sf::Color::Red,    //POOR
+};
+
+std::string str_judge_combo[] = {
+	"GREAT ", //PGREAT
+	"GREAT ", //GREAT
+	"GOOD ",  //GOOD
+	"BAD ",   //BAD
+	"POOR ",  //POOR
+};
+
+class JudgeCombo{
+	const ScorePlayer* player;
+	sf::Text text;
+	Side side = LEFT;
+	
+	ms_type last_ms = 0;
+	size_t last_combo = 0;
+	
+public:
+	void Init(const ScorePlayer& player, Side side){
+		this->side = side;
+		this->player = &player;
+		text.setFont(font_default);
+		text.setPosition(judge_combo_x, judge_combo_y);
+		text.setCharacterSize(40);
+		text.setOutlineColor(sf::Color::Black);
+		text.setOutlineThickness(1);
+	}
+	const sf::Text* GetText(){
+		JudgeInfo info = player->GetResult().GetLastJudgeInfo(side);
+		if(info.judge != JUDGE_YET){
+			ms_type elapsed = player->GetPlayMs() - info.ms;
+			if(elapsed < 2000 && (info.judge == Judge::PGREAT || (elapsed / 10) % 3 == 1)){
+				text.setString(str_judge_combo[info.judge] + std::to_string(info.combo));
+				text.setFillColor(color_judge_combo[info.judge]);
+				return &text;
+			}
+		}
+		return nullptr;
+	}
+};
+
+std::array<JudgeCombo, MAX_SIDE> judge_combos;
 
 void PlayScore::Init(){
 	sf::Image tmp_image;
@@ -84,6 +138,10 @@ void PlayScore::Init(){
 	text_info_play.setFont(font_default);
 	text_info_play.setCharacterSize(15);
 	text_info_play.setPosition(400, 0);
+	
+	for(int i = 0; i < judge_combos.size(); ++i){
+		judge_combos[i].Init(players[0], static_cast<Side>(i));
+	}
 	
 	clock_fps.restart();
 	
@@ -191,6 +249,11 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 	
 	text_info_play.setString(ss.str());
 	render_target.draw(text_info_play);
+	
+	const sf::Text* tmp = judge_combos[0].GetText();
+	if(tmp){
+		render_target.draw(*tmp);
+	}
 }
 
 

@@ -575,38 +575,38 @@ void BmsLoader::SetMode(){
 	if(boost::istarts_with(extention, "b")){
 		ChannelToX = BmsChannelToX;
 		if(28 <= used_channel_max){
-			out->info.mode = MODE_BEAT_14K;
+			out->info.mode = BEAT_14K;
 		}
 		else if(21 <= used_channel_max){
 			if(channel_used_flag[18] || channel_used_flag[19]){
-				out->info.mode = MODE_BEAT_14K;
+				out->info.mode = BEAT_14K;
 			}
-			else out->info.mode = MODE_BEAT_10K;
+			else out->info.mode = BEAT_10K;
 		}
 		else if(18 <= used_channel_max){
-			out->info.mode = MODE_BEAT_7K;
+			out->info.mode = BEAT_7K;
 		}
-		else out->info.mode = MODE_BEAT_5K;
+		else out->info.mode = BEAT_5K;
 	}
 	
 	//pms, pme(pms BME-TYPE)
 	else{
 		if(24 <= used_channel_max){
-			out->info.mode = MODE_POPN_9K;
+			out->info.mode = POPN_9K;
 			ChannelToX = PmsChannelToX;
 		}
 		else if(22 <= used_channel_max){
 			if(channel_used_flag[11] || channel_used_flag[12]){
-				out->info.mode = MODE_POPN_9K;
+				out->info.mode = POPN_9K;
 				ChannelToX = PmsChannelToX;
 			}
 			else{
-				out->info.mode = MODE_POPN_5K;
+				out->info.mode = POPN_5K;
 				ChannelToX = PmsChannelToX;
 			}
 		}
 		else{
-			out->info.mode = MODE_POPN_9K;
+			out->info.mode = POPN_9K;
 			ChannelToX = PmeChannelToX;
 		}
 	}
