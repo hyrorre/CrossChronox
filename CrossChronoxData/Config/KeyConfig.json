@@ -93,7 +93,7 @@
             "DecideMusic": ["1pKey1", "1pKey3", "1pKey5", "1pKey7", "Return", "Right"],
     		"UpMusic": ["1pScrUp", "Up"],
     		"DownMusic": ["1pScrDown", "Down"],
-    		"RelodeFolder": ["8"]
+    		"ReloadFolder": ["8"]
     	}
     }
 }

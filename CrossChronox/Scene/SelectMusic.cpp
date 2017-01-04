@@ -48,7 +48,7 @@ Scene* SelectMusic::Update(){
 			return scene_play_score_ptr;
 		}
 	}
-	if(InputManager::GetKeyFuncState("RelodeFolder").now == 1){
+	if(InputManager::GetKeyFuncState("ReloadFolder").now == 1){
 		root.LoadScoreDirectory();
 		root.SaveScoreDirectoryCache();
 	}
