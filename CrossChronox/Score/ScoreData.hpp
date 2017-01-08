@@ -12,12 +12,11 @@
 #include "pch.hpp"
 #include "TimeManager.hpp"
 #include "WavBuffer.hpp"
-#include "ScoreInfoBase.hpp"
+#include "ScoreInfo.hpp"
 
 // Define class ScoreData based on bmson specs
 // http://bmson-spec.readthedocs.io/en/master/doc/index.html
 
-using pulse_t = unsigned long;
 using event_id_t = unsigned long;
 
 // bar-line event
@@ -109,59 +108,6 @@ struct BGA{
 	std::vector<BGAEvent>  bga_events;   // picture sequence
 	std::vector<BGAEvent>  layer_events; // picture sequence overlays bga_notes
 	std::vector<BGAEvent>  poor_events;  // picture sequence when missed
-};
-
-const bool TOTAL_RELATIVE = false;
-const bool TOTAL_ABSOLUTE = true;
-
-enum Mode{
-	MODE_BEAT_5K,
-	MODE_BEAT_7K,
-	MODE_BEAT_10K,
-	MODE_BEAT_14K,
-	MODE_POPN_5K,
-	MODE_POPN_9K,
-};
-
-struct ScoreInfo : public ScoreInfoBase{
-	using judge_ms_type = std::array<int,3>;
-	
-	std::string   title;                 // self-explanatory
-	std::string   subtitle;              // self-explanatory
-	std::string   artist;                // self-explanatory
-	std::vector<std::string> subartists; // ["key:value"]
-	std::string   genre;                 // self-explanatory
-	//std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
-	Mode          mode;
-	std::string   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
-	int           difficulty = 0;
-	size_t        level = 0;             // self-explanatory
-	double        init_bpm = 130;        // self-explanatory
-	//double        judge_rank = 100;      // relative judge width
-	judge_ms_type judge_ms;
-	bool          total_type = TOTAL_RELATIVE;
-	double        total = 100;           // relative or absolute lifebar gain
-	std::string   back_image;            // background image filename
-	std::string   eyecatch_image;        // eyecatch image filename
-	std::string   banner_image;          // banner image filename
-	std::string   preview_music;         // preview music filename
-	pulse_t resolution = 240;            // pulses per quarter note
-	pulse_t end_y = 0;
-	
-	double max_bpm;                      // calc from the data
-	double min_bpm;                      // calc from the data
-	double base_bpm = 0;                 // calc from the data
-	size_t note_count = 0;               // calc from the data
-	std::string   md5;                   // use to identify score in level table and IR
-	//int peek_vol;                        // use it if replaygain is implemented
-	bool random_flag = false;            // if #RANDOM is used, it should not be registered IR
-	
-	std::string GetTitleSubtitle() const{
-		return title + ' ' + subtitle;
-	}
-	
-	ScoreInfo(){}
-	ScoreInfo(fs::path path): ScoreInfoBase(path){}
 };
 
 struct ScoreData : boost::noncopyable{

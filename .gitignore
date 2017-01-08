@@ -1,3 +1,7 @@
+#CrossChronox
+#score info cache file
+Song.xml
+
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883
 build/

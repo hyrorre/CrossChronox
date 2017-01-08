@@ -29,6 +29,13 @@
 
 //jsoncpp
 //#include <json/json.h>
+<<<<<<< HEAD
+=======
+
+//picojson
+#define PICOJSON_USE_INT64
+#include <picojson/picojson.h>
+>>>>>>> 1cee7180f5a1876daf4c7f7212ba3eb4e5fda0ff
 
 //Crypto++ (cryptopp)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5
@@ -58,9 +65,27 @@
 #include <boost/range/algorithm/sort.hpp>
 #include <boost/range.hpp>
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp> // std::vectorをシリアライズしたい場合必要
+#include <boost/serialization/string.hpp> // std::stringをシリアライズしたい場合必要
+#include <boost/serialization/export.hpp>
+
+//libguess
+//#include <libguess/libguess.h>
+
+//iconv
+#include <iconv.h>
 
 //C std
 #include <cmath>
+#include <cwchar>
 
 //C++ std
 #include <forward_list>
@@ -82,6 +107,7 @@
 #include <fstream>
 #include <utility>
 #include <numeric>
+#include <codecvt>
 
 //using (namespace)
 namespace fs = boost::filesystem;

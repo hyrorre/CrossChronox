@@ -7,8 +7,4 @@
 //
 
 #include "ScoreDirectoryInfo.hpp"
-#include "Application.hpp"
 
-void ScoreDirectoryInfo::Decide() const{
-	Application::SetScoreFilePath(At(0)->path);
-}

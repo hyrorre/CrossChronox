@@ -65,6 +65,127 @@ class BmsLoader : private boost::noncopyable{
 	
 	bool load_header_only_flag = false;
 	
+	const char* text_encode = nullptr;
+	
+	bool IsTextAscii(const char* str){
+		while(*str != '\0'){
+			if(!isascii(*str)) return false;
+		}
+		return true;
+	}
+	
+//	const char* JudgeTextEncode(const char* str){
+//		return libguess_determine_encoding(str, static_cast<int>(strlen(str)), "Japanese");
+//	}
+//	const char* JudgeTextEncode(const std::string& str){
+//		return libguess_determine_encoding(str.c_str(), static_cast<int>(str.length()), "Japanese");
+//	}
+	enum TextEncode{
+		UNKNOWN,
+		UTF_8,
+		SHIFT_JIS
+	}
+	encode = UNKNOWN;
+	
+	unsigned UTF8CharByte(unsigned char c){
+		if(c <= 0x7f) return 1;
+		if(0xc2 <= c){
+			if(c <= 0xdf) return 2;
+			if(c <= 0xef) return 3;
+			if(c <= 0xf7) return 4;
+			if(c <= 0xfb) return 5;
+			if(c <= 0xfd) return 6;
+		}
+		return 0;
+	}
+	
+	unsigned UTF8CharByte(char c){
+		return UTF8CharByte(static_cast<unsigned char>(c));
+	}
+	
+	TextEncode JudgeTextEncode(const char* str){
+		//is UTF-8?
+		for(const char* ptr = str; *ptr == '\0'; ++ptr){
+			if(const unsigned n = UTF8CharByte(*ptr)){
+				if(3 <= n) return UTF_8;
+				if(n == 2){
+					if(*(++ptr)){
+						if(isascii(*ptr)) return SHIFT_JIS;
+					}
+					else return SHIFT_JIS;
+				}
+			}
+			else return SHIFT_JIS;
+		}
+		return UNKNOWN;
+	}
+	
+	std::string convert_encoding(const std::string& str, const char* fromcode, const char* tocode){
+		iconv_t icd;
+		size_t instr_len  = str.length();
+		size_t outstr_len = instr_len*2;
+		
+		if (instr_len <= 0) return "";
+		
+		// allocate memory
+		std::vector<char> instr_buf(instr_len+1), outstr_buf(outstr_len+1);
+		char* instr = &instr_buf.front();
+		char* outstr = &outstr_buf.front();
+		strcpy(instr, str.c_str());
+		icd = iconv_open(tocode, fromcode);
+		if (icd == (iconv_t)-1) {
+			return "Failed to open iconv (" + std::string(fromcode) + " to " + std::string(tocode) + ")";
+		}
+		char *src_pos = instr, *dst_pos = outstr;
+		if (iconv(icd, &src_pos, &instr_len, &dst_pos, &outstr_len) == -1) {
+			// throw error message
+			std::string errstr;
+			int err = errno;
+			if (err == E2BIG) {
+				errstr = "There is not sufficient room at *outbuf";
+			} else if (err == EILSEQ) {
+				errstr = "An invalid multibyte sequence has been encountered in the input";
+			} else if (err == EINVAL) {
+				errstr = "An incomplete multibyte sequence has been encountered in the input";
+			}
+			iconv_close(icd);
+			throw std::runtime_error(std::string("Failed to convert string (") + errstr + ")");
+		}
+		*dst_pos = '\0';
+		iconv_close(icd);
+		
+		return outstr; //std::string(outstr);
+	}
+	
+	//UTF8文字列からワイド文字列
+	//ロケール依存
+	void Widen(const char* src, std::wstring& dest){
+		try{
+			std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
+			if(encode == UNKNOWN){
+				encode = JudgeTextEncode(src);
+			}
+			if(encode != SHIFT_JIS){
+				try{
+					dest = cv.from_bytes(src);
+					return;
+				}
+				catch(std::range_error&){
+					
+				}
+			}
+			try{
+				dest = cv.from_bytes(convert_encoding(src, "Shift_JIS", "UTF-8"));
+			}
+			catch(std::range_error&){
+				dest = cv.from_bytes(src);
+			}
+		}
+		catch(std::range_error&){
+			throw ParseError(std::string("could not read string. (") + src + ")");
+		}
+	}
+	
 	const char* GetArg();
 	int GetIndex();
 	int GetIndex(const char* str, int base = 36);
@@ -330,19 +451,21 @@ bool BmsLoader::TryParseHeaderLine(){
 				stop[GetIndex()] = atoi(GetArg());
 			}
 			else if(boost::istarts_with(header, "TITLE")){
-				out->info.title = GetArg();
+				Widen(GetArg(), out->info.title);
 			}
 			else if(boost::istarts_with(header, "SUBTITLE")){
-				out->info.subtitle = GetArg();
+				Widen(GetArg(), out->info.subtitle);
 			}
 			else if(boost::istarts_with(header, "ARTIST")){
-				out->info.artist = GetArg();
+				Widen(GetArg(), out->info.artist);
 			}
 			else if(boost::istarts_with(header, "SUBARTIST")){
-				out->info.subartists.emplace_back(GetArg());
+				//out->info.subartists.emplace_back(sf::String(GetArg()).toWideString());
+				out->info.subartists.emplace_back();
+				Widen(GetArg(), out->info.subartists.back());
 			}
 			else if(boost::istarts_with(header, "GENRE")){
-				out->info.genre = GetArg();
+				Widen(GetArg(), out->info.genre);
 			}
 			else if(boost::istarts_with(header, "TOTAL")){
 				out->info.total_type = TOTAL_ABSOLUTE;
@@ -350,23 +473,24 @@ bool BmsLoader::TryParseHeaderLine(){
 				if(out->info.total < 20) throw ParseError("TOTAL is not appropriate.");
 			}
 			else if(boost::istarts_with(header, "BACKBMP")){
-				out->info.back_image = GetArg();
+				Widen(GetArg(), out->info.back_image);
 			}
 			else if(boost::istarts_with(header, "STAGEFILE")){
-				out->info.eyecatch_image = GetArg();
+				Widen(GetArg(), out->info.eyecatch_image);
 			}
 			else if(boost::istarts_with(header, "BANNER")){
-				out->info.banner_image = GetArg();
+				Widen(GetArg(), out->info.banner_image);
 			}
 			else if(boost::istarts_with(header, "PREVIEWMUSIC")){
-				out->info.preview_music = GetArg();
+				Widen(GetArg(), out->info.preview_music);
 			}
 			else if(boost::istarts_with(header, "PLAYLEVEL")){
 				out->info.level = atoi(GetArg());
 			}
 			else if(boost::istarts_with(header, "DIFFICULTY")){
 				out->info.difficulty = atoi(GetArg());
-				out->info.chart_name = difficulty_str.at(out->info.difficulty);
+				//out->info.chart_name = sf::String(difficulty_str.at(out->info.difficulty)).toWideString();
+				Widen(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
 			}
 			else if(boost::istarts_with(header, "RANK")){
 				int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
@@ -413,19 +537,19 @@ void BmsLoader::SetSubtitle(){
 		//Find implicit subtitle.
 		//(ex) Shadowgaze [ANOTHER]
 		//"delim" is omitted from "delimiter"
-		typedef std::pair<std::string,std::string> delim_type;
+		typedef std::pair<wchar_t, wchar_t> delim_type;
 		static const std::vector<delim_type> delim_list = {
-			{ "-", "-" },
-			{ "〜", "〜" },
-			{ "(", ")" },
-			{ "[", "]" },
-			{ "<", ">" },
-			{ "\"", "\"" }
+			{ L'-', L'-' },
+			{ L'〜', L'〜' },
+			{ L'(', L')' },
+			{ L'[', L']' },
+			{ L'<', L'>' },
+			{ L'\"', L'\"' }
 		};
 		boost::trim_right(out->info.title);
-		boost::string_ref title = out->info.title;
+		boost::wstring_ref title = out->info.title;
 		for(delim_type delim : delim_list){
-			if(boost::ends_with(title, delim.second)){
+			if(title.back() == delim.second){
 				auto pos_delim1 = title.rfind(delim.first);
 				if(pos_delim1 != std::string::npos && pos_delim1 != 0){
 					out->info.subtitle = title.substr(pos_delim1).to_string();
@@ -672,6 +796,9 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 				throw ParseError("MD5 of the file could not be got.");
 			}
 		}
+		
+		//set path to ScoreInfo
+		out->info.path = path;
 		
 		//get extention from filename
 		auto dot_pos = path.find_last_of('.');

@@ -28,6 +28,8 @@ namespace TimeManager{
 	inline ms_type MinToMs(double min){
 		return min * 1000.0 * 60.0;
 	}
+	
+	ms_type GetRealtime();
 };
 
 using namespace TimeManager;

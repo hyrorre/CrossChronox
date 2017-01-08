@@ -21,18 +21,19 @@ void ScorePlayer::Init(){
 }
 
 void ScorePlayer::Start(){
-	start_ms = now_ms;
+	start_ms = TimeManager::GetRealtime();
 }
+
+std::unique_ptr<Note> tmp_note(new Note());
 
 ScorePlayer::State ScorePlayer::Update(){
 	ms_type play_ms = GetPlayMs();
-	ms_type last_play_ms = play_ms - delta_ms;
+	ms_type last_play_ms = play_ms - std::min(play_ms, delta_ms);
 	pulse_t now_pulse = score.MsToPulse(play_ms);
 	pulse_t last_pulse = score.MsToPulse(last_play_ms);
 	
 	wav_manager.Update();
 	
-	std::unique_ptr<Note> tmp_note(new Note());
 	tmp_note->y = last_pulse;
 	auto begin = score.notes.begin();
 	auto end = score.notes.end();
