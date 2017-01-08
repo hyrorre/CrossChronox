@@ -29,13 +29,10 @@
 
 //jsoncpp
 //#include <json/json.h>
-<<<<<<< HEAD
-=======
 
 //picojson
 #define PICOJSON_USE_INT64
 #include <picojson/picojson.h>
->>>>>>> 1cee7180f5a1876daf4c7f7212ba3eb4e5fda0ff
 
 //Crypto++ (cryptopp)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5
