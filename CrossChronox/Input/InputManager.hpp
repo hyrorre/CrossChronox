@@ -26,8 +26,8 @@ namespace InputManager{
 		//KeyState(frame_t now, frame_t last): now(now), last(last){}
 	};
 	
+	//Call these funcs before using
 	void LoadConfig(const std::string& json_path);
-	
 	void SetMode(const std::string& mode);
 	
 	//Call this func each frame
