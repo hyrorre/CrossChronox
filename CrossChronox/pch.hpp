@@ -23,12 +23,12 @@
 #include <sfeMovie/Movie.hpp>
 
 //Qt
-#include <QApplication>
-#include <QMessageBox>
-#include <QTextCodec>
+//#include <QApplication>
+//#include <QMessageBox>
+//#include <QTextCodec>
 
 //jsoncpp
-#include <json/json.h>
+//#include <json/json.h>
 
 //Crypto++ (cryptopp)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5

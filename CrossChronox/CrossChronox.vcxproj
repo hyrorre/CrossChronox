@@ -22,7 +22,9 @@
     <ClInclude Include="Application.hpp" />
     <ClInclude Include="Input\InputManager.hpp" />
     <ClInclude Include="Path\Path.hpp" />
-    <ClInclude Include="pch.hpp" />
+    <ClInclude Include="pch.hpp">
+      <DeploymentContent>true</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Scene\Fade.hpp" />
     <ClInclude Include="Scene\MusicSelect.hpp" />
     <ClInclude Include="Scene\PlayScore.hpp" />
@@ -50,6 +52,7 @@
   <ItemGroup>
     <None Include="CrossChronox-Info.plist" />
     <None Include="KeyConfig_Default.json" />
+    <None Include="packages.config" />
     <None Include="Path\Path_macOS.mm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -108,14 +111,22 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -124,10 +135,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,13 +150,46 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\boost.1.62.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.62.0.0\build\native\boost.targets')" />
+    <Import Project="..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets" Condition="Exists('..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets')" />
+    <Import Project="..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets" Condition="Exists('..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets')" />
+    <Import Project="..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets" Condition="Exists('..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets')" />
+    <Import Project="..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets" Condition="Exists('..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets')" />
+    <Import Project="..\packages\sfml-system.redist.2.4.0.0\build\native\sfml-system.redist.targets" Condition="Exists('..\packages\sfml-system.redist.2.4.0.0\build\native\sfml-system.redist.targets')" />
+    <Import Project="..\packages\sfml-system.2.4.0.0\build\native\sfml-system.targets" Condition="Exists('..\packages\sfml-system.2.4.0.0\build\native\sfml-system.targets')" />
+    <Import Project="..\packages\sfml-window.redist.2.4.0.0\build\native\sfml-window.redist.targets" Condition="Exists('..\packages\sfml-window.redist.2.4.0.0\build\native\sfml-window.redist.targets')" />
+    <Import Project="..\packages\sfml-window.2.4.0.0\build\native\sfml-window.targets" Condition="Exists('..\packages\sfml-window.2.4.0.0\build\native\sfml-window.targets')" />
+    <Import Project="..\packages\sfml-graphics.redist.2.4.0.0\build\native\sfml-graphics.redist.targets" Condition="Exists('..\packages\sfml-graphics.redist.2.4.0.0\build\native\sfml-graphics.redist.targets')" />
+    <Import Project="..\packages\sfml-graphics.2.4.0.0\build\native\sfml-graphics.targets" Condition="Exists('..\packages\sfml-graphics.2.4.0.0\build\native\sfml-graphics.targets')" />
+    <Import Project="..\packages\sfml-audio.redist.2.4.0.0\build\native\sfml-audio.redist.targets" Condition="Exists('..\packages\sfml-audio.redist.2.4.0.0\build\native\sfml-audio.redist.targets')" />
+    <Import Project="..\packages\sfml-audio.2.4.0.0\build\native\sfml-audio.targets" Condition="Exists('..\packages\sfml-audio.2.4.0.0\build\native\sfml-audio.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\boost.1.62.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.62.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-system.redist.2.4.0.0\build\native\sfml-system.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-system.redist.2.4.0.0\build\native\sfml-system.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-system.2.4.0.0\build\native\sfml-system.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-system.2.4.0.0\build\native\sfml-system.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-window.redist.2.4.0.0\build\native\sfml-window.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-window.redist.2.4.0.0\build\native\sfml-window.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-window.2.4.0.0\build\native\sfml-window.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-window.2.4.0.0\build\native\sfml-window.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-graphics.redist.2.4.0.0\build\native\sfml-graphics.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-graphics.redist.2.4.0.0\build\native\sfml-graphics.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-graphics.2.4.0.0\build\native\sfml-graphics.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-graphics.2.4.0.0\build\native\sfml-graphics.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-audio.redist.2.4.0.0\build\native\sfml-audio.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-audio.redist.2.4.0.0\build\native\sfml-audio.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\sfml-audio.2.4.0.0\build\native\sfml-audio.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sfml-audio.2.4.0.0\build\native\sfml-audio.targets'))" />
+  </Target>
 </Project>

@@ -97,5 +97,6 @@
     <None Include="CrossChronox-Info.plist" />
     <None Include="KeyConfig_Default.json" />
     <None Include="Path\Path_macOS.mm" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
