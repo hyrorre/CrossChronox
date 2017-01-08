@@ -39,10 +39,10 @@
 ////////////////////////////////////////////////////////////
 
 namespace Path{
-	extern const fs::path& resource;
-	extern const fs::path& font;
+	//extern const fs::path& resource;
+	//extern const fs::path& font;
 	extern const fs::path& appdata;
-	extern const fs::path& cache;
+	//extern const fs::path& cache;
 	
 	void Init(void);
 	

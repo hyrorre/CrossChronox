@@ -59,7 +59,7 @@ void Application::Init(){
 	InputManager::SetMode("Beat");
 }
 
-Application::Application(int argc, char *argv[]): qapp(argc, argv){
+Application::Application(int argc, char *argv[]){ //: qapp(argc, argv){
 	ParseArgs(argc, argv);
 }
 
@@ -125,10 +125,14 @@ Application::~Application(){
 }
 
 void Application::HandleException(std::exception& e){
+#if !defined(_WIN64) && !defined(_WIN32) //if not Windows
     QMessageBox msgBox;
 	QTextCodec* tc = QTextCodec::codecForLocale();
 	msgBox.setText(tc->toUnicode(e.what()));
 	msgBox.setWindowTitle(tc->toUnicode("Error")); //this is ignored on macOS
 	msgBox.setIcon(QMessageBox::Icon::Critical);
 	msgBox.exec();
+#else //if Windows
+	MessageBoxA(nullptr, e.what(), "Error", MB_OK | MB_ICONERROR);
+#endif
 }

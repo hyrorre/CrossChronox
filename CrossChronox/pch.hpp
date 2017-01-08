@@ -23,9 +23,9 @@
 #include <sfeMovie/Movie.hpp>
 
 //Qt
-#include <QApplication>
-#include <QMessageBox>
-#include <QTextCodec>
+//#include <QApplication>
+//#include <QMessageBox>
+//#include <QTextCodec>
 
 //jsoncpp
 //#include <json/json.h>
@@ -89,6 +89,7 @@
 #include <vector>
 #include <unordered_map>
 #include <array>
+#include <bitset>
 #include <memory>
 #include <exception>
 #include <stdexcept>
@@ -119,5 +120,11 @@ struct ptr_less{
 
 //global variables
 extern std::mt19937 mt_rand;
+
+//macros
+#define _CRT_SECURE_NO_WARNINGS
+
+//pragma
+#pragma execution_character_set("utf-8")
 
 #endif /* pch_hpp */
