@@ -64,7 +64,7 @@ void ScoreDirectoryLoader::LoadScores(const fs::path& path, ScoreDirectoryInfo* 
 		if(!file_extention.empty() && file_extention.front() == '.') file_extention = file_extention.substr(1);
 		for(const auto& extention : bms_extentions){
 			if(file_extention == extention){
-				LoadBms(it->path().string(), &tmp_data);
+				LoadBms(it->path().string(), &tmp_data, true);
 				out->children.emplace_back(new ScoreInfo(tmp_data.info));
 			}
 		}

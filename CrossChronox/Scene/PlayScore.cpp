@@ -168,7 +168,9 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 	++fps_count;
 	if(sf::seconds(1) < clock_fps.getElapsedTime()){
 		clock_fps.restart();
-		text_fps.setString((std::stringstream() << fps_count << "fps").str());
+		std::stringstream ss;
+		ss << fps_count << "fps";
+		text_fps.setString(ss.str());
 		fps_count = 0;
 	}
 	render_target.draw(text_fps);

@@ -1,4 +1,4 @@
-//
+﻿//
 //  BmsLoader.cpp
 //  CrossChronox
 //
@@ -136,7 +136,8 @@ class BmsLoader : private boost::noncopyable{
 		if (icd == (iconv_t)-1) {
 			return "Failed to open iconv (" + std::string(fromcode) + " to " + std::string(tocode) + ")";
 		}
-		char *src_pos = instr, *dst_pos = outstr;
+		const char* src_pos = instr;
+		char* dst_pos = outstr;
 		if (iconv(icd, &src_pos, &instr_len, &dst_pos, &outstr_len) == -1) {
 			// throw error message
 			std::string errstr;
@@ -325,13 +326,13 @@ int BmsLoader::GetIndex(const char* str, int base){
 }
 
 void trim_left(const char*& str){
-	while(std::isblank(*str)) ++str;
+	while(isblank(*str)) ++str;
 }
 
 void trim_right(char* str){
 	char* blank_ptr = nullptr;
 	for(; *str; ++str){
-		if(std::isblank(*str)){
+		if(isblank(*str)){
 			if(blank_ptr == nullptr) blank_ptr = str;
 		}
 		else{
@@ -343,7 +344,7 @@ void trim_right(char* str){
 
 const char* BmsLoader::GetArg(){
 	const char* line = nowline;
-	while(!std::isblank(*line)) ++line;
+	while(!isblank(*line)) ++line;
 	trim_left(line);
 	return line;
 }
@@ -365,7 +366,7 @@ bool BmsLoader::TryParseObjLine(){
 		return false;
 	}
 	for(int i = 1; i <= 5; ++i){
-		if(!std::isalnum(nowline[i])){
+		if(!isalnum(nowline[i])){
 			//'#nnncc:'でないので処理不能
 			return false;
 		}
@@ -436,7 +437,7 @@ bool BmsLoader::TryParseHeaderLine(){
 				//0123456
 				//BPM 130
 				//BPM01 130
-				if(std::isblank(header[3])){
+				if(isblank(header[3])){
 					int bpm = out->info.init_bpm = atof(GetArg());
 					out->bpm_events.emplace_back(new BpmEvent(0, bpm));
 				}
@@ -521,8 +522,12 @@ bool BmsLoader::TryParseLine(){
 	trim_left(nowline);
 	//コマンド行でないならreturn
 	if(nowline[0] != '#'){
-		if(boost::starts_with(nowline, "＃")) ++nowline;
-		else return false;
+		if(boost::starts_with(nowline, "＃")){
+			++nowline;
+		}
+		else{
+			return false;
+		}
 	}
 	
 	if(TryParseObjLine() || TryParseHeaderLine()){
@@ -710,12 +715,13 @@ void BmsLoader::SetNoteTime(){
 	auto it = out->bpm_events.cbegin();
 	auto end = out->bpm_events.cend();
 	BpmEvent* bpm_event = it->get();
-	BpmEvent* next_bpm_event = (++it)->get();
+	BpmEvent* next_bpm_event = nullptr;
+	if(++it != end) next_bpm_event = it->get();
 	const auto resolution = out->info.resolution;
     for(auto& note : out->notes){
-		while(it != end && next_bpm_event->y < note->y){ // bpm_eventを後に処理
+		while(next_bpm_event && next_bpm_event->y < note->y){ // bpm_eventを後に処理
 			bpm_event = next_bpm_event;
-			next_bpm_event = (++it)->get();
+			next_bpm_event = (++it) == end ? nullptr : it->get();
 		}
 		note->ms = bpm_event->NextEventMs(note->y, resolution);
 	}
@@ -811,7 +817,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 		std::string line;
 		while(std::getline(ifs, line)){
 			//if CRLF and LF mixed, remove CR('\r')
-			if(line.back() == '\r'){
+			if(!line.empty() && line.back() == '\r'){
 				line.pop_back(); //.erase(line.end() - 1);
 			}
 			nowline = line.c_str();

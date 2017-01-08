@@ -22,7 +22,7 @@ protected:
 public:
 	virtual std::wstring GetTitleSubtitle() const = 0;
 	virtual void SetParent(ScoreDirectoryInfo* parent){}
-	fs::wpath path;
+	fs::path path;
 	
 	ScoreInfoBase(){}
 	ScoreInfoBase(fs::wpath path): path(path){}
@@ -34,7 +34,8 @@ private: // ここがシリアライズ処理の実装
 	void serialize(Archive& ar, unsigned int ver){
 		std::string p = path.string();
 		ar & boost::serialization::make_nvp("path", p);
-		path = std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t>().from_bytes(p);
+		path.clear();
+		path = p;
 	}
 };
 
