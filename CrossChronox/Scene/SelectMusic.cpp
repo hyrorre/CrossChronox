@@ -59,11 +59,9 @@ Scene* SelectMusic::Update(){
 void SelectMusic::Init(){
 	if(!inited){
 		inited = true;
-		if(root.TryLoadScoreDirectoryCache()){
-			root.SaveScoreDirectoryCache();
-		}
-		else{
+		if(!root.TryLoadScoreDirectoryCache()){
 			root.LoadScoreDirectory();
+			root.SaveScoreDirectoryCache();
 		}
 		
 		text_songlist.setFont(font_default);

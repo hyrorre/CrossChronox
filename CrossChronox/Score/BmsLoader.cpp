@@ -108,7 +108,7 @@ class BmsLoader : private boost::noncopyable{
 	
 	TextEncode JudgeTextEncode(const char* str){
 		//is UTF-8?
-		for(const char* ptr = str; *ptr == '\0'; ++ptr){
+		for(const char* ptr = str; *ptr != '\0'; ++ptr){
 			if(const unsigned n = UTF8CharByte(*ptr)){
 				if(3 <= n) return UTF_8;
 				if(n == 2){
@@ -139,7 +139,7 @@ class BmsLoader : private boost::noncopyable{
 		if (icd == (iconv_t)-1) {
 			return "Failed to open iconv (" + std::string(fromcode) + " to " + std::string(tocode) + ")";
 		}
-		const char* src_pos = instr;
+		char* src_pos = instr;
 		char* dst_pos = outstr;
 		if (iconv(icd, &src_pos, &instr_len, &dst_pos, &outstr_len) == -1) {
 			// throw error message
