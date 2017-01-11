@@ -162,13 +162,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIB)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -178,13 +178,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Develop\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIB)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
