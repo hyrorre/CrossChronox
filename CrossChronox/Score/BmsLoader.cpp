@@ -133,6 +133,9 @@ class BmsLoader : private boost::noncopyable{
 		if (icd == (iconv_t)-1) {
 			return "Failed to open iconv (" + std::string(fromcode) + " to " + std::string(tocode) + ")";
 		}
+#if defined(_WIN64) || defined(_WIN32) //if Windows
+		const
+#endif
 		char* src_pos = instr;
 		char* dst_pos = outstr;
 		if (iconv(icd, &src_pos, &instr_len, &dst_pos, &outstr_len) == -1) {

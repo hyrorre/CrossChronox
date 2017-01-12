@@ -11,20 +11,19 @@ LICENSE : LGPL v3
 # Dependencies
 * boost  
 * picojson  
-* SFML  
+* SFML2  
 * sfeMovie  
-* Qt  
 * Crypto++
 
 # Building on macOS(Xcode)
 1. Install boost and Crypto++ with homebrew.
-1. Download SFML and sfeMovie, and copy frameworks to /Library/Frameworks
+1. Download SFML2 and sfeMovie, and copy frameworks to /Library/Frameworks
 1. Download picojson, and copy picojson.h to /usr/local/include/picojson
-1. Install Qt, and make symbolic links. (run following scripts on terminal)
 1. Open CrossChronox.xcodeproj and build!
 
-```
-sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtCore.framework    /Library/Frameworks
-sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtWidgets.framework /Library/Frameworks
-sudo ln -s (Qt Application Directory)/(Qt Version)/clang_64/lib/QtGui.framework /Library/Frameworks
-```
+# Building on Windows(Visual Studio)
+1. Set up environment variable $(INCLUDE) and $(LIB)  
+(Library include path and *.lib file path)
+1. Install boost, Crypto++, SFML2, and sfeMovie to $(INCLUDE) and &(LIB)  
+(You can also install boost, Crypto++ and SFML2 with nuget on Visual Studio)
+1. Open CrossChronox.sln and build!
