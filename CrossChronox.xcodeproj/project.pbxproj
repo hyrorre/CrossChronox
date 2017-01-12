@@ -21,6 +21,7 @@
 		563690201E27146D009F1A35 /* ScoreData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5634FEB81E260DF6006217AC /* ScoreData.cpp */; };
 		563690211E27146F009F1A35 /* ScoreInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5634FEBA1E260DF6006217AC /* ScoreInfo.cpp */; };
 		563690221E271471009F1A35 /* WavBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5634FEBC1E260DF6006217AC /* WavBuffer.cpp */; };
+		563690241E27E241009F1A35 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 563690231E27E241009F1A35 /* README.md */; };
 		563C71151DAB3C9000CCD81F /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C70FD1DAB3C9000CCD81F /* Application.cpp */; };
 		563C71171DAB3C9000CCD81F /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71011DAB3C9000CCD81F /* InputManager.cpp */; };
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
@@ -96,6 +97,8 @@
 		5634FEBF1E260E45006217AC /* Total.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Total.hpp; sourceTree = "<group>"; };
 		5634FEC11E262BF3006217AC /* Mode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mode.cpp; sourceTree = "<group>"; };
 		5634FEC21E262BF3006217AC /* Mode.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Mode.hpp; sourceTree = "<group>"; };
+		563690231E27E241009F1A35 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		563690251E27E274009F1A35 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5637B4831DE4806F00589544 /* Exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Exception.hpp; sourceTree = "<group>"; };
 		563C70E51DAB3C5700CCD81F /* CrossChronox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrossChronox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		563C70E91DAB3C5700CCD81F /* CrossChronox-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CrossChronox-Info.plist"; path = "../Supporting Files/CrossChronox-Info.plist"; sourceTree = "<group>"; };
@@ -201,6 +204,8 @@
 				563C70E71DAB3C5700CCD81F /* CrossChronox */,
 				563C70EF1DAB3C5700CCD81F /* Resources */,
 				563C70E81DAB3C5700CCD81F /* Supporting Files */,
+				563690231E27E241009F1A35 /* README.md */,
+				563690251E27E274009F1A35 /* .gitignore */,
 				563C70E61DAB3C5700CCD81F /* Products */,
 				563C71221DAB3D2B00CCD81F /* Frameworks */,
 			);
@@ -421,6 +426,7 @@
 				56305A6D1E0BDE3B00750B13 /* ScoreDirectoryInfo.cpp in Sources */,
 				563690201E27146D009F1A35 /* ScoreData.cpp in Sources */,
 				562F3BA91E0E32370022E9DA /* DefaultFont.cpp in Sources */,
+				563690241E27E241009F1A35 /* README.md in Sources */,
 				563690221E271471009F1A35 /* WavBuffer.cpp in Sources */,
 				563690211E27146F009F1A35 /* ScoreInfo.cpp in Sources */,
 				56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */,
