@@ -54,6 +54,7 @@ struct BpmEvent{
 	pulse_t y = 0;  // pulse number
 	double bpm = 0; // bpm
 	pulse_t duration = 0; // pulses from the event to switch next bpm
+	ms_type ms = 0;
 	BpmEvent(){}
 	BpmEvent(pulse_t y, double bpm = 0, pulse_t duration = 0): y(y), bpm(bpm), duration(duration){}
 	virtual ~BpmEvent(){}
@@ -63,8 +64,8 @@ struct BpmEvent{
 	bool operator>(const BpmEvent& other) const{
 		return y > other.y;
 	}
-	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return MinToMs((pulse - y) / (bpm * resolution));
+	virtual ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
+		return ms + MinToMs((pulse - y) / (bpm * resolution));
 	}
 };
 
@@ -79,7 +80,7 @@ struct StopEvent : public BpmEvent{
 		return y > other.y;
 	}
 	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return MinToMs((pulse + duration - y) / (bpm * resolution));
+		return ms + MinToMs((pulse + duration - y) / (bpm * resolution));
 	}
 };
 

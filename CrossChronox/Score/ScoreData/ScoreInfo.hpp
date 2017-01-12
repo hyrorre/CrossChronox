@@ -13,14 +13,13 @@
 #include "ScoreInfoBase.hpp"
 #include "JudgeRank.hpp"
 #include "Total.hpp"
+#include "TimeManager.hpp"
 
 using pulse_t = unsigned long;
 
 const std::string& GetModeString(Mode mode);
 
 struct ScoreInfo : public ScoreInfoBase{
-	using judge_ms_type = std::array<int,3>;
-	
 	std::wstring   title;                 // self-explanatory
 	std::wstring   subtitle;              // self-explanatory
 	std::wstring   artist;                // self-explanatory
@@ -39,7 +38,8 @@ struct ScoreInfo : public ScoreInfoBase{
 	std::wstring   banner_image;          // banner image filename
 	std::wstring   preview_music;         // preview music filename
 	pulse_t resolution = 240;             // pulses per quarter note
-	pulse_t end_y = 0;
+	pulse_t end_pulse = 0;
+	ms_type end_ms = 0;
 	
 	double max_bpm;                      // calc from the data
 	double min_bpm;                      // calc from the data
@@ -83,7 +83,8 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("banner_image", banner_image);
 		ar & boost::serialization::make_nvp("preview_music", preview_music);
 		ar & boost::serialization::make_nvp("resolution", resolution);
-		ar & boost::serialization::make_nvp("end_y", end_y);
+		ar & boost::serialization::make_nvp("end_pulse", end_pulse);
+		ar & boost::serialization::make_nvp("end_ms", end_ms);
 		ar & boost::serialization::make_nvp("max_bpm", max_bpm);
 		ar & boost::serialization::make_nvp("min_bpm", min_bpm);
 		ar & boost::serialization::make_nvp("base_bpm", base_bpm);
@@ -124,7 +125,8 @@ private: // ここがシリアライズ処理の実装
 		ar & MAKE_WSTRING_NVP(banner_image);
 		ar & MAKE_WSTRING_NVP(preview_music);
 		ar & boost::serialization::make_nvp("resolution", resolution);
-		ar & boost::serialization::make_nvp("end_y", end_y);
+		ar & boost::serialization::make_nvp("end_pulse", end_pulse);
+		ar & boost::serialization::make_nvp("end_ms", end_ms);
 		ar & boost::serialization::make_nvp("max_bpm", max_bpm);
 		ar & boost::serialization::make_nvp("min_bpm", min_bpm);
 		ar & boost::serialization::make_nvp("base_bpm", base_bpm);

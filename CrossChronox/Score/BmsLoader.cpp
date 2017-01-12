@@ -185,8 +185,8 @@ class BmsLoader : private boost::noncopyable{
 	void SetSubtitle();
 	void SetMode();
 	void SetNotesAndEvents();
-	void SetNoteTime();
 	void SetBpm();
+	void SetNoteTime();
 	void SetTotal();
 	void LoadWavs(const std::string& path);
 
@@ -621,7 +621,6 @@ void BmsLoader::SetNotesAndEvents(){
     
 	//Sort tmp_notes
     boost::sort(tmp_notes, ptr_less<TmpNoteData>());
-	out->info.end_y = tmp_notes.back()->global_pulse;
 	
 	//Sort lnobj
 	boost::sort(lnobj);
@@ -695,45 +694,36 @@ void BmsLoader::SetNotesAndEvents(){
 	out->info.note_count = note_count;
 }
 
-void BmsLoader::SetNoteTime(){
-	auto it = out->bpm_events.cbegin();
-	auto end = out->bpm_events.cend();
-	BpmEvent* bpm_event = it->get();
-	BpmEvent* next_bpm_event = nullptr;
-	if(++it != end) next_bpm_event = it->get();
-	const auto resolution = out->info.resolution;
-    for(auto& note : out->notes){
-		while(next_bpm_event && next_bpm_event->y < note->y){ // bpm_eventを後に処理
-			bpm_event = next_bpm_event;
-			next_bpm_event = (++it) == end ? nullptr : it->get();
-		}
-		note->ms = bpm_event->NextEventMs(note->y, resolution);
-	}
-}
-
 void BmsLoader::SetBpm(){
-	double init = out->info.init_bpm;
+	const double init = out->info.init_bpm;
 	double max = init, min = init;
 	
 	std::unordered_map<int, double> bpm_length;
-	BpmEvent init_bpm_event(0, init);
-	BpmEvent* last = &init_bpm_event;
-	BpmEvent* last_bpm_change = &init_bpm_event;
+	//BpmEvent init_bpm_event(0, init);
+	BpmEvent* last = nullptr;
+	BpmEvent* last_bpm_change = out->bpm_events.begin()->get();
 	
 	for(auto& event : out->bpm_events){
-		if(event->duration == 0){ //if event is BpmEvents
-			last->duration = event->y - last_bpm_change->y;
-			bpm_length[static_cast<int>(last->bpm)] += event->duration * last->bpm;
-			max = std::max(max,event->bpm);
-			min = std::min(min,event->bpm);
-			last_bpm_change = event.get();
-		}
-		else{ //if event is StopEvents
-			event->bpm = last_bpm_change->bpm;
+		if(last){
+			if(event->duration == 0){ //if event is BpmEvents
+				last->duration = event->y - last_bpm_change->y;
+				bpm_length[last->bpm + 0.5] += last->duration * last->bpm;
+				max = std::max(max, event->bpm);
+				min = std::min(min, event->bpm);
+				last_bpm_change = event.get();
+			}
+			else{ //if event is StopEvents
+				event->bpm = last_bpm_change->bpm;
+			}
+			event->ms = last->NextEventMs(event->y, out->info.resolution);
 		}
 		last = event.get();
 	}
-	bpm_length[last->bpm] += (out->lines.back().y - last->y) * last->bpm;
+	//set end_pulse
+	if(!tmp_notes.empty()){
+		out->info.end_pulse = tmp_notes.back()->global_pulse;
+	}
+	bpm_length[last->bpm + 0.5] += (out->info.end_pulse - last->y) * last->bpm;
 	
 	using pair_t = std::pair<int, double>;
 	auto pred = [](const pair_t& a, const pair_t& b)->bool{
@@ -743,6 +733,23 @@ void BmsLoader::SetBpm(){
 	out->info.base_bpm = it->first;
 	out->info.max_bpm = max;
 	out->info.min_bpm = min;
+}
+
+void BmsLoader::SetNoteTime(){
+	auto bpm_event_it = out->bpm_events.cbegin();
+	auto back_it = --out->bpm_events.cend();
+	//BpmEvent* bpm_event = it->get();
+	//BpmEvent* next_bpm_event = nullptr;
+	//if(++it != end) next_bpm_event = it->get();
+	const auto resolution = out->info.resolution;
+    for(auto& note : out->notes){
+		while(bpm_event_it != back_it && (*bpm_event_it)->y + (*bpm_event_it)->duration < note->y){ // bpm_eventを後に処理
+			++bpm_event_it;
+		}
+		note->ms = (*bpm_event_it)->NextEventMs(note->y, resolution);
+	}
+	
+	out->info.end_ms = out->bpm_events.back()->NextEventMs(out->info.end_pulse, out->info.resolution);
 }
 
 void BmsLoader::SetTotal(){
@@ -827,8 +834,8 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 	SetSubtitle();
 	SetMode();
 	SetNotesAndEvents();
-	SetNoteTime();
 	SetBpm();
+	SetNoteTime();
 	if(!load_header_only_flag) LoadWavs(path);
 }
 

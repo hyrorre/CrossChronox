@@ -47,7 +47,7 @@ ScorePlayer::State ScorePlayer::Update(){
 			result.Push(side, play_ms, Judge::PGREAT, false);
 		}
 	}
-	if(score.info.end_y < now_pulse && wav_manager.Empty()) return State::FINISH;
+	if(score.info.end_pulse < now_pulse && wav_manager.Empty()) return State::FINISH;
 	else return State::CONTINUE;
 }
 
