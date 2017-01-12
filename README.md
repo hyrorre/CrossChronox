@@ -9,11 +9,12 @@ LICENSE : LGPL v3
 (WIP)
 
 # Dependencies
-* boost  
-* picojson  
-* SFML2  
-* sfeMovie  
+* boost
+* picojson
+* SFML2
+* sfeMovie
 * Crypto++
+* libiconv (only Windows)
 
 # Building on macOS(Xcode)
 1. Install boost and Crypto++ with homebrew.
@@ -24,6 +25,6 @@ LICENSE : LGPL v3
 # Building on Windows(Visual Studio)
 1. Set up environment variable $(INCLUDE) and $(LIB)  
 (Library include path and *.lib file path)
-1. Install boost, Crypto++, SFML2, and sfeMovie to $(INCLUDE) and &(LIB)  
-(You can also install boost, Crypto++ and SFML2 with nuget on Visual Studio)
+1. Install boost, Crypto++, SFML2, sfeMovie and libiconv to $(INCLUDE) and &(LIB)  
+(You can also install boost, Crypto++, SFML2 and libiconv with nuget on Visual Studio)
 1. Open CrossChronox.sln and build!
