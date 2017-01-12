@@ -49,6 +49,7 @@ bool ScoreDirectoryInfo::TryLoadScoreDirectoryCache(){
 		boost::archive::xml_iarchive iarchive(ifs);
 		iarchive.register_type<ScoreInfo>();
 		iarchive.register_type<ScoreDirectoryInfo>();
+		
 		iarchive >> boost::serialization::make_nvp("root", *this);
 		return true;
 	}

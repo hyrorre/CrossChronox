@@ -25,17 +25,6 @@ struct BarLine{
 	BarLine(pulse_t y): y(y){}
 };
 
-enum Judge{
-	JUDGE_YET = -1,
-	PGREAT = 0,
-	GREAT,
-	GOOD,
-	BAD,
-	POOR,
-	
-	MAX_JUDGE
-};
-
 inline bool IsComboContinuous(Judge judge){
 	return (Judge::PGREAT <= judge && judge <= Judge::GOOD);
 }

@@ -77,12 +77,6 @@ class BmsLoader : private boost::noncopyable{
 		return true;
 	}
 	
-//	const char* JudgeTextEncode(const char* str){
-//		return libguess_determine_encoding(str, static_cast<int>(strlen(str)), "Japanese");
-//	}
-//	const char* JudgeTextEncode(const std::string& str){
-//		return libguess_determine_encoding(str.c_str(), static_cast<int>(str.length()), "Japanese");
-//	}
 	enum TextEncode{
 		UNKNOWN,
 		UTF_8,
@@ -170,20 +164,10 @@ class BmsLoader : private boost::noncopyable{
 				encode = JudgeTextEncode(src);
 			}
 			if(encode != SHIFT_JIS){
-				try{
-					dest = cv.from_bytes(src);
-					return;
-				}
-				catch(std::range_error&){
-					
-				}
-			}
-			try{
-				dest = cv.from_bytes(convert_encoding(src, "Shift_JIS", "UTF-8"));
-			}
-			catch(std::range_error&){
 				dest = cv.from_bytes(src);
+				return;
 			}
+			dest = cv.from_bytes(convert_encoding(src, "Shift_JIS", "UTF-8"));
 		}
 		catch(std::range_error&){
 			throw ParseError(std::string("could not read string. (") + src + ")");
@@ -203,6 +187,7 @@ class BmsLoader : private boost::noncopyable{
 	void SetNotesAndEvents();
 	void SetNoteTime();
 	void SetBpm();
+	void SetTotal();
 	void LoadWavs(const std::string& path);
 
 public:
@@ -211,12 +196,12 @@ public:
 };
 
 const int MAX_INDEX = 36 * 36; //ZZ(36)
-const std::vector<ScoreInfo::judge_ms_type> rank_to_judge_ms = {
-	{ 8, 24, 40 },  //RANK 0 VERYHARD
-	{ 15, 30, 60 }, //RANK 1 HARD
-	{ 18, 40, 100 },//RANK 2 NORMAL
-	{ 21, 60, 120 } //RANK 3 EASY
-};
+//const std::vector<ScoreInfo::judge_ms_type> rank_to_judge_ms = {
+//	{ 8, 24, 40 },  //RANK 0 VERYHARD
+//	{ 15, 30, 60 }, //RANK 1 HARD
+//	{ 18, 40, 100 },//RANK 2 NORMAL
+//	{ 21, 60, 120 } //RANK 3 EASY
+//};
 
 const int CHANNEL_BGM = 1;
 const int CHANNEL_METER = 2;
@@ -470,9 +455,8 @@ bool BmsLoader::TryParseHeaderLine(){
 				Widen(GetArg(), out->info.genre);
 			}
 			else if(boost::istarts_with(header, "TOTAL")){
-				out->info.total_type = TOTAL_ABSOLUTE;
-				out->info.total = atof(GetArg());
-				if(out->info.total < 20) throw ParseError("TOTAL is not appropriate.");
+				out->info.total.SetValue(atof(GetArg()));
+				if(out->info.total.GetValue() < 20) throw ParseError("TOTAL is not appropriate.");
 			}
 			else if(boost::istarts_with(header, "BACKBMP")){
 				Widen(GetArg(), out->info.back_image);
@@ -496,7 +480,7 @@ bool BmsLoader::TryParseHeaderLine(){
 			}
 			else if(boost::istarts_with(header, "RANK")){
 				int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
-				out->info.judge_ms = rank_to_judge_ms.at(i);
+				out->info.judge_rank.SetValue(i);
 			}
 			else if(boost::istarts_with(header, "BASEBPM")){
 				out->info.base_bpm = atof(GetArg());
@@ -761,6 +745,14 @@ void BmsLoader::SetBpm(){
 	out->info.min_bpm = min;
 }
 
+void BmsLoader::SetTotal(){
+	auto& total = out->info.total;
+	if(total.GetValue() < 20){
+		auto notes = out->info.note_count;
+		total.SetValue(7.605 * notes / (0.01 * notes + 6.5));
+	}
+}
+
 void BmsLoader::LoadWavs(const std::string& path){
 	auto pos = path.find_last_of("/\\");
 	std::string score_directory = path.substr(0, pos + 1);
@@ -812,6 +804,12 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 			extention = path.substr(dot_pos + 1);
 		}
         else extention = "";
+		
+		//rank of bms is always absolute and NORMAL is default. (same to LR2)
+		out->info.judge_rank = JudgeRank(JudgeRank::ABSOLUTE, JudgeRank::NORMAL);
+		
+		//total of bms is always absolute.
+		out->info.total = Total(Total::ABSOLUTE, 0);
 		
 		//start parsing
 		std::string line;

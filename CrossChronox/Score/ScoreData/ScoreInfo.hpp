@@ -11,20 +11,10 @@
 
 #include "pch.hpp"
 #include "ScoreInfoBase.hpp"
+#include "JudgeRank.hpp"
+#include "Total.hpp"
 
 using pulse_t = unsigned long;
-
-const bool TOTAL_RELATIVE = false;
-const bool TOTAL_ABSOLUTE = true;
-
-enum Mode{
-	BEAT_5K = 0,
-	BEAT_7K,
-	BEAT_10K,
-	BEAT_14K,
-	POPN_5K,
-	POPN_9K,
-};
 
 const std::string& GetModeString(Mode mode);
 
@@ -39,18 +29,16 @@ struct ScoreInfo : public ScoreInfoBase{
 	//std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
 	Mode          mode;
 	std::wstring   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
-	int           difficulty = 0;
-	size_t        level = 0;             // self-explanatory
-	double        init_bpm = 130;        // self-explanatory
-	//double        judge_rank = 100;      // relative judge width
-	judge_ms_type judge_ms;
-	bool          total_type = TOTAL_RELATIVE;
-	double        total = 100;           // relative or absolute lifebar gain
+	int            difficulty = 0;
+	size_t         level = 0;             // self-explanatory
+	double         init_bpm = 130;        // self-explanatory
+	JudgeRank      judge_rank;            //
+	Total          total;                 // lifebar gain
 	std::wstring   back_image;            // background image filename
 	std::wstring   eyecatch_image;        // eyecatch image filename
 	std::wstring   banner_image;          // banner image filename
 	std::wstring   preview_music;         // preview music filename
-	pulse_t resolution = 240;            // pulses per quarter note
+	pulse_t resolution = 240;             // pulses per quarter note
 	pulse_t end_y = 0;
 	
 	double max_bpm;                      // calc from the data
@@ -88,8 +76,7 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("difficulty", difficulty);
 		ar & boost::serialization::make_nvp("level", level);
 		ar & boost::serialization::make_nvp("init_bpm", init_bpm);
-		ar & boost::serialization::make_nvp("judge_ms", judge_ms);
-		ar & boost::serialization::make_nvp("total_type", total_type);
+		ar & boost::serialization::make_nvp("judge_rank", judge_rank);
 		ar & boost::serialization::make_nvp("total", total);
 		ar & boost::serialization::make_nvp("back_image", back_image);
 		ar & boost::serialization::make_nvp("eyecatch_image", eyecatch_image);
@@ -130,8 +117,7 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("difficulty", difficulty);
 		ar & boost::serialization::make_nvp("level", level);
 		ar & boost::serialization::make_nvp("init_bpm", init_bpm);
-		ar & boost::serialization::make_nvp("judge_ms", judge_ms);
-		ar & boost::serialization::make_nvp("total_type", total_type);
+		ar & boost::serialization::make_nvp("judge_rank", judge_rank);
 		ar & boost::serialization::make_nvp("total", total);
 		ar & MAKE_WSTRING_NVP(back_image);
 		ar & MAKE_WSTRING_NVP(eyecatch_image);
