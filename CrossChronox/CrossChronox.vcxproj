@@ -19,35 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.hpp" />
-    <ClInclude Include="Filesystem\MD5.hpp" />
-    <ClInclude Include="Filesystem\ScoreDirectoryInfo.hpp" />
-    <ClInclude Include="Filesystem\ScoreDirectoryLoader.hpp" />
-    <ClInclude Include="Filesystem\ScoreInfoBase.hpp" />
-    <ClInclude Include="Input\InputManager.hpp" />
-    <ClInclude Include="Path\Path.hpp" />
-    <ClInclude Include="pch.hpp">
-      <DeploymentContent>true</DeploymentContent>
-    </ClInclude>
-    <ClInclude Include="Platform\Path.hpp" />
-    <ClInclude Include="Scene\Fade.hpp" />
-    <ClInclude Include="Scene\MusicSelect.hpp" />
-    <ClInclude Include="Scene\PlayScore.hpp" />
-    <ClInclude Include="Scene\Scene.hpp" />
-    <ClInclude Include="Scene\SceneManager.hpp" />
-    <ClInclude Include="Scene\SelectMusic.hpp" />
-    <ClInclude Include="Score\BmsLoader.hpp" />
-    <ClInclude Include="Score\MD5.hpp" />
-    <ClInclude Include="Score\Result.hpp" />
-    <ClInclude Include="Score\ScoreData.hpp" />
-    <ClInclude Include="Score\ScoreInfo.hpp" />
-    <ClInclude Include="Score\ScorePlayer.hpp" />
-    <ClInclude Include="Score\WavBuffer.hpp" />
-    <ClInclude Include="Score\WavManager.hpp" />
-    <ClInclude Include="Score\WavPlayer.hpp" />
-    <ClInclude Include="System\DefaultFont.hpp" />
-    <ClInclude Include="System\Exception.hpp" />
-    <ClInclude Include="System\TimeManager.hpp" />
+    <None Include="CrossChronox-Info.plist" />
+    <None Include="KeyConfig_Default.json" />
+    <None Include="packages.config" />
+    <None Include="Path\Path_macOS.mm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -64,21 +39,46 @@
     <ClCompile Include="Scene\SceneManager.cpp" />
     <ClCompile Include="Scene\SelectMusic.cpp" />
     <ClCompile Include="Score\BmsLoader.cpp" />
-    <ClCompile Include="Score\Result.cpp" />
-    <ClCompile Include="Score\ScoreData.cpp" />
-    <ClCompile Include="Score\ScoreInfo.cpp" />
+    <ClCompile Include="Score\ScoreData\JudgeRank.cpp" />
+    <ClCompile Include="Score\ScoreData\Mode.cpp" />
+    <ClCompile Include="Score\ScoreData\Result.cpp" />
+    <ClCompile Include="Score\ScoreData\ScoreData.cpp" />
+    <ClCompile Include="Score\ScoreData\ScoreInfo.cpp" />
+    <ClCompile Include="Score\ScoreData\Total.cpp" />
+    <ClCompile Include="Score\ScoreData\WavBuffer.cpp" />
     <ClCompile Include="Score\ScorePlayer.cpp" />
-    <ClCompile Include="Score\WavBuffer.cpp" />
     <ClCompile Include="Score\WavManager.cpp" />
     <ClCompile Include="Score\WavPlayer.cpp" />
     <ClCompile Include="System\DefaultFont.cpp" />
     <ClCompile Include="System\TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CrossChronox-Info.plist" />
-    <None Include="KeyConfig_Default.json" />
-    <None Include="packages.config" />
-    <None Include="Path\Path_macOS.mm" />
+    <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Filesystem\MD5.hpp" />
+    <ClInclude Include="Filesystem\ScoreDirectoryInfo.hpp" />
+    <ClInclude Include="Filesystem\ScoreDirectoryLoader.hpp" />
+    <ClInclude Include="Filesystem\ScoreInfoBase.hpp" />
+    <ClInclude Include="Input\InputManager.hpp" />
+    <ClInclude Include="pch.hpp" />
+    <ClInclude Include="Platform\Path.hpp" />
+    <ClInclude Include="Scene\PlayScore.hpp" />
+    <ClInclude Include="Scene\Scene.hpp" />
+    <ClInclude Include="Scene\SceneManager.hpp" />
+    <ClInclude Include="Scene\SelectMusic.hpp" />
+    <ClInclude Include="Score\BmsLoader.hpp" />
+    <ClInclude Include="Score\ScoreData\JudgeRank.hpp" />
+    <ClInclude Include="Score\ScoreData\Mode.hpp" />
+    <ClInclude Include="Score\ScoreData\Result.hpp" />
+    <ClInclude Include="Score\ScoreData\ScoreData.hpp" />
+    <ClInclude Include="Score\ScoreData\ScoreInfo.hpp" />
+    <ClInclude Include="Score\ScoreData\Total.hpp" />
+    <ClInclude Include="Score\ScoreData\WavBuffer.hpp" />
+    <ClInclude Include="Score\ScorePlayer.hpp" />
+    <ClInclude Include="Score\WavManager.hpp" />
+    <ClInclude Include="Score\WavPlayer.hpp" />
+    <ClInclude Include="System\DefaultFont.hpp" />
+    <ClInclude Include="System\Exception.hpp" />
+    <ClInclude Include="System\TimeManager.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D95EBD08-8560-4693-ACC3-E1280D325C36}</ProjectGuid>
@@ -136,7 +136,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)Score/ScoreData;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -148,7 +148,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Develop\include;$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)Score/ScoreData;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -162,7 +162,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)Score/ScoreData;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -178,7 +178,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INCLUDE);$(ProjectDir);$(ProjectDir)Filesystem;$(ProjectDir)Input;$(ProjectDir)Platform;$(ProjectDir)Scene;$(ProjectDir)Score;$(ProjectDir)Score/ScoreData;$(ProjectDir)System;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

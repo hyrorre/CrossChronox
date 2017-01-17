@@ -9,6 +9,7 @@
 #ifndef JudgeRank_hpp
 #define JudgeRank_hpp
 
+#include "pch.hpp"
 #include "Mode.hpp"
 
 enum Judge{
@@ -23,12 +24,12 @@ enum Judge{
 };
 
 class JudgeRank{
-	bool type = RELATIVE;
+	bool type = RANK_RELATIVE;
 	double value = 100;
 public:
 	enum : bool{
-		RELATIVE = 0,
-		ABSOLUTE = 1,
+		RANK_RELATIVE = 0,
+		RANK_ABSOLUTE = 1
 	};
 	
 	enum{

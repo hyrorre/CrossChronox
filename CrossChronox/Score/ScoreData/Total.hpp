@@ -9,15 +9,16 @@
 #ifndef Total_hpp
 #define Total_hpp
 
+#include "pch.hpp"
 #include "Mode.hpp"
 
 class Total{
-	bool type = RELATIVE;
+	bool type = TOTAL_RELATIVE;
 	double value = 100;
 public:
 	enum : bool{
-		RELATIVE = 0,
-		ABSOLUTE = 1,
+		TOTAL_RELATIVE = 0,
+		TOTAL_ABSOLUTE = 1,
 	};
 	
 	Total(){}
