@@ -1,4 +1,4 @@
-//
+﻿//
 //  Scene.hpp
 //  CrossChronox
 //

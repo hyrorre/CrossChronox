@@ -1,4 +1,4 @@
-//
+﻿//
 //  WavPlayer.hpp
 //  CrossChronox
 //

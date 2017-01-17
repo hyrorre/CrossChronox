@@ -1,4 +1,4 @@
-//
+﻿//
 //  PlayScore.hpp
 //  CrossChronox
 //

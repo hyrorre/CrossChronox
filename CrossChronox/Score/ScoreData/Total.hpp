@@ -1,4 +1,4 @@
-//
+﻿//
 //  Total.hpp
 //  CrossChronox
 //

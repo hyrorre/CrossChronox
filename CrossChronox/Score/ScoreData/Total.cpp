@@ -1,4 +1,4 @@
-//
+﻿//
 //  Total.cpp
 //  CrossChronox
 //

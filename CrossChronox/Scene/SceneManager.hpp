@@ -1,4 +1,4 @@
-//
+﻿//
 //  SceneManager.hpp
 //  CrossChronox
 //

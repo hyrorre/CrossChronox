@@ -1,4 +1,4 @@
-//
+﻿//
 //  Exception.hpp
 //  CrossChronox
 //

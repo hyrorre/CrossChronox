@@ -1,4 +1,4 @@
-//
+﻿//
 //  ScoreDirectoryLoader.cpp
 //  CrossChronox
 //

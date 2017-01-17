@@ -1,4 +1,4 @@
-//
+﻿//
 //  MD5.cpp
 //  CrossChronox
 //

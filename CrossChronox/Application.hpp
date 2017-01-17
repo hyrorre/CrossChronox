@@ -1,4 +1,4 @@
-//
+﻿//
 //  Application.hpp
 //  CrossChronox
 //

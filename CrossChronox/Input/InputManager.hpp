@@ -1,4 +1,4 @@
-//
+﻿//
 //  InputManager.hpp
 //  CrossChronox
 //

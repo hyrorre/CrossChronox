@@ -1,4 +1,4 @@
-//
+﻿//
 //  JudgeRank.hpp
 //  CrossChronox
 //

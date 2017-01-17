@@ -1,4 +1,4 @@
-//
+﻿//
 //  BmsLoader.hpp
 //  CrossChronox
 //

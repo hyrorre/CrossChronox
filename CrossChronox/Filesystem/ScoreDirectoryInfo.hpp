@@ -1,4 +1,4 @@
-//
+﻿//
 //  ScoreDirectoryInfo.hpp
 //  CrossChronox
 //

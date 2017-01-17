@@ -1,4 +1,4 @@
-//
+﻿//
 //  WavManager.hpp
 //  CrossChronox
 //

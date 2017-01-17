@@ -1,4 +1,4 @@
-//
+﻿//
 //  Application.cpp
 //  CrossChronox
 //
