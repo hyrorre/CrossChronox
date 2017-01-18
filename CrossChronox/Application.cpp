@@ -28,9 +28,6 @@ void Application::ParseArgs(int argc, char *argv[]){
 }
 
 void Application::Init(){
-	//GetPaths
-	Path::Init();
-	
 	if(!TryInitDefaultFont()) throw InitError("Default font was not found.");
 	
 	//set locale
@@ -47,15 +44,11 @@ void Application::Init(){
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
 	renderer.setSmooth(true);
 	
-	//for testing
-	//if file was not found, this will be ignored.
-	scorefile_path = Path::appdata / "Songs/BOF2016/有限会社Aoi/[Aoi]Shadowgaze_ogg/_ANOTHER.bml";
-	
 	//set up SceneManager
 	SceneManager::Init();
 	
 	//set up InputManager
-	InputManager::LoadConfig((Path::appdata / "Config/KeyConfig.json").string());
+	InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.json").string());
 	InputManager::SetMode("Beat");
 }
 

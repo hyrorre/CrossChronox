@@ -16,7 +16,7 @@ void SetScoreInfoCachePath(){
 	static bool inited = false;
 	if(!inited){
 		inited = true;
-		fs::path database = Path::appdata / "Database";
+		fs::path database = GetAppdataPath() / "Database";
 		if(!fs::exists(database)) fs::create_directories(database);
 		score_info_cache_path = (database / "Song.xml").string();
 	}
@@ -24,7 +24,7 @@ void SetScoreInfoCachePath(){
 
 void ScoreDirectoryInfo::LoadScoreDirectory(){
 	children.clear();
-	ScoreDirectoryLoader().Load(Path::appdata / "Songs", this);
+	ScoreDirectoryLoader().Load(GetAppdataPath() / "Songs", this);
 }
 
 void ScoreDirectoryInfo::SaveScoreDirectoryCache() const{

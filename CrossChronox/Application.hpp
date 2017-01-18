@@ -40,11 +40,6 @@ public:
 		scorefile_path = path;
 	}
 	
-	class InitError : public std::runtime_error{
-	public:
-		InitError(const std::string& msg): std::runtime_error(msg){}
-		virtual ~InitError(){}
-	};
 	void HandleException(std::exception& e);
 };
 

@@ -28,4 +28,10 @@ public:
 	virtual ~ParseError(){}
 };
 
+class InitError : public std::runtime_error{
+public:
+	InitError(const std::string& msg): std::runtime_error(msg){}
+	virtual ~InitError(){}
+};
+
 #endif /* Exception_hpp */
