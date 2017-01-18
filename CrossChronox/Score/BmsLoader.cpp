@@ -816,10 +816,10 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
         else extention = "";
 		
 		//rank of bms is always absolute and NORMAL is default. (same to LR2)
-		out->info.judge_rank = JudgeRank(JudgeRank::RANK_ABSOLUTE, JudgeRank::NORMAL);
+		out->info.judge_rank = JudgeRank(RANK_ABSOLUTE, RANK_NORMAL);
 		
 		//total of bms is always absolute.
-		out->info.total = Total(Total::TOTAL_ABSOLUTE, 0);
+		out->info.total = Total(TOTAL_ABSOLUTE, 0);
 		
 		//start parsing
 		std::string line;

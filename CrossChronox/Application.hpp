@@ -25,6 +25,7 @@ class Application{
 	
 	void Quit();
 	Application() = delete;
+	
 public:
 	Application(int argc, char *argv[]);
 	~Application();

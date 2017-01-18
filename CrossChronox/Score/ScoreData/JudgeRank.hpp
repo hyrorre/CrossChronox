@@ -23,25 +23,26 @@ enum Judge{
 	MAX_JUDGE
 };
 
+enum : bool{
+	RANK_RELATIVE = 0,
+	RANK_ABSOLUTE = 1
+};
+
+enum{
+	RANK_VHARD = 0,
+	RANK_HARD,
+	RANK_NORMAL,
+	RANK_EASY,
+	RANK_VEASY,
+	
+	MAX_RANK,
+};
+	
 class JudgeRank{
 	bool type = RANK_RELATIVE;
 	double value = 100;
+
 public:
-	enum : bool{
-		RANK_RELATIVE = 0,
-		RANK_ABSOLUTE = 1
-	};
-	
-	enum{
-		VHARD = 0,
-		HARD,
-		NORMAL,
-		EASY,
-		VEASY,
-		
-		MAX_RANK,
-	};
-	
 	JudgeRank(){}
 	JudgeRank(bool type, double value): type(type), value(value){}
 	

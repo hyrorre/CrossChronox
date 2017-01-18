@@ -11,6 +11,6 @@
 
 sf::Font font_default;
 
-bool InitDefaultFont(){
+bool TryInitDefaultFont(){
 	return font_default.loadFromFile((Path::appdata / "Fonts/kazesawa/Kazesawa-Regular.ttf").string());
 }

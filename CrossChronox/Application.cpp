@@ -31,7 +31,7 @@ void Application::Init(){
 	//GetPaths
 	Path::Init();
 	
-	if(!InitDefaultFont()) throw InitError("Default font was not found.");
+	if(!TryInitDefaultFont()) throw InitError("Default font was not found.");
 	
 	//set locale
 	setlocale(LC_ALL, "");

@@ -15,11 +15,13 @@ public:
 	LoadError(const std::string& msg): std::runtime_error(msg){}
 	virtual ~LoadError(){}
 };
+
 class OpenError : public LoadError{
 public:
 	OpenError(const std::string& msg): LoadError(msg){}
 	virtual ~OpenError(){}
 };
+
 class ParseError : public LoadError{
 public:
 	ParseError(const std::string& msg): LoadError(msg){}

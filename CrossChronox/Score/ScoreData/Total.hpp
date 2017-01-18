@@ -12,14 +12,15 @@
 #include "pch.hpp"
 #include "Mode.hpp"
 
+enum : bool{
+	TOTAL_RELATIVE = 0,
+	TOTAL_ABSOLUTE = 1
+};
+
 class Total{
 	bool type = TOTAL_RELATIVE;
 	double value = 100;
 public:
-	enum : bool{
-		TOTAL_RELATIVE = 0,
-		TOTAL_ABSOLUTE = 1,
-	};
 	
 	Total(){}
 	Total(bool type, double value): type(type), value(value){}

@@ -13,6 +13,6 @@
 
 extern sf::Font font_default;
 
-bool InitDefaultFont();
+bool TryInitDefaultFont();
 
 #endif /* DefaultFont_hpp */
