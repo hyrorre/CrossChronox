@@ -427,7 +427,8 @@ bool BmsLoader::TryParseHeaderLine(){
 				//BPM 130
 				//BPM01 130
 				if(isblank(header[3])){
-					int bpm = out->info.init_bpm = atof(GetArg());
+					double bpm = out->info.init_bpm = atof(GetArg());
+					out->bpm_events.clear();
 					out->bpm_events.emplace_back(new BpmEvent(0, bpm));
 				}
 				else{
@@ -820,6 +821,9 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 		
 		//total of bms is always absolute.
 		out->info.total = Total(TOTAL_ABSOLUTE, 0);
+		
+		//default BPM130
+		out->bpm_events.emplace_back(new BpmEvent(0, 130.0));
 		
 		//start parsing
 		std::string line;
