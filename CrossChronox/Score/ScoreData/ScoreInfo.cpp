@@ -19,7 +19,7 @@ static const std::vector<std::string> mode_str = {
 };
 
 const std::string& GetModeString(Mode mode){
-	return mode_str[static_cast<int>(mode)];
+	return mode_str[static_cast<size_t>(mode)];
 }
 
 std::wstring ScoreInfo::GetInfoStr() const{

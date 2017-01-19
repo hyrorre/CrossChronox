@@ -29,7 +29,7 @@ struct ScoreInfo : public ScoreInfoBase{
 	Mode          mode;
 	std::wstring   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int            difficulty = 0;
-	size_t         level = 0;             // self-explanatory
+	int            level = 0;             // self-explanatory
 	double         init_bpm = 130;        // self-explanatory
 	JudgeRank      judge_rank;            //
 	Total          total;                 // lifebar gain

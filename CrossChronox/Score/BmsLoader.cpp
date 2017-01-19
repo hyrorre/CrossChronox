@@ -43,7 +43,7 @@ class BmsLoader : private boost::noncopyable{
 		pulse_t global_pulse = 0;
 		
 		TmpNoteData(){}
-		TmpNoteData(int bar, int channel, int index, int tmp_bar_linepulse, int tmp_bar_lineresolution): bar(bar), channel(channel), index(index), bar_pulse(4 * BEAT_RESOLUTION * tmp_bar_linepulse / tmp_bar_lineresolution){}
+		TmpNoteData(int bar, int channel, int index, pulse_t tmp_bar_linepulse, pulse_t tmp_bar_lineresolution): bar(bar), channel(channel), index(index), bar_pulse(4 * BEAT_RESOLUTION * tmp_bar_linepulse / tmp_bar_lineresolution){}
 		
 		bool operator < (const TmpNoteData& b) const{
 			return global_pulse < b.global_pulse;
@@ -53,7 +53,7 @@ class BmsLoader : private boost::noncopyable{
 	int max_bar = 0;
 	std::vector<std::unique_ptr<TmpNoteData>> tmp_notes;
 	std::unordered_map<int, double> exbpm;
-	std::unordered_map<int, int> stop;
+	std::unordered_map<int, pulse_t> stop;
 	std::vector<int> lnobj;
 	ScoreData* out = nullptr;
 	const char* nowline = nullptr;
@@ -64,7 +64,7 @@ class BmsLoader : private boost::noncopyable{
 	bool parse_nextline_flag = true;
 	
 	std::string extention;
-	std::function<int(int)> ChannelToLane;
+	std::function<lane_t(int)> ChannelToLane;
 	
 	bool load_header_only_flag = false;
 	
@@ -610,7 +610,7 @@ void BmsLoader::SetNotesAndEvents(){
 	if(max_bar > 1000){
 		throw ParseError("Too many bars. (max_bar > 1000)");
 	}
-	int total_pulse = 0;
+	pulse_t total_pulse = 0;
 	for(int i = 0; i <= max_bar; ++i){
 		bar_info[i].start_pulse = total_pulse;
 		total_pulse += bar_info[i].length();
@@ -632,7 +632,7 @@ void BmsLoader::SetNotesAndEvents(){
 	
 	//tmp_notes -> ScoreData
 	bool ln_pushing[MAX_X] = {false};  //fill by 'false'
-    std::array<Note*, MAX_X> last_note = {nullptr}; //last note of the lane
+    std::array<Note*, MAX_X> last_note = {{nullptr}}; //last note of the lane
 	for(const auto& tmp_note : tmp_notes){
 		switch(tmp_note->channel){
 			case CHANNEL_METER:
@@ -669,7 +669,7 @@ void BmsLoader::SetNotesAndEvents(){
 			case CHANNEL_BGM:
 			default: //Normal note, LN (invisible note is not implemented yet)
 				bool ln_channel_flag = (51 <= tmp_note->channel && tmp_note->channel <= 69);
-				int lane = ChannelToLane(tmp_note->channel);
+				lane_t lane = ChannelToLane(tmp_note->channel);
 				bool lnend_flag = false;
 				
 				if(ln_channel_flag){

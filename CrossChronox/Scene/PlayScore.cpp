@@ -151,7 +151,7 @@ void PlayScore::Init(){
 	ScorePlayer::Start();
 }
 
-float GetNoteX(Note::lane_t lane){
+float GetNoteX(lane_t lane){
 	switch(lane){
 		case 8:
 			return scr_x;
@@ -169,7 +169,7 @@ float GetNoteX(Note::lane_t lane){
 	}
 }
 
-sf::Sprite* GetSpritePtr(Note::lane_t lane){
+sf::Sprite* GetSpritePtr(lane_t lane){
 	switch(lane){
 		case 8:
 			return &scr_sprite;

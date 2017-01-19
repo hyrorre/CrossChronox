@@ -30,7 +30,7 @@ enum Side{
 };
 
 class Result{
-	std::array<size_t, MAX_JUDGE> judge_counts = {0};
+	std::array<size_t, MAX_JUDGE> judge_counts = {{0}};
 	size_t cb = 0;
 	size_t ex_score = 0;
 	size_t max_combo = 0;
@@ -38,7 +38,7 @@ class Result{
 	
 	std::array<std::vector<JudgeInfo>, 2> timelines;
 	
-	int JudgeToExScore(Judge j){
+	size_t JudgeToExScore(Judge j){
 		if(j == PGREAT) return 2;
 		if(j == GREAT) return 1;
 		return 0;
@@ -46,10 +46,10 @@ class Result{
 	
 public:
 	size_t GetJudgeCount(Judge j) const{
-		return judge_counts[static_cast<int>(j)];
+		return judge_counts[static_cast<size_t>(j)];
 	}
 	void SetJudgeCount(Judge j, size_t value){
-		judge_counts[static_cast<int>(j)] = value;
+		judge_counts[static_cast<size_t>(j)] = value;
 	}
 	size_t GetComboBreak() const{
 		return cb;

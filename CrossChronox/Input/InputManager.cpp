@@ -15,7 +15,7 @@ namespace InputManager{
 	//0~999 keyid of keyboard(sf::Keyboard)
 	//1000~1999 (下二桁)keyid of joystick 1
 	//2000~2999 (下二桁)keyid of joystick 2
-	using keyid_t = int;
+	using keyid_t = unsigned;
 	
 	bool IsKeyPressed(keyid_t keyid){
 		if(keyid < 1000){ //keyboard
