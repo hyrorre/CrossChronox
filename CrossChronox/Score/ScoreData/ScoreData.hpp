@@ -21,8 +21,8 @@ using event_id_t = unsigned long;
 
 // bar-line event
 struct BarLine{
-	pulse_t y; // pulse number
-	BarLine(pulse_t y): y(y){}
+	pulse_t pulse; // pulse number
+	BarLine(pulse_t pulse): pulse(pulse){}
 };
 
 inline bool IsComboContinuous(Judge judge){
@@ -32,9 +32,9 @@ inline bool IsComboContinuous(Judge judge){
 // sound note
 struct Note{
 	using lane_t = int;
-	lane_t x;          // CrossChronox supports only beat and popn(that have integer lane)
-	pulse_t y;      // pulse number
-	pulse_t l;      // length (0: normal note; greater than zero (length in pulses): long note)
+	lane_t lane, lane_origin;    // CrossChronox supports only beat and popn(that have integer lane)
+	pulse_t pulse;      // pulse number
+	pulse_t len;      // length (0: normal note; greater than zero (length in pulses): long note)
 	size_t num = 0; // playable note count (1から始まる)
 	WavBuffer* wavbuf_ptr = nullptr;
 	Judge judge = JUDGE_YET;
@@ -43,44 +43,44 @@ struct Note{
     
 	Note(){}
 	//Note(int x, pulse_t y, pulse_t l): x(x), y(y), l(l){}
-	Note(lane_t x, pulse_t y, pulse_t l, size_t num, WavBuffer* p = nullptr): x(x), y(y), l(l), num(num), wavbuf_ptr(p){}
+	Note(lane_t lane, pulse_t pulse, pulse_t len, size_t num, WavBuffer* p = nullptr): lane(lane), lane_origin(lane), pulse(pulse), len(len), num(num), wavbuf_ptr(p){}
     bool operator< (const Note& other) const{
-        return y < other.y;
+        return pulse < other.pulse;
     }
 };
 
 // bpm note
 struct BpmEvent{
-	pulse_t y = 0;  // pulse number
+	pulse_t pulse = 0;  // pulse number
 	double bpm = 0; // bpm
 	pulse_t duration = 0; // pulses from the event to switch next bpm
 	ms_type ms = 0;
 	BpmEvent(){}
-	BpmEvent(pulse_t y, double bpm = 0, pulse_t duration = 0): y(y), bpm(bpm), duration(duration){}
+	BpmEvent(pulse_t pulse, double bpm = 0, pulse_t duration = 0): pulse(pulse), bpm(bpm), duration(duration){}
 	virtual ~BpmEvent(){}
 	bool operator<(const BpmEvent& other) const{
 		return other > *this;
 	}
 	bool operator>(const BpmEvent& other) const{
-		return y > other.y;
+		return pulse > other.pulse;
 	}
 	virtual ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return ms + MinToMs((pulse - y) / (bpm * resolution));
+		return ms + MinToMs((pulse - pulse) / (bpm * resolution));
 	}
 };
 
 // stop note
 struct StopEvent : public BpmEvent{
 	StopEvent(){}
-	StopEvent(pulse_t y, pulse_t d): BpmEvent(y, 0, d){}
+	StopEvent(pulse_t pulse, pulse_t d): BpmEvent(pulse, 0, d){}
 	bool operator<(const BpmEvent& other) const{
-		return y <= other.y;
+		return pulse <= other.pulse;
 	}
 	bool operator>(const BpmEvent& other) const{
-		return y > other.y;
+		return pulse > other.pulse;
 	}
 	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return ms + MinToMs((pulse + duration - y) / (bpm * resolution));
+		return ms + MinToMs((pulse + duration - pulse) / (bpm * resolution));
 	}
 };
 
@@ -92,7 +92,7 @@ struct BGAHeader{
 
 // bga note
 struct BGAEvent{
-	pulse_t y;	    // pulse number
+	pulse_t pulse;	    // pulse number
 	event_id_t id;	// corresponds to BGAHeader.id
 };
 

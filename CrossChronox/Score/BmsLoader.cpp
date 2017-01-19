@@ -64,7 +64,7 @@ class BmsLoader : private boost::noncopyable{
 	bool parse_nextline_flag = true;
 	
 	std::string extention;
-	std::function<int(int)> ChannelToX;
+	std::function<int(int)> ChannelToLane;
 	
 	bool load_header_only_flag = false;
 	
@@ -215,7 +215,7 @@ const int CHANNEL_BGALAYER = 7;
 const int CHANNEL_EXBPM = 8;
 const int CHANNEL_STOPS = 9;
 
-const auto BmsChannelToX = [](int channel){
+const auto BmsChannelToLane = [](int channel){
 	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
@@ -249,7 +249,7 @@ const auto BmsChannelToX = [](int channel){
 	}
 };
 
-const auto PmsChannelToX = [](int channel){
+const auto PmsChannelToLane = [](int channel){
 	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
@@ -270,7 +270,7 @@ const auto PmsChannelToX = [](int channel){
 	}
 };
 
-const auto PmeChannelToX = [](int channel){
+const auto PmeChannelToLane = [](int channel){
 	if(51 <= channel) channel -= 40;
 	switch(channel){
 		case CHANNEL_BGM:
@@ -565,7 +565,7 @@ void BmsLoader::SetMode(){
 	
 	//bms, bme, bml
 	if(boost::istarts_with(extention, "b")){
-		ChannelToX = BmsChannelToX;
+		ChannelToLane = BmsChannelToLane;
 		if(28 <= used_channel_max){
 			out->info.mode = BEAT_14K;
 		}
@@ -585,21 +585,21 @@ void BmsLoader::SetMode(){
 	else{
 		if(24 <= used_channel_max){
 			out->info.mode = POPN_9K;
-			ChannelToX = PmsChannelToX;
+			ChannelToLane = PmsChannelToLane;
 		}
 		else if(22 <= used_channel_max){
 			if(channel_used_flag[11] || channel_used_flag[12]){
 				out->info.mode = POPN_9K;
-				ChannelToX = PmsChannelToX;
+				ChannelToLane = PmsChannelToLane;
 			}
 			else{
 				out->info.mode = POPN_5K;
-				ChannelToX = PmsChannelToX;
+				ChannelToLane = PmsChannelToLane;
 			}
 		}
 		else{
 			out->info.mode = POPN_9K;
-			ChannelToX = PmeChannelToX;
+			ChannelToLane = PmeChannelToLane;
 		}
 	}
 }
@@ -669,25 +669,25 @@ void BmsLoader::SetNotesAndEvents(){
 			case CHANNEL_BGM:
 			default: //Normal note, LN (invisible note is not implemented yet)
 				bool ln_channel_flag = (51 <= tmp_note->channel && tmp_note->channel <= 69);
-				int x = ChannelToX(tmp_note->channel);
+				int lane = ChannelToLane(tmp_note->channel);
 				bool lnend_flag = false;
 				
 				if(ln_channel_flag){
-					if(ln_pushing[x]) lnend_flag = true;
-					ln_pushing[x] = !ln_pushing[x];
+					if(ln_pushing[lane]) lnend_flag = true;
+					ln_pushing[lane] = !ln_pushing[lane];
 				}
 				else if(boost::binary_search(lnobj,tmp_note->index)) lnend_flag = true;
 				if(lnend_flag){
-					last_note[x]->l = tmp_note->global_pulse - last_note[x]->y;
+					last_note[lane]->len = tmp_note->global_pulse - last_note[lane]->pulse;
 					break;
 				}
-				if(0 <= x){
+				if(0 <= lane){
 					size_t num = 0;
-					if(0 < x){
+					if(0 < lane){
 						num = ++note_count;
 					}
-					out->notes.emplace_back(new Note(x, tmp_note->global_pulse, 0, num, out->wavbufs[tmp_note->index].get()));
-					last_note[x] = out->notes.back().get();
+					out->notes.emplace_back(new Note(lane, tmp_note->global_pulse, 0, num, out->wavbufs[tmp_note->index].get()));
+					last_note[lane] = out->notes.back().get();
 				}
 				break;
 		}
@@ -709,7 +709,7 @@ void BmsLoader::SetBpm(){
 	for(auto& event : out->bpm_events){
 		if(last){
 			if(event->duration == 0){ //if event is BpmEvents
-				last->duration = event->y - last_bpm_change->y;
+				last->duration = event->pulse - last_bpm_change->pulse;
 				bpm_length[last->bpm + 0.5] += last->duration * last->bpm;
 				max = std::max(max, event->bpm);
 				min = std::min(min, event->bpm);
@@ -718,7 +718,7 @@ void BmsLoader::SetBpm(){
 			else{ //if event is StopEvents
 				event->bpm = last_bpm_change->bpm;
 			}
-			event->ms = last->NextEventMs(event->y, out->info.resolution);
+			event->ms = last->NextEventMs(event->pulse, out->info.resolution);
 		}
 		last = event.get();
 	}
@@ -726,7 +726,7 @@ void BmsLoader::SetBpm(){
 	if(!tmp_notes.empty()){
 		out->info.end_pulse = tmp_notes.back()->global_pulse;
 	}
-	bpm_length[last->bpm + 0.5] += (out->info.end_pulse - last->y) * last->bpm;
+	bpm_length[last->bpm + 0.5] += (out->info.end_pulse - last->pulse) * last->bpm;
 	
 	using pair_t = std::pair<int, double>;
 	auto pred = [](const pair_t& a, const pair_t& b)->bool{
@@ -746,10 +746,10 @@ void BmsLoader::SetNoteTime(){
 	//if(++it != end) next_bpm_event = it->get();
 	const auto resolution = out->info.resolution;
     for(auto& note : out->notes){
-		while(bpm_event_it != back_it && (*bpm_event_it)->y + (*bpm_event_it)->duration < note->y){ // bpm_eventを後に処理
+		while(bpm_event_it != back_it && (*bpm_event_it)->pulse + (*bpm_event_it)->duration < note->pulse){ // bpm_eventを後に処理
 			++bpm_event_it;
 		}
-		note->ms = (*bpm_event_it)->NextEventMs(note->y, resolution);
+		note->ms = (*bpm_event_it)->NextEventMs(note->pulse, resolution);
 	}
 	
 	out->info.end_ms = out->bpm_events.back()->NextEventMs(out->info.end_pulse, out->info.resolution);

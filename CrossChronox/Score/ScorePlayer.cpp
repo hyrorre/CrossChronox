@@ -34,16 +34,16 @@ ScorePlayer::State ScorePlayer::Update(){
 	
 	wav_manager.Update();
 	
-	tmp_note->y = last_pulse;
+	tmp_note->pulse = last_pulse;
 	auto begin = score.notes.begin();
 	auto end = score.notes.end();
 	auto note_it = std::upper_bound(begin, end, tmp_note, ptr_less<Note>());
 	for(; note_it != end; ++note_it){
 		Note& note = *(*note_it);
-		if(now_pulse < note.y) break;
+		if(now_pulse < note.pulse) break;
 		wav_manager.PlayWav(&note);
 		if(note.num){
-			Side side = static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= note.x);
+			Side side = static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= note.lane);
 			result.Push(side, play_ms, Judge::PGREAT, false);
 		}
 	}

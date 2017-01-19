@@ -211,23 +211,23 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 		ss << score.info.GetInfoStr();
 		ss << player.GetResult().GetResultStr() << std::endl;
 		for(const auto& note : score.notes){
-			float lnstart_y = judgeline_y - static_cast<int>((note->y - now_pulse) * global_scroll / score.info.resolution);
-			float note_y = judgeline_y - static_cast<int>((note->y + note->l - now_pulse) * global_scroll / score.info.resolution);
+			float lnstart_y = judgeline_y - static_cast<int>((note->pulse - now_pulse) * global_scroll / score.info.resolution);
+			float note_y = judgeline_y - static_cast<int>((note->pulse + note->len - now_pulse) * global_scroll / score.info.resolution);
 			if(judgeline_y + note_h < note_y) continue;
 			if(lnstart_y + note_h < 0) break;
-			sf::Sprite* sprite = GetSpritePtr(note->x);
+			sf::Sprite* sprite = GetSpritePtr(note->lane);
 			if(sprite){
-				if(note->l == 0){ //if note is not LN
-					sprite->setPosition(GetNoteX(note->x), note_y);
+				if(note->len == 0){ //if note is not LN
+					sprite->setPosition(GetNoteX(note->lane), note_y);
 					render_target.draw(*sprite);
 				}
 				else{ //if note is LN
 					sf::Sprite ln_sprite = *sprite;
-					if(note->y < now_pulse){
+					if(note->pulse < now_pulse){
 						lnstart_y = judgeline_y;
 					}
 					float lnend_y = note_y;
-					float note_x = GetNoteX(note->x);
+					float note_x = GetNoteX(note->lane);
 					sprite->setPosition(note_x, lnstart_y);
 					render_target.draw(*sprite);
 					sprite->setPosition(note_x, lnend_y);

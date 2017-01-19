@@ -15,7 +15,7 @@ pulse_t ScoreData::MsToPulse(ms_type ms) const{
 	BpmEvent* last = nullptr;
 	for(auto& event : bpm_events){
 		if(last){
-			min_type duration_min = (event->y - last->y) / (info.resolution * last->bpm);
+			min_type duration_min = (event->pulse - last->pulse) / (info.resolution * last->bpm);
 			if(duration_min < min){
 				min -= duration_min;
 				total_pulse += last->bpm * duration_min * info.resolution;
