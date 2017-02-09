@@ -7,8 +7,8 @@
 //
 
 #include "PlayScore.hpp"
-#include "Path.hpp"
-#include "DefaultFont.hpp"
+#include "Filesystem/Path.hpp"
+#include "System/DefaultFont.hpp"
 
 PlayScore scene_play_score;
 

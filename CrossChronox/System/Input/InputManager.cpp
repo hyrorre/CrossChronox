@@ -7,7 +7,7 @@
 //
 
 #include "InputManager.hpp"
-#include "Exception.hpp"
+#include "System/Exception.hpp"
 
 namespace InputManager{
 	

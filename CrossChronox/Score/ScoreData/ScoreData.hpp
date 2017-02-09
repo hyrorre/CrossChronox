@@ -10,7 +10,7 @@
 #define ScoreData_hpp
 
 #include "pch.hpp"
-#include "TimeManager.hpp"
+#include "System/TimeManager.hpp"
 #include "WavBuffer.hpp"
 #include "ScoreInfo.hpp"
 

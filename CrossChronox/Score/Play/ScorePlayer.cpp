@@ -7,8 +7,8 @@
 //
 
 #include "ScorePlayer.hpp"
-#include "TimeManager.hpp"
-#include "BmsLoader.hpp"
+#include "System/TimeManager.hpp"
+#include "Score/Load/BmsLoader.hpp"
 #include "Application.hpp"
 
 //static variables

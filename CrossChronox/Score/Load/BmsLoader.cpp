@@ -7,7 +7,7 @@
 //
 
 #include "BmsLoader.hpp"
-#include "MD5.hpp"
+#include "Filesystem/MD5.hpp"
 
 //BMS command memo (draft) (English)
 //http://hitkey.nekokan.dyndns.info/cmds.htm

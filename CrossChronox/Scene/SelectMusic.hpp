@@ -11,8 +11,8 @@
 
 #include "pch.hpp"
 #include "Scene.hpp"
-#include "ScoreDirectoryInfo.hpp"
-#include "Path.hpp"
+#include "Filesystem/ScoreDirectoryInfo.hpp"
+#include "Filesystem/Path.hpp"
 
 class SelectMusic : public Scene{
 	bool inited = false;

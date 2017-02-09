@@ -11,7 +11,7 @@
 
 #include "pch.hpp"
 #include "Scene.hpp"
-#include "ScorePlayer.hpp"
+#include "Score/Play/ScorePlayer.hpp"
 
 class PlayScore : public Scene{
 	static const int MAX_PLAYER = 1;

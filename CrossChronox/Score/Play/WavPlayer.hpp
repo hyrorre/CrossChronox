@@ -10,7 +10,7 @@
 #define WavPlayer_hpp
 
 #include "pch.hpp"
-#include "ScoreData.hpp"
+#include "Score/ScoreData/ScoreData.hpp"
 
 class WavPlayer{
     const Note* note_ptr = nullptr;

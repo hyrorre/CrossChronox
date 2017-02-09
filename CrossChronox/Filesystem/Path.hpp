@@ -10,7 +10,7 @@
 #define Path_hpp
 
 #include "pch.hpp"
-#include "Exception.hpp"
+#include "System/Exception.hpp"
 
 const fs::path& GetAppdataPath();
 

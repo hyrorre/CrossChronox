@@ -11,7 +11,7 @@
 
 #include "pch.hpp"
 #include "WavPlayer.hpp"
-#include "ScoreData.hpp"
+#include "Score/ScoreData/ScoreData.hpp"
 
 class WavManager{
 	static const int MAX_SOUND = 128;

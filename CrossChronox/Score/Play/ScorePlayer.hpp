@@ -10,9 +10,9 @@
 #define ScorePlayer_hpp
 
 #include "pch.hpp"
-#include "ScoreData.hpp"
+#include "Score/ScoreData/ScoreData.hpp"
 #include "WavManager.hpp"
-#include "Result.hpp"
+#include "Score/ScoreData/Result.hpp"
 
 class Application;
 
