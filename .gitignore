@@ -1,9 +1,13 @@
-﻿# CrossChronox
+# CrossChronox
 # score info cache file
 Song.xml
 
 # backup files
 *.bak
+
+# Dependencies
+lib
+include
 
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883
