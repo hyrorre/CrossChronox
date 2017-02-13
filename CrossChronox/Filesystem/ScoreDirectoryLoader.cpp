@@ -7,8 +7,8 @@
 //
 
 #include "ScoreDirectoryLoader.hpp"
-#include "BmsLoader.hpp"
-#include "Path.hpp"
+#include "Score/Load/BmsLoader.hpp"
+#include "Filesystem/Path.hpp"
 
 const fs::directory_iterator end;
 

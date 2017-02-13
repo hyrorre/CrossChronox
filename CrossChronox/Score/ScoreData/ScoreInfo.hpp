@@ -10,10 +10,10 @@
 #define ScoreInfo_hpp
 
 #include "pch.hpp"
-#include "ScoreInfoBase.hpp"
+#include "Filesystem/ScoreInfoBase.hpp"
 #include "JudgeRank.hpp"
 #include "Total.hpp"
-#include "TimeManager.hpp"
+#include "System/TimeManager.hpp"
 
 using pulse_t = unsigned long;
 

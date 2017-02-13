@@ -11,7 +11,7 @@
 
 #include "pch.hpp"
 #include "ScoreData.hpp"
-#include "TimeManager.hpp"
+#include "System//TimeManager.hpp"
 
 struct JudgeInfo{
 	ms_type ms = 0;

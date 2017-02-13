@@ -7,8 +7,8 @@
 //
 
 #include "SelectMusic.hpp"
-#include "DefaultFont.hpp"
-#include "InputManager.hpp"
+#include "System/DefaultFont.hpp"
+#include "System/Input/InputManager.hpp"
 #include "Application.hpp"
 #include "PlayScore.hpp"
 

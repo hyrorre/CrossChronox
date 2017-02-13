@@ -7,14 +7,14 @@
 //
 
 #include "Application.hpp"
-#include "Path.hpp"
-#include "ScorePlayer.hpp"
-#include "BmsLoader.hpp"
-#include "TimeManager.hpp"
-#include "SceneManager.hpp"
-#include "InputManager.hpp"
-#include "DefaultFont.hpp"
-#include "MessageBox.hpp"
+#include "Filesystem/Path.hpp"
+#include "Score/Play/ScorePlayer.hpp"
+#include "Score/Load/BmsLoader.hpp"
+#include "System/TimeManager.hpp"
+#include "Scene/SceneManager.hpp"
+#include "System/Input/InputManager.hpp"
+#include "System/DefaultFont.hpp"
+#include "Platform/MessageBox.hpp"
 
 fs::path Application::scorefile_path;
 
@@ -37,7 +37,7 @@ void Application::Init(){
 	
 	//set up window
 	window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", sf::Style::Titlebar | sf::Style::Close);
-	window.setSize(sf::Vector2u(w * 2, h * 2));
+	//window.setSize(sf::Vector2u(w * 2, h * 2));
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 	
