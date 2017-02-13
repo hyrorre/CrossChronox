@@ -10,12 +10,25 @@
 #include "TimeManager.hpp"
 #include "BmsLoader.hpp"
 #include "Application.hpp"
+#include "JudgeManager.hpp"
 
 //static variables
 ms_type ScorePlayer::start_ms = 0;
 
+void ScorePlayer::SetLaneTimelines(){
+	for(auto& tl : lane_timelines) tl.clear();
+	for(auto& note : score.notes){
+		auto lane = note->lane;
+		if(lane){
+			assert(lane < MAX_LANE);
+			lane_timelines[lane].emplace_back(note.get());
+		}
+	}
+}
+
 void ScorePlayer::Init(){
 	LoadBms(Application::GetScoreFilePath().string(), &score);
+	SetLaneTimelines();
 	wav_manager.Init();
 	result = Result();
 }
@@ -50,4 +63,13 @@ ScorePlayer::State ScorePlayer::Update(){
 	if(score.info.end_pulse < now_pulse && wav_manager.Empty()) return State::FINISH;
 	else return State::CONTINUE;
 }
+
+void ScorePlayer::Judge(){
+	//lane 0 is BGM
+	for(lane_t lane = 1; lane < MAX_LANE; ++lane){
+		auto& lane_timeline = lane_timelines[lane];
+		
+	}
+}
+
 

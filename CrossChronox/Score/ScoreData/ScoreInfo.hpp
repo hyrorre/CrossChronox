@@ -1,4 +1,4 @@
-﻿//
+//
 //  ScoreInfo.hpp
 //  CrossChronox
 //
@@ -19,6 +19,12 @@ using pulse_t = unsigned long;
 
 const std::string& GetModeString(Mode mode);
 
+enum LnType{
+	LN_NORMAL,
+	LN_CN,
+	LN_HCN
+};
+
 struct ScoreInfo : public ScoreInfoBase{
 	std::wstring   title;                 // self-explanatory
 	std::wstring   subtitle;              // self-explanatory
@@ -26,7 +32,8 @@ struct ScoreInfo : public ScoreInfoBase{
 	std::vector<std::wstring> subartists; // ["key:value"]
 	std::wstring   genre;                 // self-explanatory
 	//std::string   mode_hint = "beat-7k"; // layout hints, e.g. "beat-7k", "popn-5k", "generic-nkeys"
-	Mode          mode;
+	Mode           mode;
+	LnType         ln_type;
 	std::wstring   chart_name;            // e.g. "HYPER", "FOUR DIMENSIONS"
 	int            difficulty = 0;
 	int            level = 0;             // self-explanatory
@@ -91,6 +98,7 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("note_count", note_count);
 		ar & boost::serialization::make_nvp("md5", md5);
 		ar & boost::serialization::make_nvp("random_flag", random_flag);
+		ar & boost::serialization::make_nvp("ln_type", ln_type);
 	}
 	
 	template<class Archive>
@@ -133,6 +141,7 @@ private: // ここがシリアライズ処理の実装
 		ar & boost::serialization::make_nvp("note_count", note_count);
 		ar & boost::serialization::make_nvp("md5", md5);
 		ar & boost::serialization::make_nvp("random_flag", random_flag);
+		ar & boost::serialization::make_nvp("ln_type", ln_type);
 	}
 };
 

@@ -22,7 +22,12 @@ class ScorePlayer{
 	Result result;
 	
 	static ms_type start_ms;
-
+	
+	std::vector<std::vector<Note*>> lane_timelines = std::vector<std::vector<Note*>>(MAX_LANE);
+	void SetLaneTimelines();
+	
+	void Judge();
+	
 public:
 	enum State{
 		FINISH,

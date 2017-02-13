@@ -15,7 +15,6 @@
 //BMS command memo (Japanese)
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
-const int MAX_X = 20;
 const int MAX_NOTE_CHANNEL = 30;
 
 class BmsLoader : private boost::noncopyable{
@@ -632,8 +631,8 @@ void BmsLoader::SetNotesAndEvents(){
 	size_t note_count = 0;
 	
 	//tmp_notes -> ScoreData
-	bool ln_pushing[MAX_X] = {false};  //fill by 'false'
-    std::array<Note*, MAX_X> last_note = {{nullptr}}; //last note of the lane
+	bool ln_pushing[MAX_LANE] = {false};  //fill by 'false'
+    std::array<Note*, MAX_LANE> last_note = {{nullptr}}; //last note of the lane
 	for(const auto& tmp_note : tmp_notes){
 		switch(tmp_note->channel){
 			case CHANNEL_METER:
