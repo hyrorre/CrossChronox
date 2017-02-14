@@ -15,7 +15,6 @@
 //BMS command memo (Japanese)
 //http://hitkey.nekokan.dyndns.info/cmdsJP.htm
 
-const int MAX_X = 20;
 const int MAX_NOTE_CHANNEL = 30;
 
 class BmsLoader : private boost::noncopyable{
@@ -427,7 +426,8 @@ bool BmsLoader::TryParseHeaderLine(){
 				//BPM 130
 				//BPM01 130
 				if(isblank(header[3])){
-					int bpm = out->info.init_bpm = atof(GetArg());
+					double bpm = out->info.init_bpm = atof(GetArg());
+					out->bpm_events.clear();
 					out->bpm_events.emplace_back(new BpmEvent(0, bpm));
 				}
 				else{
@@ -631,8 +631,8 @@ void BmsLoader::SetNotesAndEvents(){
 	size_t note_count = 0;
 	
 	//tmp_notes -> ScoreData
-	bool ln_pushing[MAX_X] = {false};  //fill by 'false'
-    std::array<Note*, MAX_X> last_note = {{nullptr}}; //last note of the lane
+	bool ln_pushing[MAX_LANE] = {false};  //fill by 'false'
+    std::array<Note*, MAX_LANE> last_note = {{nullptr}}; //last note of the lane
 	for(const auto& tmp_note : tmp_notes){
 		switch(tmp_note->channel){
 			case CHANNEL_METER:
@@ -820,6 +820,9 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 		
 		//total of bms is always absolute.
 		out->info.total = Total(TOTAL_ABSOLUTE, 0);
+		
+		//default BPM130
+		out->bpm_events.emplace_back(new BpmEvent(0, 130.0));
 		
 		//start parsing
 		std::string line;

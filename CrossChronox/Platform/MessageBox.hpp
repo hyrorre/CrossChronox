@@ -19,9 +19,9 @@ int MBox(sf::WindowHandle handle, const char* title, const char* text, unsigned 
 
 enum : unsigned{
 	//buttons
-	MBOX_OK            = 0b1,
-	MBOX_YESNO         = 0b10,
-	MBOX_YESNOCANCEL   = 0b100,
+	MBOX_OK              = 0b1,
+	MBOX_YESNO           = 0b10,
+	MBOX_YESNOCANCEL     = 0b100,
 	
 	//icon
 	MBOX_ICONWARNING     = 0b1000,

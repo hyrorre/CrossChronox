@@ -1,4 +1,4 @@
-﻿//
+//
 //  JudgeRank.hpp
 //  CrossChronox
 //
@@ -15,12 +15,12 @@
 enum Judge{
 	JUDGE_YET = -1,
 	PGREAT = 0,
-	GREAT,
-	GOOD,
-	BAD,
-	POOR,
+	GREAT = 1,
+	GOOD = 2,
+	BAD = 3,
+	POOR = 4,
 	
-	MAX_JUDGE
+	MAX_JUDGE = 5
 };
 
 enum : bool{

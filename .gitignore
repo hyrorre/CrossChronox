@@ -1,6 +1,9 @@
-﻿# CrossChronox
+# CrossChronox
 # score info cache file
 Song.xml
+
+# backup files
+*.bak
 
 # Dependencies
 lib

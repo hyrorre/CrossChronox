@@ -1,4 +1,4 @@
-﻿//
+//
 //  ScoreData.hpp
 //  CrossChronox
 //
@@ -31,6 +31,7 @@ inline bool IsComboContinuous(Judge judge){
 
 // sound note
 using lane_t = int;
+enum{ MAX_LANE = 20 };
 struct Note{
 	lane_t lane, lane_origin;    // CrossChronox supports only beat and popn(that have integer lane)
 	pulse_t pulse;      // pulse number
@@ -38,6 +39,7 @@ struct Note{
 	size_t num = 0; // playable note count (1から始まる)
 	WavBuffer* wavbuf_ptr = nullptr;
 	Judge judge = JUDGE_YET;
+	int empty_poor_count = 0;
 	
 	ms_type ms;     // time(ms) that the note should be handled.
     

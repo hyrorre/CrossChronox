@@ -23,6 +23,10 @@
 			isa = PBXBuildFile;
 			fileRef = 562242A31E2FDAD4000C4921;
 		};
+		562242A91E30FB7B000C4921 = {
+			isa = PBXBuildFile;
+			fileRef = 562242A71E30FB7B000C4921;
+		};
 		562C45DF1DFBAE0300E46B65 = {
 			isa = PBXBuildFile;
 			fileRef = 562C45DD1DFBAE0300E46B65;
@@ -274,6 +278,20 @@
 			path = System/Library/Frameworks/AppKit.framework;
 			sourceTree = SDKROOT;
 		};
+		562242A71E30FB7B000C4921 = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			path = JudgeManager.cpp;
+			sourceTree = "<group>";
+		};
+		562242A81E30FB7B000C4921 = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.h;
+			path = JudgeManager.hpp;
+			sourceTree = "<group>";
+		};
 		562C45DD1DFBAE0300E46B65 = {
 			isa = PBXFileReference;
 			fileEncoding = 4;
@@ -373,12 +391,14 @@
 		5634FEB61E260DF6006217AC = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
+			name = Result.cpp;
 			path = Result.cpp;
 			sourceTree = "<group>";
 		};
 		5634FEB71E260DF6006217AC = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.h;
+			name = Result.hpp;
 			path = Result.hpp;
 			sourceTree = "<group>";
 		};
@@ -742,13 +762,16 @@
 				563C71371DABD71C00CCD81F,
 				563C71381DABD71C00CCD81F,
 			);
-			name = Load;
 			path = Load;
 			sourceTree = "<group>";
 		};
 		562242A61E30FA5C000C4921 = {
 			isa = PBXGroup;
 			children = (
+				562242A71E30FB7B000C4921,
+				562242A81E30FB7B000C4921,
+				5634FEB61E260DF6006217AC,
+				5634FEB71E260DF6006217AC,
 				56EAC9FD1DCC191A00511911,
 				56EAC9FE1DCC191A00511911,
 				56F1CB491DEB2D78007BD827,
@@ -756,7 +779,6 @@
 				562C45DD1DFBAE0300E46B65,
 				562C45DE1DFBAE0300E46B65,
 			);
-			name = Play;
 			path = Play;
 			sourceTree = "<group>";
 		};
@@ -782,8 +804,6 @@
 				5634FEB51E260DF6006217AC,
 				5634FEC11E262BF3006217AC,
 				5634FEC21E262BF3006217AC,
-				5634FEB61E260DF6006217AC,
-				5634FEB71E260DF6006217AC,
 				5634FEB81E260DF6006217AC,
 				5634FEB91E260DF6006217AC,
 				5634FEBA1E260DF6006217AC,
@@ -1011,6 +1031,7 @@
 				563C711D1DAB3C9000CCD81F,
 				562C45DF1DFBAE0300E46B65,
 				56D4A2681E05416800198EF6,
+				562242A91E30FB7B000C4921,
 				56F1CB4B1DEB2D78007BD827,
 				563C71421DABD7E400CCD81F,
 				563C713B1DABD71C00CCD81F,
