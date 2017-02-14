@@ -84,7 +84,19 @@
             "1pKey6": [5],
             "1pKey7": [21],
             "1pScrUp": [41],
-            "1pScrDown": [42]
+            "1pScrDown": [42],
+            
+            "2pStart": [46],
+            "2pSelect": [47],
+            "2pKey1": [25],
+            "2pKey2": [18],
+            "2pKey3": [23],
+            "2pKey4": [3],
+            "2pKey5": [2],
+            "2pKey6": [5],
+            "2pKey7": [21],
+            "2pScrUp": [41],
+            "2pScrDown": [42]
         },
         "KeyFunc": {
             "Option": ["1pStart"],
@@ -93,7 +105,24 @@
             "DecideMusic": ["1pKey1", "1pKey3", "1pKey5", "1pKey7", "Return", "Right"],
     		"UpMusic": ["1pScrUp", "Up"],
     		"DownMusic": ["1pScrDown", "Down"],
-    		"ReloadFolder": ["8"]
+    		"ReloadFolder": ["8"],
+            "1pKey1": ["1pKey1"],
+            "1pKey2": ["1pKey2"],
+            "1pKey3": ["1pKey3"],
+            "1pKey4": ["1pKey4"],
+            "1pKey5": ["1pKey5"],
+            "1pKey6": ["1pKey6"],
+            "1pKey7": ["1pKey7"],
+            "1pScr",: ["1pScrUp", "1pScrDown"],
+            
+            "2pKey1": ["2pKey1"],
+            "2pKey2": ["2pKey2"],
+            "2pKey3": ["2pKey3"],
+            "2pKey4": ["2pKey4"],
+            "2pKey5": ["2pKey5"],
+            "2pKey6": ["2pKey6"],
+            "2pKey7": ["2pKey7"],
+            "2pScr": ["2pScrUp", "2pScrDown"],
     	}
     }
 }

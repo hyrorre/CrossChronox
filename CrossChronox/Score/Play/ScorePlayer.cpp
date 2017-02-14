@@ -64,10 +64,36 @@ ScorePlayer::State ScorePlayer::Update(){
 	else return State::CONTINUE;
 }
 
+const char* key_str[] = {
+	"",       // lane 0
+	"1pKey1", // lane 1
+	"1pKey2", // lane 2
+	"1pKey3", // lane 3
+	"1pKey4", // lane 4
+	"1pKey5", // lane 5
+	"1pKey6", // lane 6
+	"1pKey7", // lane 7
+	
+	"1pScr",  // lane 8
+	
+	"2pKey1", // lane 9
+	"2pKey2", // lane 10
+	"2pKey3", // lane 11
+	"2pKey4", // lane 12
+	"2pKey5", // lane 13
+	"2pKey6", // lane 14
+	"2pKey7", // lane 15
+	
+	"2pScr",  // lane 16
+};
+
 void ScorePlayer::Judge(){
-	//lane 0 is BGM
+	// lane 0 is BGM
 	for(lane_t lane = 1; lane < MAX_LANE; ++lane){
 		auto& lane_timeline = lane_timelines[lane];
+		std::vector<JudgeManager::NoteJudge> notejudge;
+		
+		JudgeManager::UpdateLane(lane_timeline, InputManager::GetKeyFuncState(key_str[lane]), now_ms, lane, score.info.mode, score.info.ln_type, &notejudge);
 		
 	}
 }

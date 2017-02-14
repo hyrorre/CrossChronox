@@ -11,10 +11,6 @@
 			isa = PBXBuildFile;
 			fileRef = 5614FD201DB0C2F30072FBC9;
 		};
-		562242791E2FA690000C4921 = {
-			isa = PBXBuildFile;
-			fileRef = 562242771E2FA690000C4921;
-		};
 		562242A11E2FD221000C4921 = {
 			isa = PBXBuildFile;
 			fileRef = 562242A01E2FD221000C4921;
@@ -83,10 +79,6 @@
 			isa = PBXBuildFile;
 			fileRef = 563C70FD1DAB3C9000CCD81F;
 		};
-		563C71171DAB3C9000CCD81F = {
-			isa = PBXBuildFile;
-			fileRef = 563C71011DAB3C9000CCD81F;
-		};
 		563C71181DAB3C9000CCD81F = {
 			isa = PBXBuildFile;
 			fileRef = 563C71031DAB3C9000CCD81F;
@@ -148,6 +140,14 @@
 		565414BE1DB28186001E608A = {
 			isa = PBXBuildFile;
 			fileRef = 565414BD1DB28186001E608A;
+		};
+		566C26AC1E530EF40041B70B = {
+			isa = PBXBuildFile;
+			fileRef = 566C26AA1E530EF40041B70B;
+		};
+		566C26B01E530FD80041B70B = {
+			isa = PBXBuildFile;
+			fileRef = 566C26AE1E530FD80041B70B;
 		};
 		56B090631E180FD300EDB891 = {
 			isa = PBXBuildFile;
@@ -242,20 +242,6 @@
 			fileEncoding = 4;
 			lastKnownFileType = sourcecode.cpp.h;
 			path = MD5.hpp;
-			sourceTree = "<group>";
-		};
-		562242771E2FA690000C4921 = {
-			isa = PBXFileReference;
-			fileEncoding = 4;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			path = Path.cpp;
-			sourceTree = "<group>";
-		};
-		562242781E2FA690000C4921 = {
-			isa = PBXFileReference;
-			fileEncoding = 4;
-			lastKnownFileType = sourcecode.cpp.h;
-			path = Path.hpp;
 			sourceTree = "<group>";
 		};
 		562242A01E2FD221000C4921 = {
@@ -391,14 +377,12 @@
 		5634FEB61E260DF6006217AC = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
-			name = Result.cpp;
 			path = Result.cpp;
 			sourceTree = "<group>";
 		};
 		5634FEB71E260DF6006217AC = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.h;
-			name = Result.hpp;
 			path = Result.hpp;
 			sourceTree = "<group>";
 		};
@@ -511,20 +495,6 @@
 			fileEncoding = 4;
 			lastKnownFileType = sourcecode.cpp.h;
 			path = Application.hpp;
-			sourceTree = "<group>";
-		};
-		563C71011DAB3C9000CCD81F = {
-			isa = PBXFileReference;
-			fileEncoding = 4;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			path = InputManager.cpp;
-			sourceTree = "<group>";
-		};
-		563C71021DAB3C9000CCD81F = {
-			isa = PBXFileReference;
-			fileEncoding = 4;
-			lastKnownFileType = sourcecode.cpp.h;
-			path = InputManager.hpp;
 			sourceTree = "<group>";
 		};
 		563C71031DAB3C9000CCD81F = {
@@ -644,6 +614,34 @@
 			lastKnownFileType = archive.ar;
 			name = libcryptopp.a;
 			path = ../../../../../usr/local/Cellar/cryptopp/5.6.4/lib/libcryptopp.a;
+			sourceTree = "<group>";
+		};
+		566C26AA1E530EF40041B70B = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			path = Path.cpp;
+			sourceTree = "<group>";
+		};
+		566C26AB1E530EF40041B70B = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.h;
+			path = Path.hpp;
+			sourceTree = "<group>";
+		};
+		566C26AE1E530FD80041B70B = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			path = InputManager.cpp;
+			sourceTree = "<group>";
+		};
+		566C26AF1E530FD80041B70B = {
+			isa = PBXFileReference;
+			fileEncoding = 4;
+			lastKnownFileType = sourcecode.cpp.h;
+			path = InputManager.hpp;
 			sourceTree = "<group>";
 		};
 		56B090601E180FD200EDB891 = {
@@ -787,6 +785,8 @@
 			children = (
 				5614FD201DB0C2F30072FBC9,
 				5614FD211DB0C2F30072FBC9,
+				566C26AA1E530EF40041B70B,
+				566C26AB1E530EF40041B70B,
 				56305A6B1E0BDE3B00750B13,
 				56305A6C1E0BDE3B00750B13,
 				562F3BA41E0E12100022E9DA,
@@ -841,7 +841,6 @@
 			isa = PBXGroup;
 			children = (
 				56305A641E0BD97E00750B13,
-				563C71001DAB3C9000CCD81F,
 				563C71041DAB3C9000CCD81F,
 				563C71091DAB3C9000CCD81F,
 				563C71361DABD71C00CCD81F,
@@ -868,15 +867,6 @@
 			children = (
 			);
 			path = Resources;
-			sourceTree = "<group>";
-		};
-		563C71001DAB3C9000CCD81F = {
-			isa = PBXGroup;
-			children = (
-				563C71011DAB3C9000CCD81F,
-				563C71021DAB3C9000CCD81F,
-			);
-			path = Input;
 			sourceTree = "<group>";
 		};
 		563C71041DAB3C9000CCD81F = {
@@ -933,14 +923,22 @@
 			path = Score;
 			sourceTree = "<group>";
 		};
+		566C26AD1E530FD80041B70B = {
+			isa = PBXGroup;
+			children = (
+				566C26AE1E530FD80041B70B,
+				566C26AF1E530FD80041B70B,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
 		56EACA001DCC4FED00511911 = {
 			isa = PBXGroup;
 			children = (
+				566C26AD1E530FD80041B70B,
 				562F3BA71E0E32370022E9DA,
 				562F3BA81E0E32370022E9DA,
 				5637B4831DE4806F00589544,
-				562242771E2FA690000C4921,
-				562242781E2FA690000C4921,
 				56EACA041DCC509300511911,
 				56EACA051DCC509300511911,
 			);
@@ -1026,7 +1024,6 @@
 			files = (
 				562F3BA61E0E12100022E9DA,
 				56EACA061DCC509300511911,
-				562242791E2FA690000C4921,
 				563C711A1DAB3C9000CCD81F,
 				563C711D1DAB3C9000CCD81F,
 				562C45DF1DFBAE0300E46B65,
@@ -1035,7 +1032,9 @@
 				56F1CB4B1DEB2D78007BD827,
 				563C71421DABD7E400CCD81F,
 				563C713B1DABD71C00CCD81F,
+				566C26AC1E530EF40041B70B,
 				5636901E1E27146A009F1A35,
+				566C26B01E530FD80041B70B,
 				56EAC9FF1DCC191A00511911,
 				5636901F1E27146C009F1A35,
 				56305A6D1E0BDE3B00750B13,
@@ -1045,7 +1044,6 @@
 				563690221E271471009F1A35,
 				563690211E27146F009F1A35,
 				56305A6A1E0BDCAF00750B13,
-				563C71171DAB3C9000CCD81F,
 				5634FEC01E260E45006217AC,
 				5634FEC31E262BF3006217AC,
 				563C71151DAB3C9000CCD81F,
@@ -1202,6 +1200,7 @@
 					"$(inherited)",
 					/Library/Frameworks/QtCore.framework/Headers,
 					/Library/Frameworks/QtWidgets.framework/Headers,
+					"$(PROJECT_DIR)/CrossChronox",
 				);
 				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
@@ -1238,6 +1237,7 @@
 					"$(inherited)",
 					/Library/Frameworks/QtCore.framework/Headers,
 					/Library/Frameworks/QtWidgets.framework/Headers,
+					"$(PROJECT_DIR)/CrossChronox",
 				);
 				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";

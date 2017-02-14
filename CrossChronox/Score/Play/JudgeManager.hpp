@@ -11,6 +11,7 @@
 
 #include "pch.hpp"
 #include "ScoreData.hpp"
+#include "InputManager.hpp"
 
 //enum{
 //	JUDGE_ALGORITHM_LR2,
@@ -30,9 +31,7 @@ namespace JudgeManager{
 		NoteJudge(Note* note, Judge judge, bool cb_flag): note(note), judge(judge), cb_flag(cb_flag){}
 	};
 	
-	bool GetPushNoteJudge(std::vector<Note*>& lane_timeline, ms_type push_ms, lane_t lane, Mode mode, LnType ln_type, NoteJudge* out);
-	
-	bool GetReleaseNoteJudge(std::vector<Note*>& lane_timeline, ms_type push_ms, lane_t lane, Mode mode, LnType ln_type, NoteJudge* out);
+	bool UpdateLane(const std::vector<Note*>& lane_timeline, InputManager::KeyState key_state, ms_type now_ms, lane_t lane, Mode mode, LnType ln_type, std::vector<NoteJudge>* out);
 }
 
 #endif /* JudgeManager_hpp */

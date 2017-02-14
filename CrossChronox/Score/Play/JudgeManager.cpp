@@ -42,13 +42,13 @@ namespace JudgeManager{
 		else return (lnend_flag ? pms_lnend_judge_table : pms_judge_table);
 	}
 	
-	bool GetPushNoteJudge(const std::vector<Note*>& lane_timeline, ms_type push_ms, lane_t lane, Mode mode, LnType ln_type, std::vector<NoteJudge>* out){
+	bool UpdateLane(const std::vector<Note*>& lane_timeline, InputManager::KeyState key_state, ms_type now_ms, lane_t lane, Mode mode, LnType ln_type, std::vector<NoteJudge>* out){
 		out->clear(); // initialize out
 		if(!lane_timeline.empty()){
 			const ms_type* judge_table = GetJudgeTable(lane_timeline.back()->lane, false, mode);
 			for(Note* note : lane_timeline){
 				if(note->judge == JUDGE_YET) continue;
-				int diff_ms = note->ms - push_ms; // ms_type is not appropriate becase it is unsigned
+				int diff_ms = note->ms - now_ms; // ms_type is not appropriate becase it is unsigned
 				if(judge_table[BAD] < diff_ms) break;
 				if(judge_table[POOR] < -diff_ms){
 					out->emplace_back(note, POOR, false);
@@ -64,9 +64,5 @@ namespace JudgeManager{
 			}
 		}
 		return false;
-	}
-	
-	bool GetReleaseNoteJudge(std::vector<Note*>& lane_timeline, ms_type release_ms, lane_t lane, Mode mode, LnType ln_type, NoteJudge* out){
-		
 	}
 }

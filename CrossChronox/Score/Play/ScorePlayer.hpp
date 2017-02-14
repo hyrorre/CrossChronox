@@ -12,7 +12,7 @@
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
 #include "WavManager.hpp"
-#include "Score/ScoreData/Result.hpp"
+#include "Score/Play/Result.hpp"
 
 class Application;
 
