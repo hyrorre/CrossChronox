@@ -22,9 +22,9 @@ LICENSE : LGPL v3
 1. Download picojson, and copy picojson.h to /usr/local/include/picojson
 1. Open CrossChronox.xcodeproj and build!
 
-# Building on Windows(Visual Studio)
-1. Set up environment variable $(INCLUDE) and $(LIB)  
+# Building on Windows(Visual Studio 2015)
+1. Create folders named "include" and "lib" in the folder named "Dependencies"
 (Library include path and *.lib file path)
-1. Install boost, Crypto++, SFML2, sfeMovie and libiconv to $(INCLUDE) and &(LIB)  
+1. Install boost, Crypto++, SFML2, sfeMovie and libiconv to the folders
 (You can also install boost, Crypto++, SFML2 and libiconv with nuget on Visual Studio)
 1. Open CrossChronox.sln and build!
