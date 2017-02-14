@@ -23,7 +23,7 @@ LICENSE : LGPL v3
 1. Open CrossChronox.xcodeproj and build!
 
 # Building on Windows(Visual Studio 2015)
-1. Create folders named "include" and "lib" in the folder named "Dependencies"
+1. Create folders or symbolic links (named "include" and "lib") in the folder named "Dependencies"
 (Library include path and *.lib file path)
 1. Install boost, Crypto++, SFML2, sfeMovie and libiconv to the folders
 (You can also install boost, Crypto++, SFML2 and libiconv with nuget on Visual Studio)
