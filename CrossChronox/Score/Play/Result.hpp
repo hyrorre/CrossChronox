@@ -10,7 +10,7 @@
 #define Result_hpp
 
 #include "pch.hpp"
-#include "ScoreData.hpp"
+#include "Score/ScoreData/ScoreData.hpp"
 #include "System//TimeManager.hpp"
 
 struct JudgeInfo{

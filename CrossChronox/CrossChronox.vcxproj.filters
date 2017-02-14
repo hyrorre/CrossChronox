@@ -49,9 +49,6 @@
     <ClInclude Include="Score\ScoreData\Mode.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Score\ScoreData\Result.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Score\ScoreData\ScoreData.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -103,6 +100,12 @@
     <ClInclude Include="System\Input\InputManager.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Score\Play\Result.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="score\play\judgemanager.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -130,9 +133,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Score\ScoreData\Mode.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Score\ScoreData\Result.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Score\ScoreData\ScoreData.cpp">
@@ -181,6 +181,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="System\Input\InputManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Score\Play\JudgeManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Score\Play\Result.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

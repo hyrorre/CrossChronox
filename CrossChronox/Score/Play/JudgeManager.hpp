@@ -10,8 +10,8 @@
 #define JudgeManager_hpp
 
 #include "pch.hpp"
-#include "ScoreData.hpp"
-#include "InputManager.hpp"
+#include "Score/ScoreData/ScoreData.hpp"
+#include "System/Input/InputManager.hpp"
 
 //enum{
 //	JUDGE_ALGORITHM_LR2,
