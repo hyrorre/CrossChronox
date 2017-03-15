@@ -83,8 +83,8 @@
             "1pKey5": [2],
             "1pKey6": [5],
             "1pKey7": [21],
-            "1pScrUp": [41],
-            "1pScrDown": [42],
+            "1pScrUp": [38],
+            "1pScrDown": [37],
             
             "2pStart": [46],
             "2pSelect": [47],
@@ -113,7 +113,7 @@
             "1pKey5": ["1pKey5"],
             "1pKey6": ["1pKey6"],
             "1pKey7": ["1pKey7"],
-            "1pScr",: ["1pScrUp", "1pScrDown"],
+            "1pScr": ["1pScrUp", "1pScrDown"],
             
             "2pKey1": ["2pKey1"],
             "2pKey2": ["2pKey2"],
@@ -122,7 +122,7 @@
             "2pKey5": ["2pKey5"],
             "2pKey6": ["2pKey6"],
             "2pKey7": ["2pKey7"],
-            "2pScr": ["2pScrUp", "2pScrDown"],
+            "2pScr": ["2pScrUp", "2pScrDown"]
     	}
     }
 }

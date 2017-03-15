@@ -741,9 +741,7 @@ void BmsLoader::SetBpm(){
 void BmsLoader::SetNoteTime(){
 	auto bpm_event_it = out->bpm_events.cbegin();
 	auto back_it = --out->bpm_events.cend();
-	//BpmEvent* bpm_event = it->get();
-	//BpmEvent* next_bpm_event = nullptr;
-	//if(++it != end) next_bpm_event = it->get();
+	
 	const auto resolution = out->info.resolution;
     for(auto& note : out->notes){
 		while(bpm_event_it != back_it && (*bpm_event_it)->pulse + (*bpm_event_it)->duration < note->pulse){ // bpm_eventを後に処理
@@ -827,7 +825,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 		//start parsing
 		std::string line;
 		while(std::getline(ifs, line)){
-			//if CRLF and LF mixed, remove CR('\r')
+			//if CRLF and LF mixed, we must remove CR('\r')
 			if(!line.empty() && line.back() == '\r'){
 				line.pop_back(); //.erase(line.end() - 1);
 			}

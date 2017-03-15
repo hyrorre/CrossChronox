@@ -67,7 +67,7 @@ struct BpmEvent{
 		return pulse > other.pulse;
 	}
 	virtual ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return ms + MinToMs((pulse - pulse) / (bpm * resolution));
+		return ms + MinToMs((pulse - this->pulse) / (bpm * resolution));
 	}
 };
 
@@ -82,7 +82,7 @@ struct StopEvent : public BpmEvent{
 		return pulse > other.pulse;
 	}
 	ms_type NextEventMs(pulse_t pulse, pulse_t resolution) const{
-		return ms + MinToMs((pulse + duration - pulse) / (bpm * resolution));
+		return ms + MinToMs((pulse + duration - this->pulse) / (bpm * resolution));
 	}
 };
 

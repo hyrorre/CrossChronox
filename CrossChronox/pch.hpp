@@ -116,6 +116,9 @@ struct ptr_less{
 	bool operator()(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) const{
         return *a < *b;
     }
+	bool operator()(const T* a, const T* b) const{
+		return *a < *b;
+	}
 };
 
 //global variables

@@ -26,7 +26,17 @@ class ScorePlayer{
 	std::vector<std::vector<Note*>> lane_timelines = std::vector<std::vector<Note*>>(MAX_LANE);
 	void SetLaneTimelines();
 	
+	void JudgeAuto();
 	void Judge();
+	
+	Side LaneToSide(lane_t lane){
+		return static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= lane);
+	}
+	
+	ms_type play_ms = 0;
+	ms_type last_play_ms = 0;
+	pulse_t now_pulse = 0;
+	pulse_t last_pulse = 0;
 	
 public:
 	enum State{
@@ -40,7 +50,7 @@ public:
 		score.Init();
 	}
 	static ms_type GetPlayMs(){
-		return now_ms - start_ms;
+		return (now_ms > start_ms ? now_ms - start_ms : 0);
 	}
 	const ScoreData& GetScore() const{
 		return score;

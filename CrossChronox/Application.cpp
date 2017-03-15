@@ -74,6 +74,12 @@ int Application::Run(){
 				if(event.key.code == sf::Keyboard::Escape){
 					endflag = true;
 				}
+#ifndef NDEBUG //デバッグ時のみ キーが押された、または離されたとき標準出力に表示
+				std::cout << "key code " << event.key.code << " was pressed." << std::endl;
+			}
+			if(event.type == sf::Event::KeyReleased){
+				std::cout << "key code " << event.key.code << " was released." << std::endl;
+#endif
 			}
 		}
 		
