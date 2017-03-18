@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		561057C11E799FF3002E3BB6 /* ScoreOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */; };
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		562242A11E2FD221000C4921 /* MessageBox_macOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = 562242A01E2FD221000C4921 /* MessageBox_macOS.mm */; };
 		562242A41E2FDAD4000C4921 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562242A31E2FDAD4000C4921 /* AppKit.framework */; };
@@ -71,6 +72,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreOption.cpp; sourceTree = "<group>"; };
+		561057C01E799FF3002E3BB6 /* ScoreOption.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreOption.hpp; sourceTree = "<group>"; };
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
 		562242A01E2FD221000C4921 /* MessageBox_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MessageBox_macOS.mm; sourceTree = "<group>"; };
@@ -192,6 +195,8 @@
 				56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */,
 				562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */,
 				562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */,
+				561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */,
+				561057C01E799FF3002E3BB6 /* ScoreOption.hpp */,
 			);
 			path = Play;
 			sourceTree = "<group>";
@@ -446,6 +451,7 @@
 				56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */,
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
+				561057C11E799FF3002E3BB6 /* ScoreOption.cpp in Sources */,
 				566C26AC1E530EF40041B70B /* Path.cpp in Sources */,
 				5636901E1E27146A009F1A35 /* JudgeRank.cpp in Sources */,
 				566C26B01E530FD80041B70B /* InputManager.cpp in Sources */,

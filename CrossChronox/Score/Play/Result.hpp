@@ -1,4 +1,4 @@
-﻿//
+//
 //  Result.hpp
 //  CrossChronox
 //
@@ -11,7 +11,8 @@
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
-#include "System//TimeManager.hpp"
+#include "System/TimeManager.hpp"
+#include "ScoreOption.hpp"
 
 struct JudgeInfo{
 	ms_type ms = 0;
@@ -20,13 +21,6 @@ struct JudgeInfo{
 	
 	JudgeInfo(){}
 	JudgeInfo(ms_type ms, Judge judge, size_t combo): ms(ms), judge(judge), combo(combo){}
-};
-
-//BEAT_10K and BEAT_14K use both sides
-enum Side{
-	LEFT,
-	RIGHT,
-	MAX_SIDE
 };
 
 class Result{
