@@ -10,20 +10,18 @@
 #define InputManager_hpp
 
 #include "pch.hpp"
-
+#include "System/TimeManager.hpp"
 
 
 namespace InputManager{
 	using frame_t = long;
 	
-	//pressing frames(+), or releasing frames(-)
-	//0 when error occurs
 	struct KeyState{
-		frame_t now;
-		frame_t last;
+		//pressing frames(+), or releasing frames(-)
+		//0 when error occurs
+		frame_t now = -1024;
 		
-		KeyState(): now(-1000), last(-1000){}
-		//KeyState(frame_t now, frame_t last): now(now), last(last){}
+		ms_type last_switched_ms = 0;
 	};
 	
 	//Call these funcs before using

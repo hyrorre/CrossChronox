@@ -1,4 +1,4 @@
-﻿//
+//
 //  InputManager.cpp
 //  CrossChronox
 //
@@ -88,14 +88,22 @@ namespace InputManager{
 			const keyid_t& keyid = key_state.first;
 			auto& state = key_state.second;
 			
-			state.last = state.now;
 			if(0 < state.now){ //last frame, key was pressed
 				if(IsKeyPressed(keyid)) ++state.now;
-				else state.now = -1;
+				else{
+					state.now = -1;
+					//state.last_switched_ms = now_ms;
+				}
 			}
 			else{ //last frame, key was released
-				if(IsKeyPressed(keyid)) state.now = 1;
+				if(IsKeyPressed(keyid)){
+					state.now = 1;
+					//state.last_switched_ms = now_ms;
+				}
 				else --state.now;
+			}
+			if(state.now == 2 || state.now == -2){
+				state.last_switched_ms = lastframe_ms;
 			}
 		}
 	}
@@ -105,8 +113,11 @@ namespace InputManager{
 		KeyState ret;
 		for(auto keyid : now_mode->keymap[key_str]){
 			auto& state = key_states[keyid];
-			ret.now = std::max(ret.now, state.now);
-			ret.last = std::max(ret.last, state.last);
+			//ret.now = std::max(ret.now, state.now);
+			//ret.last = std::max(ret.last, state.last);
+			if(ret.now < state.now){
+				ret = state;
+			}
 		}
 		return ret;
 	}
@@ -116,8 +127,11 @@ namespace InputManager{
 		KeyState ret;
 		for(auto& key_str : now_mode->keyfuncmap[key_func_str]){
 			KeyState state = GetKeyState(key_str);
-			ret.now = std::max(ret.now, state.now);
-			ret.last = std::max(ret.last, state.last);
+			//ret.now = std::max(ret.now, state.now);
+			//ret.last = std::max(ret.last, state.last);
+			if(ret.now < state.now){
+				ret = state;
+			}
 		}
 		return ret;
 	}
