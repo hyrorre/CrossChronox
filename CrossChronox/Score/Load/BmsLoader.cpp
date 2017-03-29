@@ -748,6 +748,13 @@ void BmsLoader::SetNoteTime(){
 			++bpm_event_it;
 		}
 		note->ms = (*bpm_event_it)->NextEventMs(note->pulse, resolution);
+		if(note->len){
+			pulse_t lnend_pulse = note->pulse + note->len;
+			for(auto tmp_bpm_event_it = bpm_event_it; (*tmp_bpm_event_it)->pulse < lnend_pulse; ++tmp_bpm_event_it){
+				note->lnend_ms = (*--tmp_bpm_event_it)->NextEventMs(lnend_pulse, resolution);
+			}
+			
+		}
 	}
 	
 	out->info.end_ms = out->bpm_events.back()->NextEventMs(out->info.end_pulse, out->info.resolution);

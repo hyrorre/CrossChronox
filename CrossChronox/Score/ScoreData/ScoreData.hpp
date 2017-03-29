@@ -32,6 +32,7 @@ inline bool IsComboContinuous(Judge judge){
 // sound note
 using lane_t = int;
 enum{ MAX_LANE = 20 };
+
 struct Note{
 	lane_t lane, lane_origin;    // CrossChronox supports only beat and popn(that have integer lane)
 	pulse_t pulse;      // pulse number
@@ -42,6 +43,7 @@ struct Note{
 	int empty_poor_count = 0;
 	
 	ms_type ms;     // time(ms) that the note should be handled.
+	ms_type lnend_ms = 0;
     
 	Note(){}
 	//Note(int x, pulse_t y, pulse_t l): x(x), y(y), l(l){}
