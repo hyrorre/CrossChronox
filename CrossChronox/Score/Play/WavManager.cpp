@@ -22,3 +22,13 @@ void WavManager::PlayWav(const Note* note){
 		}
 	}
 }
+
+void WavManager::StopWav(const Note* note){
+	// playersの線形探索により、引数とplayerが持つnote_ptrが一致するものを探し、そのWavをStop
+	for(auto& player : players){
+		if(player.GetNotePtr() == note){
+			player.Stop();
+			return;
+		}
+	}
+}

@@ -28,6 +28,10 @@ public:
 		sound.stop();
 	}
 	
+	const Note* GetNotePtr() const{
+		return note_ptr;
+	}
+	
 	WavPlayer(){}
 	WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
 		sound.play();

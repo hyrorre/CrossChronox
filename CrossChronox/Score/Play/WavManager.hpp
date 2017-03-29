@@ -21,6 +21,7 @@ class WavManager{
 public:
 	void Update();
 	void PlayWav(const Note* note);
+	void StopWav(const Note* note);
 	bool Empty() const{
 		for(auto& player : players){
 			if(player.GetStatus() != sf::Sound::Status::Stopped){
