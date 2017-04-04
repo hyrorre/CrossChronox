@@ -26,9 +26,11 @@ namespace JudgeManager{
 		Note* note = nullptr;
 		Judge judge = JUDGE_YET;
 		bool cb_flag = false;
+		bool stop_wav_flag = false;
 		
 		NoteJudge(){}
 		NoteJudge(Note* note, Judge judge, bool cb_flag): note(note), judge(judge), cb_flag(cb_flag){}
+		NoteJudge(Note* note, Judge judge, bool cb_flag, bool stop_wav_flag): note(note), judge(judge), cb_flag(cb_flag), stop_wav_flag(stop_wav_flag){}
 	};
 	
 	//void SetJudgeAlgorithm(int value);

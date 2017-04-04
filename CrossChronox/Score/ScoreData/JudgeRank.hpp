@@ -13,6 +13,9 @@
 #include "Mode.hpp"
 
 enum Judge{
+	LN_PUSHING_PGREAT = -10,
+	LN_PUSHING_GREAT = -9,
+	LN_PUSHING_GOOD = -8,
 	JUDGE_YET = -1,
 	PGREAT = 0,
 	GREAT = 1,

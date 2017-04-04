@@ -740,7 +740,8 @@ void BmsLoader::SetBpm(){
 
 void BmsLoader::SetNoteTime(){
 	auto bpm_event_it = out->bpm_events.cbegin();
-	auto back_it = --out->bpm_events.cend();
+	auto end_it = out->bpm_events.cend();
+	auto back_it = end_it - 1;
 	
 	const auto resolution = out->info.resolution;
     for(auto& note : out->notes){
@@ -750,10 +751,9 @@ void BmsLoader::SetNoteTime(){
 		note->ms = (*bpm_event_it)->NextEventMs(note->pulse, resolution);
 		if(note->len){
 			pulse_t lnend_pulse = note->pulse + note->len;
-			for(auto tmp_bpm_event_it = bpm_event_it; (*tmp_bpm_event_it)->pulse < lnend_pulse; ++tmp_bpm_event_it){
-				note->lnend_ms = (*--tmp_bpm_event_it)->NextEventMs(lnend_pulse, resolution);
-			}
-			
+			auto tmp_bpm_event_it = bpm_event_it;
+			while(++tmp_bpm_event_it != end_it && (*tmp_bpm_event_it)->pulse < lnend_pulse);
+			note->lnend_ms = (*--tmp_bpm_event_it)->NextEventMs(lnend_pulse, resolution);
 		}
 	}
 	

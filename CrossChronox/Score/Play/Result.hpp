@@ -70,19 +70,20 @@ public:
 		now_combo = value;
 	}
 	void Push(Side side, ms_type ms, Judge judge, bool combo_break){
-		assert(judge != JUDGE_YET);
-		size_t combo = GetNowCombo();
-		if(IsComboContinuous(judge)){
-			SetNowCombo(++combo);
-			SetMaxCombo(std::max(GetNowCombo(), GetMaxCombo()));
-			SetExScore(GetExScore() + JudgeToExScore(judge));
+		if(PGREAT <= judge){
+			size_t combo = GetNowCombo();
+			if(IsComboContinuous(judge)){
+				SetNowCombo(++combo);
+				SetMaxCombo(std::max(GetNowCombo(), GetMaxCombo()));
+				SetExScore(GetExScore() + JudgeToExScore(judge));
+			}
+			else if(combo_break){
+				SetNowCombo(0);
+				SetComboBreak(GetComboBreak() + 1);
+			}
+			SetJudgeCount(judge, GetJudgeCount(judge) + 1);
+			timelines[side].emplace_back(ms, judge, combo);
 		}
-		else if(combo_break){
-			SetNowCombo(0);
-			SetComboBreak(GetComboBreak() + 1);
-		}
-		SetJudgeCount(judge, GetJudgeCount(judge) + 1);
-		timelines[side].emplace_back(ms, judge, combo);
 	}
 	JudgeInfo GetLastJudgeInfo(Side side) const{
 		auto& tl = timelines[side];

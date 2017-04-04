@@ -53,11 +53,10 @@ namespace JudgeManager{
 		Note* last_note = nullptr;
 		out->clear(); // initialize out
 		if(!lane_timeline.empty()){
-			const int* judge_table = GetJudgeTable(lane_timeline.back()->lane, false, mode);
+			const int* judge_table = GetJudgeTable(lane_timeline.front()->lane, false, mode);
 			for(Note* note : lane_timeline){
-				// if note is already judged judge next note
+				// if note is already judged, judge next note
 				if(note->judge == JUDGE_YET){
-					
 					// ms_type is not appropriate becase it is unsigned
 					auto diff_ms = static_cast<int>(note->ms - play_ms);
 					
@@ -74,7 +73,8 @@ namespace JudgeManager{
 							// GOOD範囲内にノーツがあったら判定処理
 							for(Judge judge = PGREAT; judge <= GOOD; judge = Judge(judge + 1)){
 								if(abs_diff_ms <= judge_table[judge]){
-									out->emplace_back(note, judge, false);
+									// LNのときjudgeをLN_PUSHINGにする
+									out->emplace_back(note, static_cast<Judge>(judge - (note->len ? 10 : 0)), false);
 									return note;
 								}
 							}
@@ -100,6 +100,29 @@ namespace JudgeManager{
 						
 						// キーが押された瞬間でないとき
 						else return nullptr;
+					}
+				}
+				// LNが押されている時
+				else if(note->judge < JUDGE_YET){
+					// キーが押されたままのとき
+					bool ln_finish_pushing_flag = false;
+					if(0 < key_state.now){
+						// lnendを過ぎたら
+						if(note->lnend_ms < play_ms) ln_finish_pushing_flag = true;
+					}
+					// キーが離された時
+					else{
+						// lnendに近いところで離したらBADにはならない
+						if(note->lnend_ms < play_ms + GetJudgeTable(note->lane, true, mode)[GOOD]) ln_finish_pushing_flag = true;
+						// 離すのが早すぎるとBAD
+						else{
+							out->emplace_back(note, BAD, true, true);
+						}
+						
+					}
+					if(ln_finish_pushing_flag){
+						auto judge = static_cast<Judge>(note->judge + 10);
+						out->emplace_back(note, judge, false);
 					}
 				}
 				

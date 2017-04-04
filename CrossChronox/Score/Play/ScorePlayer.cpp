@@ -102,7 +102,7 @@ void ScorePlayer::Judge(){
 	auto end = bgm_timeline.end();
 	auto note_it = std::upper_bound(begin, end, tmp_note.get(), ptr_less<Note>());
 	for(; note_it != end; ++note_it){
-		Note&note = *(*note_it);
+		Note& note = *(*note_it);
 		if(now_pulse < note.pulse) break;
 		wav_manager.PlayWav(&note);
 	}
@@ -118,6 +118,7 @@ void ScorePlayer::Judge(){
 			Side side = static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= lane);
 			result.Push(side, play_ms, notejudge.judge, notejudge.cb_flag);
 			if(Note* note = notejudge.note){
+				if(notejudge.stop_wav_flag) wav_manager.StopWav(note);
 				if(notejudge.judge == POOR && notejudge.cb_flag == false){
 					++note->empty_poor_count;
 				}
