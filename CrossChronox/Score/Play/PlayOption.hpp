@@ -1,13 +1,13 @@
 //
-//  ScoreOption.hpp
+//  PlayOption.hpp
 //  CrossChronox
 //
-//  Created by HY_RORRE on 2017/03/16.
+//  Created by HY_RORRE on 2017/04/10.
 //  Copyright © 2017年 hyrorre. All rights reserved.
 //
 
-#ifndef ScoreOption_hpp
-#define ScoreOption_hpp
+#ifndef PlayOption_hpp
+#define PlayOption_hpp
 
 #include "pch.hpp"
 
@@ -66,7 +66,7 @@ enum Side{
 };
 
 enum{
-	SUD_OFF,
+	SUD_HID_OFF,
 	SUD,
 	HID,
 	SUD_HID,
@@ -74,14 +74,47 @@ enum{
 	LIFT_SUD
 };
 
-class Option{
+enum{
+	NHS, // Normal Hi-Speed
+	FHS, // Floating Hi-Speed
+	MAXBPM_FIX,
+	MINBPM_FIX,
+	BASEBPM_FIX,
+};
+
+class HsOption{
+	int hs_type = NHS;
+	int sud_hid_pos = 10; // 白数字
+	int note_display_time = 350; // 緑数字
+	double hs = 1.0;
+	
+public:
+	int GetHsType() const;
+	int GetSudHidPos() const;
+	int GetNoteDisplayTime() const;
+	double GetHs() const;
+	
+	void SetHsType(int value);
+	void SetSudHidPos(int value);
+	void SetNoteDisplayTime(int value);
+	void SetHs(double value);
+	
+	void IncrHs(double bpm);
+	void DecrHs(double bpm);
+	double GetHsBpm(double bpm) const;
+	void SetHsBpm(double bpm, double value);
+};
+
+class PlayOption{
 	std::array<int, MAX_SIDE> placements = {{PLACE_NORMAL, PLACE_NORMAL}};
 	int gauge_type = GAUGE_NORMAL;
 	int assist_type = ASSIST_OFF;
-	int display_area = SUD_OFF;
+	int display_area = SUD_HID_OFF;
 	bool flip = 0;
 	
 public:
+	HsOption hs_option;
+	
 	int GetPlacement(Side side) const{
 		return placements[side];
 	}
@@ -132,4 +165,4 @@ public:
 	}
 };
 
-#endif /* ScoreOption_hpp */
+#endif /* PlayOption_hpp */

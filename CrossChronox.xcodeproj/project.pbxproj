@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		561057C11E799FF3002E3BB6 /* ScoreOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */; };
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		562242A11E2FD221000C4921 /* MessageBox_macOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = 562242A01E2FD221000C4921 /* MessageBox_macOS.mm */; };
 		562242A41E2FDAD4000C4921 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562242A31E2FDAD4000C4921 /* AppKit.framework */; };
@@ -41,6 +40,7 @@
 		563DD4711E194698002B98A6 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD46B1E194698002B98A6 /* libboost_system.a */; };
 		566C26AC1E530EF40041B70B /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AA1E530EF40041B70B /* Path.cpp */; };
 		566C26B01E530FD80041B70B /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AE1E530FD80041B70B /* InputManager.cpp */; };
+		56A1D4131E9B3F5A0092BBFD /* PlayOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */; };
 		56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B090601E180FD200EDB891 /* libiconv.2.dylib */; };
 		56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B708541E724CEC00BDF44E /* libcryptopp.a */; };
 		56D4A2681E05416800198EF6 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56D4A2661E05416800198EF6 /* Scene.cpp */; };
@@ -72,8 +72,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScoreOption.cpp; sourceTree = "<group>"; };
-		561057C01E799FF3002E3BB6 /* ScoreOption.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScoreOption.hpp; sourceTree = "<group>"; };
 		5614FD201DB0C2F30072FBC9 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
 		562242A01E2FD221000C4921 /* MessageBox_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MessageBox_macOS.mm; sourceTree = "<group>"; };
@@ -134,6 +132,8 @@
 		566C26AB1E530EF40041B70B /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
 		566C26AE1E530FD80041B70B /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
 		566C26AF1E530FD80041B70B /* InputManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputManager.hpp; sourceTree = "<group>"; };
+		56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayOption.cpp; sourceTree = "<group>"; };
+		56A1D4121E9B3F5A0092BBFD /* PlayOption.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayOption.hpp; sourceTree = "<group>"; };
 		56B090601E180FD200EDB891 /* libiconv.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.dylib; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/lib/libiconv.2.dylib; sourceTree = "<absolute>"; };
 		56B708541E724CEC00BDF44E /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libcryptopp.a; sourceTree = "<absolute>"; };
 		56D4A2661E05416800198EF6 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
@@ -195,8 +195,8 @@
 				56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */,
 				562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */,
 				562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */,
-				561057BF1E799FF3002E3BB6 /* ScoreOption.cpp */,
-				561057C01E799FF3002E3BB6 /* ScoreOption.hpp */,
+				56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */,
+				56A1D4121E9B3F5A0092BBFD /* PlayOption.hpp */,
 			);
 			path = Play;
 			sourceTree = "<group>";
@@ -451,7 +451,6 @@
 				56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */,
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
-				561057C11E799FF3002E3BB6 /* ScoreOption.cpp in Sources */,
 				566C26AC1E530EF40041B70B /* Path.cpp in Sources */,
 				5636901E1E27146A009F1A35 /* JudgeRank.cpp in Sources */,
 				566C26B01E530FD80041B70B /* InputManager.cpp in Sources */,
@@ -469,6 +468,7 @@
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,
 				563C71181DAB3C9000CCD81F /* main.cpp in Sources */,
 				5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */,
+				56A1D4131E9B3F5A0092BBFD /* PlayOption.cpp in Sources */,
 				56305A631E0BD87100750B13 /* SelectMusic.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
