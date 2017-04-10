@@ -203,9 +203,7 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const{
 		pulse_t last_pulse = player.GetScore().MsToPulse(last_play_ms);
 		
 		SS(play_ms);
-		SS(last_play_ms);
 		SS(now_pulse);
-		SS(last_pulse);
 		
 		const ScoreData& score = player.GetScore();
 		ss << score.info.GetInfoStr();

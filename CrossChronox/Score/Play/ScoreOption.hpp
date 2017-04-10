@@ -58,7 +58,7 @@ enum{
 	AUTO_PLAY
 };
 
-//BEAT_10K and BEAT_14K use both sides
+// BEAT_10K and BEAT_14K use both sides
 enum Side{
 	LEFT,
 	RIGHT,
@@ -122,7 +122,7 @@ public:
 		flip = value;
 	}
 	
-	bool canSaveScore(){
+	bool CanSaveScore(){
 		int result = 0;
 		for(int i = 0; i < MAX_SIDE; ++i){
 			result += GetPlacement(static_cast<Side>(i));
