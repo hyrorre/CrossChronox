@@ -85,17 +85,20 @@ enum{
 class HsOption{
 	int hs_type = NHS;
 	int sud_hid_pos = 10; // 白数字
+	int lift_pos = 10;
 	int note_display_time = 350; // 緑数字
 	double hs = 1.0;
 	
 public:
 	int GetHsType() const;
+	int GetLiftPos() const;
 	int GetSudHidPos() const;
 	int GetNoteDisplayTime() const;
 	double GetHs() const;
 	
 	void SetHsType(int value);
 	void SetSudHidPos(int value);
+	void SetLiftPos(int value);
 	void SetNoteDisplayTime(int value);
 	void SetHs(double value);
 	
