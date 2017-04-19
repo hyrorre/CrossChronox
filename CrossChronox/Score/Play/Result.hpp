@@ -12,7 +12,7 @@
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
 #include "System/TimeManager.hpp"
-#include "ScoreOption.hpp"
+#include "PlayOption.hpp"
 
 struct JudgeInfo{
 	ms_type ms = 0;

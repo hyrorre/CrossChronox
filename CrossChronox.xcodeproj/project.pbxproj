@@ -53,6 +53,7 @@
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
 		56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* WavManager.cpp */; };
+		56FD88551EA1E47100F5AF91 /* Setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56FD88531EA1E47100F5AF91 /* Setting.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -147,6 +148,8 @@
 		56EACA051DCC509300511911 /* TimeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TimeManager.hpp; sourceTree = "<group>"; };
 		56F1CB491DEB2D78007BD827 /* WavManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavManager.cpp; sourceTree = "<group>"; };
 		56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavManager.hpp; sourceTree = "<group>"; };
+		56FD88531EA1E47100F5AF91 /* Setting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Setting.cpp; sourceTree = "<group>"; };
+		56FD88541EA1E47100F5AF91 /* Setting.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Setting.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -362,6 +365,8 @@
 				5637B4831DE4806F00589544 /* Exception.hpp */,
 				56EACA041DCC509300511911 /* TimeManager.cpp */,
 				56EACA051DCC509300511911 /* TimeManager.hpp */,
+				56FD88531EA1E47100F5AF91 /* Setting.cpp */,
+				56FD88541EA1E47100F5AF91 /* Setting.hpp */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -463,6 +468,7 @@
 				563690221E271471009F1A35 /* WavBuffer.cpp in Sources */,
 				563690211E27146F009F1A35 /* ScoreInfo.cpp in Sources */,
 				56305A6A1E0BDCAF00750B13 /* ScoreInfoBase.cpp in Sources */,
+				56FD88551EA1E47100F5AF91 /* Setting.cpp in Sources */,
 				5634FEC01E260E45006217AC /* Total.cpp in Sources */,
 				5634FEC31E262BF3006217AC /* Mode.cpp in Sources */,
 				563C71151DAB3C9000CCD81F /* Application.cpp in Sources */,

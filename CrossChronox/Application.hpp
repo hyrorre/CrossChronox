@@ -12,7 +12,6 @@
 #include "pch.hpp"
 
 class Application{
-	static const unsigned int w = 800, h = 600, bpp = 32;
 	//QApplication qapp;
 	
 	sf::RenderWindow window;

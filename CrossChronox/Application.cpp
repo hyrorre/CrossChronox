@@ -15,6 +15,7 @@
 #include "System/Input/InputManager.hpp"
 #include "System/DefaultFont.hpp"
 #include "Platform/MessageBox.hpp"
+#include "System/Setting.hpp"
 
 fs::path Application::scorefile_path;
 
@@ -35,11 +36,24 @@ void Application::Init(){
 	setlocale(LC_ALL, "");
 	//std::locale::global(std::locale(""));
 	
+	setting.TryLoadFile((GetAppdataPath() / "Config/Setting.xml").string());
+	
+	int w = setting.GetResolutionX();
+	int h = setting.GetResolutionY();
+	int bpp = 32;
+	
+	auto style = sf::Style::Close | sf::Style::Titlebar;
+	if(setting.GetWindowType() == FULLSCREEN) style = sf::Style::Fullscreen;
+	
 	//set up window
-	window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", sf::Style::Titlebar | sf::Style::Close);
-	//window.setSize(sf::Vector2u(w * 2, h * 2));
+	window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", style);
+	window.setSize(sf::Vector2u(setting.GetWindowSizeX(), setting.GetWindowSizeY()));
 	window.setKeyRepeatEnabled(false);
-	window.setVerticalSyncEnabled(true);
+	window.setVerticalSyncEnabled(setting.GetVsync());
+	if(unsigned limit = setting.GetMaxFps()){ // max_fps == 0 のとき無制限
+		window.setFramerateLimit(limit);
+	}
+	window.setPosition(setting.GetWindowPos());
 	
 	//set up rendertexture
 	if(!renderer.create(w, h, true)) throw InitError("Could not create RenderTexture.");
@@ -70,11 +84,8 @@ int Application::Run(){
 			if(event.type == sf::Event::Closed){
 				endflag = true;
 			}
-			if(event.type == sf::Event::KeyPressed){
-				if(event.key.code == sf::Keyboard::Escape){
-					endflag = true;
-				}
 #ifndef NDEBUG //デバッグ時のみ キーが押された、または離されたとき標準出力に表示
+			if(event.type == sf::Event::KeyPressed){
 				std::cout << "key code " << event.key.code << " was pressed." << std::endl;
 			}
 			if(event.type == sf::Event::KeyReleased){
@@ -117,7 +128,9 @@ int Application::Run(){
 }
 
 void Application::Quit(){
-	
+	// TODO: なぜかgetPosition()が絶対に(0, 0)を返すため保留
+	//setting.SetWindowPos(window.getPosition());
+	setting.SaveFile((GetAppdataPath() / "Config/Setting.xml").string());
 }
 
 Application::~Application(){

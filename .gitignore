@@ -5,6 +5,9 @@ Song.xml
 # backup files
 *.bak
 
+# setting files
+Setting.xml
+
 # Dependencies
 lib
 include
