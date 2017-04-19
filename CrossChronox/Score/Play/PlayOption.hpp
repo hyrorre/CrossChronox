@@ -161,7 +161,7 @@ public:
 	bool CanSaveScore(){
 		int result = 0;
 		for(int i = 0; i < MAX_SIDE; ++i){
-			result += GetPlacement(static_cast<Side>(i));
+			result += (GetPlacement(static_cast<Side>(i)) == H_RAN);
 		}
 		result += (GetAssistType() == AUTO_PLAY);
 		return result;
