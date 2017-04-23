@@ -85,9 +85,13 @@ enum{
 class HsOption{
 	int hs_type = NHS;
 	int sud_hid_pos = 10; // 白数字
-	int lift_pos = 10;
+	int lift_pos = 10; // リフトの白数字
 	int note_display_time = 350; // 緑数字
 	double hs = 1.0;
+	
+	double hsbpm_step = 10;
+	int sud_hid_step = 10;
+	int lift_step = 10;
 	
 public:
 	int GetHsType() const;
@@ -106,6 +110,16 @@ public:
 	void DecrHs(double bpm);
 	double GetHsBpm(double bpm) const;
 	void SetHsBpm(double bpm, double value);
+	
+	void SetHsBpmStep(double value){
+		hsbpm_step = value;
+	}
+	void SetSudHidStep(int value){
+		sud_hid_step = value;
+	}
+	void SetLiftStep(int value){
+		lift_step = value;
+	}
 };
 
 class PlayOption{

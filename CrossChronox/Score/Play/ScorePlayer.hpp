@@ -13,13 +13,17 @@
 #include "Score/ScoreData/ScoreData.hpp"
 #include "WavManager.hpp"
 #include "Score/Play/Result.hpp"
+#include "Score/Play/PlayOption.hpp"
+#include "Score/Play/Account.hpp"
 
 class Application;
 
 class ScorePlayer{
 	WavManager wav_manager;
 	ScoreData score;
+	PlayOption option;
 	Result result;
+	Account* account = nullptr;
 	
 	static ms_type start_ms;
 	
@@ -31,6 +35,13 @@ class ScorePlayer{
 	
 	Side LaneToSide(lane_t lane){
 		return static_cast<Side>(score.info.mode != Mode::POPN_9K && 9 <= lane);
+	}
+	
+	bool SetAccount(Account& account){
+		this->account = &account;
+		option.hs_option.SetHsBpmStep(account.info.GetHsBpmStep());
+		option.hs_option.SetSudHidStep(account.info.GetSudHidStep());
+		option.hs_option.SetLiftStep(account.info.GetLiftStep());
 	}
 	
 	ms_type play_ms = 0;

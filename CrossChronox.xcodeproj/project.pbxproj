@@ -40,6 +40,7 @@
 		563DD4711E194698002B98A6 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD46B1E194698002B98A6 /* libboost_system.a */; };
 		566C26AC1E530EF40041B70B /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AA1E530EF40041B70B /* Path.cpp */; };
 		566C26B01E530FD80041B70B /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AE1E530FD80041B70B /* InputManager.cpp */; };
+		569BC0201EA75A0D006E3CF3 /* Account.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 569BC01E1EA75A0D006E3CF3 /* Account.cpp */; };
 		56A1D4131E9B3F5A0092BBFD /* PlayOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */; };
 		56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B090601E180FD200EDB891 /* libiconv.2.dylib */; };
 		56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B708541E724CEC00BDF44E /* libcryptopp.a */; };
@@ -133,6 +134,8 @@
 		566C26AB1E530EF40041B70B /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
 		566C26AE1E530FD80041B70B /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
 		566C26AF1E530FD80041B70B /* InputManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputManager.hpp; sourceTree = "<group>"; };
+		569BC01E1EA75A0D006E3CF3 /* Account.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Account.cpp; sourceTree = "<group>"; };
+		569BC01F1EA75A0D006E3CF3 /* Account.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Account.hpp; sourceTree = "<group>"; };
 		56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayOption.cpp; sourceTree = "<group>"; };
 		56A1D4121E9B3F5A0092BBFD /* PlayOption.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayOption.hpp; sourceTree = "<group>"; };
 		56B090601E180FD200EDB891 /* libiconv.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.dylib; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/lib/libiconv.2.dylib; sourceTree = "<absolute>"; };
@@ -200,6 +203,8 @@
 				562C45DE1DFBAE0300E46B65 /* WavPlayer.hpp */,
 				56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */,
 				56A1D4121E9B3F5A0092BBFD /* PlayOption.hpp */,
+				569BC01E1EA75A0D006E3CF3 /* Account.cpp */,
+				569BC01F1EA75A0D006E3CF3 /* Account.hpp */,
 			);
 			path = Play;
 			sourceTree = "<group>";
@@ -455,6 +460,7 @@
 				562242A91E30FB7B000C4921 /* JudgeManager.cpp in Sources */,
 				56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */,
 				563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */,
+				569BC0201EA75A0D006E3CF3 /* Account.cpp in Sources */,
 				563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */,
 				566C26AC1E530EF40041B70B /* Path.cpp in Sources */,
 				5636901E1E27146A009F1A35 /* JudgeRank.cpp in Sources */,
