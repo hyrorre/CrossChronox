@@ -10,9 +10,11 @@
 #define Account_hpp
 
 #include "pch.hpp"
+#include "Score/Play/PlayOption.hpp"
 
 class AccountInfo{
 	std::string name; // DJ NAME, CARD NAME
+	PlayOption option;
 	
 	double hsbpm_step = 10;
 	int sud_hid_step = 10;
@@ -21,6 +23,9 @@ class AccountInfo{
 public:
 	const std::string& GetName() const{
 		return name;
+	}
+	const PlayOption& GetPlayOption() const{
+		return option;
 	}
 	double GetHsBpmStep() const{
 		return hsbpm_step;
@@ -41,6 +46,8 @@ struct Account{
 	AccountInfo info;
 	ResultDatabase result_database;
 };
+
+extern Account guest_account;
 
 extern std::vector<Account> accounts;
 
