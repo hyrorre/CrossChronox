@@ -12,15 +12,19 @@
 #include "pch.hpp"
 
 enum{
-	PLACE_NORMAL,
-	RANDOM,
-	S_RAN,
-	H_RAN,
-	R_RAN,
-	MIRROR,
+	PLACE_NORMAL = 0,
+	RANDOM = 1,
+	S_RAN = 2,
+	H_RAN = 3,
+	R_RAN = 4,
+	MIRROR = 5,
 	
-	SYNC_RAN,
-	SYM_RAN
+	MAX_PLACE_NOBATTLE = 6,
+	
+	SYNC_RAN = 6,
+	SYM_RAN = 7,
+	
+	MAX_PLACE_BATTLE = 8
 };
 
 enum{
@@ -29,7 +33,9 @@ enum{
 	EASY,
 	HARD,
 	EX_HARD,
-	HARARD
+	HAZARD,
+	
+	MAX_GAUGE
 };
 
 enum{
@@ -55,7 +61,9 @@ enum{
 	LEGACY_5KEYS,
 	FULL_ASSIST,
 	
-	AUTO_PLAY
+	AUTO_PLAY,
+	
+	MAX_ASSIST
 };
 
 // BEAT_10K and BEAT_14K use both sides
@@ -71,7 +79,9 @@ enum{
 	HID,
 	SUD_HID,
 	LIFT,
-	LIFT_SUD
+	LIFT_SUD,
+	
+	MAX_DISPLAY_AREA
 };
 
 enum{
@@ -122,7 +132,14 @@ public:
 	}
 };
 
+enum {
+	SP,
+	DP,
+	BATTLE
+};
+
 class PlayOption{
+	int style = SP;
 	std::array<int, MAX_SIDE> placements = {{PLACE_NORMAL, PLACE_NORMAL}};
 	int gauge_type = GAUGE_NORMAL;
 	int assist_type = ASSIST_OFF;
@@ -132,12 +149,26 @@ class PlayOption{
 public:
 	HsOption hs_option;
 	
+	int GetStyle() const{
+		return style;
+	}
+	
+	void SetStyle(int value){
+		style = value;
+	}
+	
 	int GetPlacement(Side side) const{
 		return placements[side];
 	}
 	
 	void SetPlacement(Side side, int value){
 		placements[side] = value;
+	}
+	
+	void AddPlacement(Side side, int value){
+		int max_placement = (GetStyle() == BATTLE ? MAX_PLACE_BATTLE : MAX_PLACE_NOBATTLE);
+		int new_value = (GetPlacement(side) + value + max_placement) % max_placement;
+		SetPlacement(side, new_value);
 	}
 	
 	int GetGaugeType() const{
@@ -148,6 +179,10 @@ public:
 		gauge_type = value;
 	}
 	
+	void AddGaugeType(int value){
+		SetGaugeType((GetGaugeType() + value + MAX_GAUGE) % MAX_GAUGE);
+	}
+	
 	int GetAssistType() const{
 		return assist_type;
 	}
@@ -156,12 +191,20 @@ public:
 		assist_type = value;
 	}
 	
+	void AddAssistType(int value){
+		SetAssistType((GetAssistType() + value + MAX_ASSIST) % MAX_ASSIST);
+	}
+	
 	int GetDisplayArea() const{
 		return display_area;
 	}
 	
 	void SetDisplayArea(int value){
 		display_area = value;
+	}
+	
+	void AddDisplayArea(int value){
+		SetDisplayArea((GetDisplayArea() + value + MAX_DISPLAY_AREA) % MAX_DISPLAY_AREA);
 	}
 	
 	bool GetFlip() const{
