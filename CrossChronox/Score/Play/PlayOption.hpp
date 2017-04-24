@@ -104,20 +104,45 @@ class HsOption{
 	int lift_step = 10;
 	
 public:
-	int GetHsType() const;
-	int GetLiftPos() const;
-	int GetSudHidPos() const;
-	int GetNoteDisplayTime() const;
-	double GetHs() const;
+	int GetHsType() const{
+		return hs_type;
+	}
+	int GetLiftPos() const{
+		return lift_pos;
+	}
+	int GetSudHidPos() const{
+		return sud_hid_pos;
+	}
+	int GetNoteDisplayTime() const{
+		return note_display_time;
+	}
+	double GetHs() const{
+		return hs;
+	}
 	
-	void SetHsType(int value);
-	void SetSudHidPos(int value);
-	void SetLiftPos(int value);
-	void SetNoteDisplayTime(int value);
-	void SetHs(double value);
+	void SetHsType(int value){
+		hs_type = value;
+	}
+	void SetSudHidPos(int value){
+		sud_hid_pos = value;
+	}
+	void SetLiftPos(int value){
+		lift_pos = value;
+	}
+	void SetNoteDisplayTime(int value){
+		note_display_time = value;
+	}
+	void SetHs(double value){
+		hs = value;
+	}
 	
-	void IncrHs(double bpm);
-	void DecrHs(double bpm);
+	void AddHs(double bpm, int num){
+		// TODO: hs_typeに応じてSwitch
+		// if NHS
+		hs += 0.25 * num;
+		boost::algorithm::clamp(hs, 1.0, 4.0);
+	}
+	
 	double GetHsBpm(double bpm) const;
 	void SetHsBpm(double bpm, double value);
 	
