@@ -14,9 +14,9 @@
 enum{
 	PLACE_NORMAL = 0,
 	RANDOM = 1,
-	S_RAN = 2,
-	H_RAN = 3,
-	R_RAN = 4,
+	R_RAN = 2,
+	S_RAN = 3,
+	H_RAN = 4,
 	MIRROR = 5,
 	
 	MAX_PLACE_NOBATTLE = 6,
@@ -25,6 +25,17 @@ enum{
 	SYM_RAN = 7,
 	
 	MAX_PLACE_BATTLE = 8
+};
+
+const char* placement_str[] = {
+	"NORMAL",
+	"RANDOM",
+	"R-RANDOM",
+	"S-RANDOM",
+	"H-RANDOM",
+	"MIRROR",
+	"SYNCHRONIZE RANDOM",
+	"SYMMETRY RANDOM"
 };
 
 enum{
@@ -36,6 +47,15 @@ enum{
 	HAZARD,
 	
 	MAX_GAUGE
+};
+
+const char* gauge_type_str[] = {
+	"NORMAL",
+	"ASSISTED EASY",
+	"EASY",
+	"HARD",
+	"EX HARD",
+	"HAZARD"
 };
 
 enum{
@@ -51,6 +71,19 @@ enum{
 	LAMP_MFC, // MAX FULL COMBO
 };
 
+const char* lamp_str[] = {
+	"NOPLAY",
+	"FAILED",
+	"ASSIST CLEAR",
+	"EASY CLEAR",
+	"CLEAR",
+	"HARD CLEAR",
+	"EX HARD CLEAR",
+	"FULLCOMBO",
+	"PERFECT FULLCOMBO",
+	"MAX FULLCOMBO"
+};
+
 enum{
 	ASSIST_OFF,
 	A_SCRATCH,
@@ -64,6 +97,18 @@ enum{
 	AUTO_PLAY,
 	
 	MAX_ASSIST
+};
+
+const char* assist_str[] = {
+	"OFF",
+	"AUTO SCRATCH",
+	"5KEYS",
+	"LEGACY NOTE",
+	"A-SCR & 5KEYS",
+	"A-SCR & LEGACY",
+	"5KEYS & LEGACY",
+	"FULL ASSIST",
+	"AUTOPLAY"
 };
 
 // BEAT_10K and BEAT_14K use both sides
@@ -248,6 +293,8 @@ public:
 		result += (GetAssistType() == AUTO_PLAY);
 		return result;
 	}
+	
+	std::string GetInfoStr() const;
 };
 
 #endif /* PlayOption_hpp */

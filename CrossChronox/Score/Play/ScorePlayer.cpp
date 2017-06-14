@@ -12,6 +12,8 @@
 #include "Application.hpp"
 #include "JudgeManager.hpp"
 
+std::array<ScorePlayer, MAX_PLAYER> players;
+
 //static variables
 ms_type ScorePlayer::start_ms = 0;
 

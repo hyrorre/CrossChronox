@@ -64,8 +64,18 @@ public:
 	const Result& GetResult() const{
 		return result;
 	}
+	const Account& GetAccount() const{
+		return *account;
+	}
+	Account& GetVariableAccount(){
+		return *account;
+	}
 	static void Start();
 	State Update();
 };
+
+enum{ MAX_PLAYER = 1 };
+
+extern std::array<ScorePlayer, MAX_PLAYER> players;
 
 #endif /* ScorePlayer_hpp */

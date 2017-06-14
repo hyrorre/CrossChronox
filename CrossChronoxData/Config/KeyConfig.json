@@ -106,6 +106,15 @@
     		"UpMusic": ["1pScrUp", "Up"],
     		"DownMusic": ["1pScrDown", "Down"],
     		"ReloadFolder": ["8"],
+    		
+    		"IncrPlacement": ["1pKey1"],
+    		"DecrPlacement": ["1pKey2"],
+    		"IncrGaugeType": ["1pKey3"],
+    		"DecrGaugeType": ["1pKey4"],
+    		"IncrAssistType": ["1pKey5"],
+    		"IncrFlip": ["1pKey6"],
+    		"IncrDisplayArea": ["1pKey7"],
+    		
             "1pKey1": ["1pKey1"],
             "1pKey2": ["1pKey2"],
             "1pKey3": ["1pKey3"],

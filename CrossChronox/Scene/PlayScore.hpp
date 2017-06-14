@@ -14,9 +14,6 @@
 #include "Score/Play/ScorePlayer.hpp"
 
 class PlayScore : public Scene{
-	static const int MAX_PLAYER = 1;
-	std::array<ScorePlayer, MAX_PLAYER> players;
-	
 public:
 	void Init();
 	void Deinit();

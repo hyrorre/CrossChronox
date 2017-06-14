@@ -27,6 +27,9 @@ public:
 	const PlayOption& GetPlayOption() const{
 		return option;
 	}
+	PlayOption& GetVariablePlayOption(){
+		return option;
+	}
 	double GetHsBpmStep() const{
 		return hsbpm_step;
 	}
