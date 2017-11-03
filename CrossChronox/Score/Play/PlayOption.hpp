@@ -27,7 +27,7 @@ enum{
 	MAX_PLACE_BATTLE = 8
 };
 
-const char* placement_str[] = {
+static const char* placement_str[] = {
 	"NORMAL",
 	"RANDOM",
 	"R-RANDOM",
@@ -49,7 +49,7 @@ enum{
 	MAX_GAUGE
 };
 
-const char* gauge_type_str[] = {
+static const char* gauge_type_str[] = {
 	"NORMAL",
 	"ASSISTED EASY",
 	"EASY",
@@ -71,7 +71,7 @@ enum{
 	LAMP_MFC, // MAX FULL COMBO
 };
 
-const char* lamp_str[] = {
+static const char* lamp_str[] = {
 	"NOPLAY",
 	"FAILED",
 	"ASSIST CLEAR",
@@ -99,7 +99,7 @@ enum{
 	MAX_ASSIST
 };
 
-const char* assist_str[] = {
+static const char* assist_str[] = {
 	"OFF",
 	"AUTO SCRATCH",
 	"5KEYS",

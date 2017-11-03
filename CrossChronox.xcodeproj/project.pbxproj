@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		5614FD221DB0C2F30072FBC9 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FD201DB0C2F30072FBC9 /* MD5.cpp */; };
 		562242A11E2FD221000C4921 /* MessageBox_macOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = 562242A01E2FD221000C4921 /* MessageBox_macOS.mm */; };
-		562242A41E2FDAD4000C4921 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562242A31E2FDAD4000C4921 /* AppKit.framework */; };
 		562242A91E30FB7B000C4921 /* JudgeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562242A71E30FB7B000C4921 /* JudgeManager.cpp */; };
 		562C45DF1DFBAE0300E46B65 /* WavPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */; };
 		562F3BA61E0E12100022E9DA /* ScoreDirectoryLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 562F3BA41E0E12100022E9DA /* ScoreDirectoryLoader.cpp */; };
@@ -28,8 +27,6 @@
 		563C71181DAB3C9000CCD81F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71031DAB3C9000CCD81F /* main.cpp */; };
 		563C711A1DAB3C9000CCD81F /* pch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71071DAB3C9000CCD81F /* pch.cpp */; };
 		563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C710E1DAB3C9000CCD81F /* SceneManager.cpp */; };
-		563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */; };
-		563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsLoader.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
 		563DD46C1E194698002B98A6 /* libboost_filesystem-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD4661E194698002B98A6 /* libboost_filesystem-mt.a */; };
@@ -45,16 +42,16 @@
 		56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B090601E180FD200EDB891 /* libiconv.2.dylib */; };
 		56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B708541E724CEC00BDF44E /* libcryptopp.a */; };
 		56D4A2681E05416800198EF6 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56D4A2661E05416800198EF6 /* Scene.cpp */; };
-		56E4C14E1E05756E008A4D0C /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E4C14B1E05756E008A4D0C /* QtCore.framework */; };
-		56E4C14F1E05756E008A4D0C /* QtGui.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E4C14C1E05756E008A4D0C /* QtGui.framework */; };
-		56E4C1501E05756E008A4D0C /* QtWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E4C14D1E05756E008A4D0C /* QtWidgets.framework */; };
-		56E4C15A1E0576C9008A4D0C /* QtCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56E4C14B1E05756E008A4D0C /* QtCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		56E4C15B1E0576C9008A4D0C /* QtGui.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56E4C14C1E05756E008A4D0C /* QtGui.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		56E4C15C1E0576C9008A4D0C /* QtWidgets.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56E4C14D1E05756E008A4D0C /* QtWidgets.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
 		56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* WavManager.cpp */; };
 		56FD88551EA1E47100F5AF91 /* Setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56FD88531EA1E47100F5AF91 /* Setting.cpp */; };
+		752486961FAC2A8700FC55FE /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486951FAC2A8700FC55FE /* AppKit.framework */; };
+		7524869C1FAC2D2100FC55FE /* libsfml-audio.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */; };
+		7524869D1FAC2D2100FC55FE /* libsfml-graphics.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */; };
+		7524869E1FAC2D2100FC55FE /* libsfml-network.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */; };
+		7524869F1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */; };
+		752486A01FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -64,10 +61,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				56E4C15A1E0576C9008A4D0C /* QtCore.framework in CopyFiles */,
-				56E4C15B1E0576C9008A4D0C /* QtGui.framework in CopyFiles */,
-				56E4C15C1E0576C9008A4D0C /* QtWidgets.framework in CopyFiles */,
-				563C712F1DAB3D6400CCD81F /* sfeMovie.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,7 +71,6 @@
 		5614FD211DB0C2F30072FBC9 /* MD5.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MD5.hpp; sourceTree = "<group>"; };
 		562242A01E2FD221000C4921 /* MessageBox_macOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MessageBox_macOS.mm; sourceTree = "<group>"; };
 		562242A21E2FD33D000C4921 /* MessageBox.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MessageBox.hpp; sourceTree = "<group>"; };
-		562242A31E2FDAD4000C4921 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		562242A71E30FB7B000C4921 /* JudgeManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JudgeManager.cpp; sourceTree = "<group>"; };
 		562242A81E30FB7B000C4921 /* JudgeManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JudgeManager.hpp; sourceTree = "<group>"; };
 		562C45DD1DFBAE0300E46B65 /* WavPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WavPlayer.cpp; sourceTree = "<group>"; };
@@ -119,7 +111,6 @@
 		563C71081DAB3C9000CCD81F /* pch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pch.hpp; sourceTree = "<group>"; };
 		563C710E1DAB3C9000CCD81F /* SceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneManager.cpp; sourceTree = "<group>"; };
 		563C710F1DAB3C9000CCD81F /* SceneManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SceneManager.hpp; sourceTree = "<group>"; };
-		563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sfeMovie.framework; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../Library/Frameworks/sfeMovie.framework; sourceTree = "<absolute>"; };
 		563C71371DABD71C00CCD81F /* BmsLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BmsLoader.cpp; sourceTree = "<group>"; };
 		563C71381DABD71C00CCD81F /* BmsLoader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BmsLoader.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
@@ -142,9 +133,6 @@
 		56B708541E724CEC00BDF44E /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libcryptopp.a; sourceTree = "<absolute>"; };
 		56D4A2661E05416800198EF6 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		56D4A2671E05416800198EF6 /* Scene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
-		56E4C14B1E05756E008A4D0C /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../Applications/Qt/5.7/clang_64/lib/QtCore.framework; sourceTree = "<absolute>"; };
-		56E4C14C1E05756E008A4D0C /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../Applications/Qt/5.7/clang_64/lib/QtGui.framework; sourceTree = "<absolute>"; };
-		56E4C14D1E05756E008A4D0C /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../Applications/Qt/5.7/clang_64/lib/QtWidgets.framework; sourceTree = "<absolute>"; };
 		56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScorePlayer.cpp; sourceTree = "<group>"; };
 		56EAC9FE1DCC191A00511911 /* ScorePlayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ScorePlayer.hpp; sourceTree = "<group>"; };
 		56EACA041DCC509300511911 /* TimeManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeManager.cpp; sourceTree = "<group>"; };
@@ -153,6 +141,12 @@
 		56F1CB4A1DEB2D78007BD827 /* WavManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WavManager.hpp; sourceTree = "<group>"; };
 		56FD88531EA1E47100F5AF91 /* Setting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Setting.cpp; sourceTree = "<group>"; };
 		56FD88541EA1E47100F5AF91 /* Setting.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Setting.hpp; sourceTree = "<group>"; };
+		752486951FAC2A8700FC55FE /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-audio.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-audio.2.4.2.dylib"; sourceTree = "<group>"; };
+		752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-graphics.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-graphics.2.4.2.dylib"; sourceTree = "<group>"; };
+		752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-network.2.4.2.dylib"; sourceTree = "<group>"; };
+		7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-system.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-system.2.4.2.dylib"; sourceTree = "<group>"; };
+		7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-window.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-window.2.4.2.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,19 +154,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				562242A41E2FDAD4000C4921 /* AppKit.framework in Frameworks */,
+				7524869C1FAC2D2100FC55FE /* libsfml-audio.2.4.2.dylib in Frameworks */,
+				7524869D1FAC2D2100FC55FE /* libsfml-graphics.2.4.2.dylib in Frameworks */,
+				7524869E1FAC2D2100FC55FE /* libsfml-network.2.4.2.dylib in Frameworks */,
+				7524869F1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib in Frameworks */,
+				752486A01FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib in Frameworks */,
+				752486961FAC2A8700FC55FE /* AppKit.framework in Frameworks */,
 				56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */,
-				56E4C14E1E05756E008A4D0C /* QtCore.framework in Frameworks */,
-				56E4C14F1E05756E008A4D0C /* QtGui.framework in Frameworks */,
 				563DD46E1E194698002B98A6 /* libboost_serialization-mt.a in Frameworks */,
 				563DD4701E194698002B98A6 /* libboost_system-mt.a in Frameworks */,
-				56E4C1501E05756E008A4D0C /* QtWidgets.framework in Frameworks */,
 				563DD4711E194698002B98A6 /* libboost_system.a in Frameworks */,
 				563DD46C1E194698002B98A6 /* libboost_filesystem-mt.a in Frameworks */,
 				56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */,
 				563DD46D1E194698002B98A6 /* libboost_filesystem.a in Frameworks */,
 				563DD46F1E194698002B98A6 /* libboost_serialization.a in Frameworks */,
-				563C712C1DAB3D3B00CCD81F /* sfeMovie.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,7 +320,12 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				562242A31E2FDAD4000C4921 /* AppKit.framework */,
+				752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */,
+				752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */,
+				752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */,
+				7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */,
+				7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */,
+				752486951FAC2A8700FC55FE /* AppKit.framework */,
 				563DD4661E194698002B98A6 /* libboost_filesystem-mt.a */,
 				563DD4671E194698002B98A6 /* libboost_filesystem.a */,
 				563DD4681E194698002B98A6 /* libboost_serialization-mt.a */,
@@ -333,11 +333,7 @@
 				563DD46A1E194698002B98A6 /* libboost_system-mt.a */,
 				563DD46B1E194698002B98A6 /* libboost_system.a */,
 				56B090601E180FD200EDB891 /* libiconv.2.dylib */,
-				56E4C14B1E05756E008A4D0C /* QtCore.framework */,
-				56E4C14C1E05756E008A4D0C /* QtGui.framework */,
-				56E4C14D1E05756E008A4D0C /* QtWidgets.framework */,
 				56B708541E724CEC00BDF44E /* libcryptopp.a */,
-				563C712B1DAB3D3B00CCD81F /* sfeMovie.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -640,6 +636,7 @@
 					"$(inherited)",
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
 					/usr/local/Cellar/jpeg/8d/lib,
+					/usr/local/Cellar/sfml/2.4.2_1/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
@@ -677,6 +674,7 @@
 					"$(inherited)",
 					/usr/local/Cellar/cryptopp/5.6.4/lib,
 					/usr/local/Cellar/jpeg/8d/lib,
+					/usr/local/Cellar/sfml/2.4.2_1/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";

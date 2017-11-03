@@ -47,7 +47,7 @@ ScorePlayer::State ScorePlayer::Update(){
 	
 	wav_manager.Update();
 	
-	Judge();
+	JudgeAuto();
 	
 	if(score.info.end_pulse < now_pulse && wav_manager.Empty()) return State::FINISH;
 	else return State::CONTINUE;
