@@ -1,4 +1,4 @@
-//
+﻿//
 //  JudgeManager.hpp
 //  CrossChronox
 //

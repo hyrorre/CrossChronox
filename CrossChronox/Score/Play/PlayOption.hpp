@@ -1,4 +1,4 @@
-//
+﻿//
 //  PlayOption.hpp
 //  CrossChronox
 //

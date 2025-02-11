@@ -1,4 +1,4 @@
-//
+﻿//
 //  Account.cpp
 //  CrossChronox
 //

@@ -1,4 +1,4 @@
-//
+﻿//
 //  Account.hpp
 //  CrossChronox
 //

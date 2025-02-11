@@ -1,4 +1,4 @@
-//
+﻿//
 //  JudgeManager.cpp
 //  CrossChronox
 //
