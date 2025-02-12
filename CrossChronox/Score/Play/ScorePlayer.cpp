@@ -19,10 +19,35 @@ ms_type ScorePlayer::start_ms = 0;
 
 void ScorePlayer::SetLaneTimelines(){
 	for(auto& tl : lane_timelines) tl.clear();
+	std::vector<lane_t> placements;
+	if (score.info.mode = BEAT_7K) {
+		placements.resize(7);
+		if (players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == RANDOM) {
+			std::iota(placements.begin(), placements.end(), 1);
+			for (int i = placements.size() - 1; i > 0; --i) {
+				std::uniform_int_distribution<int> dist(0, i);
+				int j = dist(mt_rand);
+				std::swap(placements[i], placements[j]);
+			}
+		}
+		else if (players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == MIRROR) {
+			std::iota(placements.rbegin(), placements.rend(), 1);
+		}
+	}
 	for(auto& note : score.notes){
 		auto lane = note->lane;
 		assert(lane < MAX_LANE);
-		lane_timelines[lane].emplace_back(note.get());
+		if (players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == RANDOM || players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == MIRROR) {
+			if (1 <= lane && lane <= 7) {
+				note.get()->lane = placements[lane - 1];
+				lane_timelines[note.get()->lane].emplace_back(note.get());
+			}
+			else {
+				lane_timelines[lane].emplace_back(note.get());
+			}
+		} else {
+			lane_timelines[lane].emplace_back(note.get());
+		}
 	}
 }
 
@@ -47,7 +72,12 @@ ScorePlayer::State ScorePlayer::Update(){
 	
 	wav_manager.Update();
 	
-	JudgeAuto();
+	if (players[0].GetVariableAccount().info.GetPlayOption().GetAssistType() == AUTO_PLAY) {
+		JudgeAuto();
+	}
+	else {
+		Judge();
+	}
 	
 	if(score.info.end_pulse < now_pulse && wav_manager.Empty()) return State::FINISH;
 	else return State::CONTINUE;
@@ -129,5 +159,3 @@ void ScorePlayer::Judge(){
 		}
 	}
 }
-
-

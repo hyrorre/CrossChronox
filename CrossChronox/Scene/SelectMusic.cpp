@@ -105,7 +105,15 @@ std::wstring str_songlist;
 
 void SelectMusic::Draw(sf::RenderTarget& render_target) const{
 	if(InputManager::GetKeyFuncState("Option").now > 0){
-		
+		str_songlist.clear();
+		int player = 0;
+		PlayOption& option = players[player].GetVariableAccount().info.GetVariablePlayOption();
+		str_songlist +=
+		std::wstring(L"PLACE : ") + placement_str[option.GetPlacement(LEFT)] + L'\n' +
+			L"GAUGE : " + gauge_type_str[option.GetGaugeType()] + L'\n' +
+			L"ASSYST : " + assist_str[option.GetAssistType()] + L'\n' +
+			L"DISPLAY_AREA : " + display_area_str[option.GetDisplayArea()] + L'\n' +
+			L"FLIP : " + (option.GetFlip() ? L"ON" : L"OFF");
 	}
 	else{
 		str_songlist.clear();
@@ -114,8 +122,8 @@ void SelectMusic::Draw(sf::RenderTarget& render_target) const{
 			str_songlist += now_directory->At(i)->GetTitleSubtitle();
 			str_songlist += L"\n\n";
 		}
-		text_songlist.setString(str_songlist);
-		render_target.draw(text_songlist);
-		render_target.draw(text_info);
 	}
+	text_songlist.setString(str_songlist);
+	render_target.draw(text_songlist);
+	render_target.draw(text_info);
 }
