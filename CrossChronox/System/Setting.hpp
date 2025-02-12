@@ -84,8 +84,8 @@ public:
 			if(!ifs){
 				return false;
 			}
-			boost::archive::xml_iarchive iarchive(ifs);
-			iarchive >> boost::serialization::make_nvp("root", *this);
+			//boost::archive::xml_iarchive iarchive(ifs);
+			//iarchive >> boost::serialization::make_nvp("root", *this);
 			return true;
 		}
 		catch(std::exception& e){
@@ -95,34 +95,34 @@ public:
 	
 	void SaveFile(const std::string& filepath){
 		std::ofstream ofs(filepath);
-		boost::archive::xml_oarchive oarchive(ofs);
-		oarchive << boost::serialization::make_nvp("root", *this);
+		//boost::archive::xml_oarchive oarchive(ofs);
+		//oarchive << boost::serialization::make_nvp("root", *this);
 	}
 	
-private:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive& ar, const unsigned int version){
-		ar & BOOST_SERIALIZATION_NVP(window_type);
-		ar & BOOST_SERIALIZATION_NVP(save_resolution);
-		ar & BOOST_SERIALIZATION_NVP(resolution_x);
-		ar & BOOST_SERIALIZATION_NVP(resolution_y);
-		ar & BOOST_SERIALIZATION_NVP(save_window_pos);
-		ar & BOOST_SERIALIZATION_NVP(window_pos_x);
-		ar & BOOST_SERIALIZATION_NVP(window_pos_y);
-		ar & BOOST_SERIALIZATION_NVP(save_window_size);
-		ar & BOOST_SERIALIZATION_NVP(window_size_x);
-		ar & BOOST_SERIALIZATION_NVP(window_size_y);
-		ar & BOOST_SERIALIZATION_NVP(vsync);
-		ar & BOOST_SERIALIZATION_NVP(max_fps);
-		ar & BOOST_SERIALIZATION_NVP(song_paths);
-		ar & BOOST_SERIALIZATION_NVP(table_urls);
-	}
+//private:
+//	friend class boost::serialization::access;
+//	template<class Archive>
+//	void serialize(Archive& ar, const unsigned int version){
+//		ar & BOOST_SERIALIZATION_NVP(window_type);
+//		ar & BOOST_SERIALIZATION_NVP(save_resolution);
+//		ar & BOOST_SERIALIZATION_NVP(resolution_x);
+//		ar & BOOST_SERIALIZATION_NVP(resolution_y);
+//		ar & BOOST_SERIALIZATION_NVP(save_window_pos);
+//		ar & BOOST_SERIALIZATION_NVP(window_pos_x);
+//		ar & BOOST_SERIALIZATION_NVP(window_pos_y);
+//		ar & BOOST_SERIALIZATION_NVP(save_window_size);
+//		ar & BOOST_SERIALIZATION_NVP(window_size_x);
+//		ar & BOOST_SERIALIZATION_NVP(window_size_y);
+//		ar & BOOST_SERIALIZATION_NVP(vsync);
+//		ar & BOOST_SERIALIZATION_NVP(max_fps);
+//		ar & BOOST_SERIALIZATION_NVP(song_paths);
+//		ar & BOOST_SERIALIZATION_NVP(table_urls);
+//	}
 };
 
 extern Setting setting;
 
-BOOST_CLASS_VERSION(Setting, 1);
+//BOOST_CLASS_VERSION(Setting, 1);
 
 
 #endif /* Setting_hpp */

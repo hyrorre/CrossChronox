@@ -26,21 +26,21 @@ public:
 	fs::path path;
 	
 	ScoreInfoBase(){}
-	ScoreInfoBase(fs::wpath path): path(path){}
+	ScoreInfoBase(fs::path path): path(path){}
 	virtual ~ScoreInfoBase(){}
 	
-private: // ここがシリアライズ処理の実装
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive& ar, unsigned int ver){
-		std::string p = path.string();
-		ar & boost::serialization::make_nvp("path", p);
-		path.clear();
-		path = p;
-	}
+//private: // ここがシリアライズ処理の実装
+//	friend class boost::serialization::access;
+//	template<class Archive>
+//	void serialize(Archive& ar, unsigned int ver){
+//		std::string p = path.string();
+//		ar & boost::serialization::make_nvp("path", p);
+//		path.clear();
+//		path = p;
+//	}
 };
 
 //BOOST_CLASS_EXPORT(ScoreInfoBase);
-BOOST_CLASS_VERSION(ScoreInfoBase, 1);
+//BOOST_CLASS_VERSION(ScoreInfoBase, 1);
 
 #endif /* ScoreInfoBase_hpp */

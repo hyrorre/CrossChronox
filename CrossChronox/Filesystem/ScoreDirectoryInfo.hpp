@@ -67,35 +67,35 @@ public:
 	bool TryLoadScoreDirectoryCache();
 	
 	ScoreDirectoryInfo(){}
-	ScoreDirectoryInfo(fs::wpath path): ScoreInfoBase(path){}
+	ScoreDirectoryInfo(fs::path path): ScoreInfoBase(path){}
 	
 //	template<class Archive>
 //	void serialize__(Archive& ar, unsigned int ver){
 //	}
-private: // ここがシリアライズ処理の実装
-	BOOST_SERIALIZATION_SPLIT_MEMBER();
-	friend class boost::serialization::access;
-	template<class Archive>
-	void save(Archive& ar, const unsigned int version) const{
-		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
-		ar & boost::serialization::make_nvp("children", children);
-		ar & boost::serialization::make_nvp("title", title);
-	}
-	template<class Archive>
-	void load(Archive& ar, const unsigned int version){
-		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
-		ar & boost::serialization::make_nvp("children", children);
-		std::string tmp;
-		std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
-		ar & boost::serialization::make_nvp("title", tmp);
-		title = cv.from_bytes(tmp);
-		for(const auto& child : children){
-			child->SetParent(this);
-		}
-	}
+//private: // ここがシリアライズ処理の実装
+//	BOOST_SERIALIZATION_SPLIT_MEMBER();
+//	friend class boost::serialization::access;
+//	template<class Archive>
+//	void save(Archive& ar, const unsigned int version) const{
+//		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
+//		ar & boost::serialization::make_nvp("children", children);
+//		ar & boost::serialization::make_nvp("title", title);
+//	}
+//	template<class Archive>
+//	void load(Archive& ar, const unsigned int version){
+//		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ScoreInfoBase);
+//		ar & boost::serialization::make_nvp("children", children);
+//		std::string tmp;
+//		std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
+//		ar & boost::serialization::make_nvp("title", tmp);
+//		title = cv.from_bytes(tmp);
+//		for(const auto& child : children){
+//			child->SetParent(this);
+//		}
+//	}
 };
 
 //BOOST_CLASS_EXPORT_GUID(ScoreDirectoryInfo, "ScoreDirectoryInfo");
-BOOST_CLASS_VERSION(ScoreDirectoryInfo, 1);
+//BOOST_CLASS_VERSION(ScoreDirectoryInfo, 1);
 
 #endif /* ScoreDirectoryInfo_hpp */

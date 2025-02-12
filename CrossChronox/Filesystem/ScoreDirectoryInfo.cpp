@@ -13,13 +13,13 @@
 std::string score_info_cache_path;
 
 void SetScoreInfoCachePath(){
-	static bool inited = false;
-	if(!inited){
-		inited = true;
-		fs::path database = GetAppdataPath() / "Database";
-		if(!fs::exists(database)) fs::create_directories(database);
-		score_info_cache_path = (database / "Song.xml").string();
-	}
+	// static bool inited = false;
+	// if(!inited){
+	// 	inited = true;
+	// 	fs::path database = GetAppdataPath() / "Database";
+	// 	if(!fs::exists(database)) fs::create_directories(database);
+	// 	score_info_cache_path = (database / "Song.xml").string();
+	// }
 }
 
 void ScoreDirectoryInfo::LoadScoreDirectory(){
@@ -28,13 +28,13 @@ void ScoreDirectoryInfo::LoadScoreDirectory(){
 }
 
 void ScoreDirectoryInfo::SaveScoreDirectoryCache() const{
-	SetScoreInfoCachePath();
-	std::ofstream ofs(score_info_cache_path);
-	ofs.imbue(std::locale(""));
-	boost::archive::xml_oarchive oarchive(ofs);
-	oarchive.register_type<ScoreInfo>();
-	oarchive.register_type<ScoreDirectoryInfo>();
-	oarchive << boost::serialization::make_nvp("root", *this);
+	// SetScoreInfoCachePath();
+	// std::ofstream ofs(score_info_cache_path);
+	// ofs.imbue(std::locale(""));
+	//boost::archive::xml_oarchive oarchive(ofs);
+	//oarchive.register_type<ScoreInfo>();
+	//oarchive.register_type<ScoreDirectoryInfo>();
+	//oarchive << boost::serialization::make_nvp("root", *this);
 }
 
 bool ScoreDirectoryInfo::TryLoadScoreDirectoryCache(){
@@ -46,11 +46,11 @@ bool ScoreDirectoryInfo::TryLoadScoreDirectoryCache(){
 	}
 	else try{
 		children.clear();
-		boost::archive::xml_iarchive iarchive(ifs);
-		iarchive.register_type<ScoreInfo>();
-		iarchive.register_type<ScoreDirectoryInfo>();
+		//boost::archive::xml_iarchive iarchive(ifs);
+		//iarchive.register_type<ScoreInfo>();
+		//iarchive.register_type<ScoreDirectoryInfo>();
 		
-		iarchive >> boost::serialization::make_nvp("root", *this);
+		//iarchive >> boost::serialization::make_nvp("root", *this);
 		return true;
 	}
 	catch(std::exception& e){
