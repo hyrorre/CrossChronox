@@ -2,8 +2,9 @@
   "dependencies": [
     "boost",
     "cryptopp",
+    "libiconv",
     "picojson",
     "sfml",
-    "libiconv"
+    "toml11"
   ]
 }

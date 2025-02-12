@@ -19,16 +19,8 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
-//sfeMovie
-//#include <sfeMovie/Movie.hpp>
-
-//Qt
-//#include <QApplication>
-//#include <QMessageBox>
-//#include <QTextCodec>
-
-//jsoncpp
-//#include <json/json.h>
+//toml11
+#include <toml.hpp>
 
 //picojson
 #define PICOJSON_USE_INT64
