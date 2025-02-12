@@ -9,6 +9,8 @@
 #include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "System/DefaultFont.hpp"
+#include "SelectMusic.hpp"
+#include "System/Input/InputManager.hpp"
 
 PlayScore scene_play_score;
 
@@ -22,12 +24,15 @@ void PlayScore::Deinit(){
 }
 
 Scene* PlayScore::Update(){
+	if (InputManager::GetKeyState("Esc").now == 1) {
+		return scene_select_music_ptr;
+	}
 	int continue_flag = 0;
 	for(auto& player : players){
 		continue_flag += player.Update();
 	}
 	if(continue_flag) return scene_play_score_ptr;
-	else return nullptr;
+	else return scene_select_music_ptr;
 }
 
 float scr_w = 60;
@@ -164,7 +169,6 @@ float GetNoteX(lane_t lane){
 		case 7:
 			return scr_x + scr_w + int(lane / 2) * white_w + int((lane - 1) / 2) * black_w + lane * space;
 		default:
-			//qDebug("lane:%d", lane);
 			return 0;
 	}
 }
@@ -183,7 +187,6 @@ sf::Sprite* GetSpritePtr(lane_t lane){
 		case 6:
 			return &black_sprite;
 		default:
-			//qDebug("lane:%d", lane);
 			return nullptr;
 	}
 }

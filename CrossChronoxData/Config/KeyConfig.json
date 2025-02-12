@@ -99,6 +99,7 @@
             "2pScrDown": [42]
         },
         "KeyFunc": {
+            "Escape": ["Esc"],
             "Option": ["1pStart"],
             "FlipOption": ["1pSelect"],
             "CloseFolder": ["1pKey2", "1pKey4", "1pKey6", "Left", "BackSpace"],

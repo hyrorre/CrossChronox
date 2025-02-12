@@ -20,14 +20,14 @@ enum{
 class Setting{
 	int window_type = WINDOWED;
 	bool save_resolution = true;
-	int resolution_x = 800;
-	int resolution_y = 600;
+	int resolution_x = 1920;
+	int resolution_y = 1080;
 	bool save_window_size = true;
-	int window_size_x = 800;
-	int window_size_y = 600;
+	int window_size_x = 1920;
+	int window_size_y = 1080;
 	bool save_window_pos = true;
-	int window_pos_x = 200;
-	int window_pos_y = 200;
+	int window_pos_x = 400;
+	int window_pos_y = 400;
 	bool vsync = true;
 	int max_fps = 0; // if max_fps is 0, fps is unlimited
 	
