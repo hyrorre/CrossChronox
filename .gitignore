@@ -11,6 +11,7 @@ Setting.xml
 # Dependencies
 lib
 include
+vcpkg_installed
 
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883

@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "boost",
+    "cryptopp",
+    "picojson",
+    "sfml",
+    "libiconv"
+  ]
+}
