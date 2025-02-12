@@ -23,7 +23,7 @@ public:
 	void Init();
 	void Deinit(){}
 	Scene* Update();
-	void Draw(sf::RenderTarget& render_target) const;
+	void Draw(SDL_Renderer* renderer) const;
 };
 
 extern SelectMusic* scene_select_music_ptr;

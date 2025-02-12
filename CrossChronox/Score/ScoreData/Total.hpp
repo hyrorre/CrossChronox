@@ -38,15 +38,15 @@ public:
 		this->value = value;
 	}
 	
-private:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive& ar, const unsigned int version){
-		ar & BOOST_SERIALIZATION_NVP(type);
-		ar & BOOST_SERIALIZATION_NVP(value);
-	}
+//private:
+//	friend class boost::serialization::access;
+//	template<class Archive>
+//	void serialize(Archive& ar, const unsigned int version){
+//		ar & BOOST_SERIALIZATION_NVP(type);
+//		ar & BOOST_SERIALIZATION_NVP(value);
+//	}
 };
 
-BOOST_CLASS_VERSION(Total, 1);
+//BOOST_CLASS_VERSION(Total, 1);
 
 #endif /* Total_hpp */

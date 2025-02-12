@@ -24,9 +24,9 @@ public:
 	void StopWav(const Note* note);
 	bool Empty() const{
 		for(auto& player : players){
-			if(player.GetStatus() != sf::Sound::Status::Stopped){
-				return false;
-			}
+			// if(player.GetStatus() != sf::Sound::Status::Stopped){
+			// 	return false;
+			// }
 		}
 		return true;
 	}

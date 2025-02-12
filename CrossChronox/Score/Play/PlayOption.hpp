@@ -185,7 +185,7 @@ public:
 		// TODO: hs_typeに応じてSwitch
 		// if NHS
 		hs += 0.25 * num;
-		boost::algorithm::clamp(hs, 1.0, 4.0);
+		std::clamp(hs, 1.0, 4.0);
 	}
 	
 	double GetHsBpm(double bpm) const;

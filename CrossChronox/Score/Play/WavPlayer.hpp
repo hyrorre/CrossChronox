@@ -14,18 +14,18 @@
 
 class WavPlayer{
     const Note* note_ptr = nullptr;
-    sf::Sound sound;
+    // sf::Sound sound;
 
 public:
-	sf::SoundSource::Status GetStatus() const{
-		if(note_ptr) return sound.getStatus();
-		else return sf::Sound::Status::Stopped;
-	}
+	// sf::SoundSource::Status GetStatus() const{
+	// 	if(note_ptr) return sound.getStatus();
+	// 	else return sf::Sound::Status::Stopped;
+	// }
 	void Pause(){
-		sound.pause();
+		//sound.pause();
 	}
 	void Stop(){
-		sound.stop();
+		//sound.stop();
 	}
 	
 	const Note* GetNotePtr() const{
@@ -33,14 +33,14 @@ public:
 	}
 	
 	WavPlayer(){}
-	WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
-		sound.play();
-	}
+	//WavPlayer(const Note* note_ptr): note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf){
+	//	sound.play();
+	//}
 	
 	void ResetSound(const Note* note_ptr){
-		this->note_ptr = note_ptr;
-		sound.setBuffer(note_ptr->wavbuf_ptr->buf);
-		sound.play();
+		//this->note_ptr = note_ptr;
+		//sound.setBuffer(note_ptr->wavbuf_ptr->buf);
+		//sound.play();
 	}
 };
 

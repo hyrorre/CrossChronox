@@ -292,7 +292,7 @@ const auto PmeChannelToLane = [](int channel){
 };
 
 int BmsLoader::GetIndex(){
-	boost::string_ref line = nowline;
+	std::string_view line = nowline;
 	//#WAV01 music.wav
 	auto pos = line.find_first_of("vV");
 	if(pos != std::string::npos){
@@ -482,7 +482,7 @@ bool BmsLoader::TryParseHeaderLine(){
 				Widen(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
 			}
 			else if(boost::istarts_with(header, "RANK")){
-				int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
+				int i = std::clamp(atoi(GetArg()), 0, 3);
 				out->info.judge_rank.SetValue(i);
 			}
 			else if(boost::istarts_with(header, "BASEBPM")){
@@ -497,12 +497,9 @@ bool BmsLoader::TryParseHeaderLine(){
         return 1;
 	}
 	catch(std::out_of_range& e){
-		std::stringstream msg;
-		msg << "Invalid arguments detected. LINE:";
-		msg << line_num;
-		msg << "\n";
-		msg << e.what();
-		throw ParseError(msg.str());
+		std::string msg = std::string("Invalid arguments detected. LINE:") +
+		std::to_string(line_num) + "\n" + e.what();
+		throw ParseError(msg);
 	}
 }
 
@@ -540,13 +537,13 @@ void BmsLoader::SetSubtitle(){
 			{ L'\"', L'\"' }
 		};
 		boost::trim_right(out->info.title);
-		boost::wstring_ref title = out->info.title;
+		std::wstring_view title = out->info.title;
 		for(delim_type delim : delim_list){
 			if(title.back() == delim.second){
 				auto pos_delim1 = title.substr(0, title.length() - 1).find_last_of(delim.first);
 				if(pos_delim1 != std::string::npos && pos_delim1 != 0){
-					out->info.subtitle = title.substr(pos_delim1).to_string();
-					out->info.title = title.substr(0, pos_delim1).to_string();
+					out->info.subtitle = title.substr(pos_delim1);
+					out->info.title = title.substr(0, pos_delim1);
 					boost::trim_right(out->info.title);
 					break;
 				}
@@ -623,10 +620,10 @@ void BmsLoader::SetNotesAndEvents(){
 	}
     
 	//Sort tmp_notes
-    boost::sort(tmp_notes, ptr_less<TmpNoteData>());
+    std::sort(tmp_notes.begin(), tmp_notes.end(), ptr_less<TmpNoteData>());
 	
 	//Sort lnobj
-	boost::sort(lnobj);
+	std::sort(lnobj.begin(), lnobj.end());
 	
 	size_t note_count = 0;
 	
@@ -676,7 +673,7 @@ void BmsLoader::SetNotesAndEvents(){
 					if(ln_pushing[lane]) lnend_flag = true;
 					ln_pushing[lane] = !ln_pushing[lane];
 				}
-				else if(boost::binary_search(lnobj,tmp_note->index)) lnend_flag = true;
+				else if(std::binary_search(lnobj.begin(), lnobj.end(), tmp_note->index)) lnend_flag = true;
 				if(lnend_flag){
 					last_note[lane]->len = tmp_note->global_pulse - last_note[lane]->pulse;
 					break;
@@ -793,7 +790,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 	this->load_header_only_flag = load_header_only_flag;
 	Init(out);
 	{
-		fs::ifstream ifs(path);
+		std::ifstream ifs(path);
 		if(!ifs){
 			throw OpenError(std::string("\"") + path + "\" could not be opened.");
 		}
@@ -805,9 +802,9 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
 			std::string file_str(it, last);
 			ifs.clear();  // ここでclearしてEOFフラグを消す // clear EOF flag.
 			ifs.seekg(0, ifs.beg);
-			if(!StringToMD5(file_str, &out->info.md5)){
-				throw ParseError("MD5 of the file could not be got.");
-			}
+			// if(!StringToMD5(file_str, &out->info.md5)){
+			// 	throw ParseError("MD5 of the file could not be got.");
+			// }
 		}
 		
 		//set path to ScoreInfo

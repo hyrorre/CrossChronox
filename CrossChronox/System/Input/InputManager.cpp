@@ -41,19 +41,21 @@ namespace InputManager{
 	using keyid_t = unsigned;
 	
 	bool IsKeyPressed(keyid_t keyid){
-		if(keyid < 1000){ // keyboard
-			return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keyid));
-		}
-		else{ // joystick
-			unsigned joyid = (keyid / 1000) - 1;
-			if(int axis = (keyid / 100) % 10){
-				--axis;
-				auto pos = sf::Joystick::getAxisPosition(joyid, static_cast<sf::Joystick::Axis>(axis));
-				if(keyid % 10) return (80 < pos);
-				else return (pos < -80);
-			}
-			else return sf::Joystick::isButtonPressed(joyid, keyid % 100);
-		}
+		// if(keyid < 1000){ // keyboard
+		// 	return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keyid));
+		// }
+		// else{ // joystick
+		// 	unsigned joyid = (keyid / 1000) - 1;
+		// 	if(int axis = (keyid / 100) % 10){
+		// 		--axis;
+		// 		auto pos = sf::Joystick::getAxisPosition(joyid, static_cast<sf::Joystick::Axis>(axis));
+		// 		if(keyid % 10) return (80 < pos);
+		// 		else return (pos < -80);
+		// 	}
+		// 	else return sf::Joystick::isButtonPressed(joyid, keyid % 100);
+		// }
+
+		return false;
 	};
 	
 	using keymap_t = std::unordered_map<std::string, std::vector<keyid_t>>;
