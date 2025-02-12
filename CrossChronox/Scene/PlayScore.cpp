@@ -35,23 +35,26 @@ Scene* PlayScore::Update(){
 	else return scene_select_music_ptr;
 }
 
-float scr_w = 60;
-float white_w = 30;
-float black_w = 20;
+float scr_w = 89;
+float white_w = 51;
+float black_w = 39;
 
-float note_h = 6;
+float note_h = 10;
 
-float space = 2;
+float space = 3;
 
-float scr_x = 34;
+float scr_x = 76;
 
 float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
 
-float judgeline_y = 640 - 165;
+float judgeline_y = 715;
 
-float judge_combo_x = scr_x + 40;
+float judge_combo_x = scr_x + 50;
 
-float judge_combo_y = judgeline_y - 130;
+float judge_combo_y = judgeline_y - 180;
+
+sf::Texture background;
+sf::Sprite background_sprite;
 
 sf::Texture white_shape;
 sf::Sprite white_sprite;
@@ -101,7 +104,7 @@ public:
 		this->player = &player;
 		text.setFont(font_default);
 		text.setPosition(judge_combo_x, judge_combo_y);
-		text.setCharacterSize(40);
+		text.setCharacterSize(68);
 		text.setOutlineColor(sf::Color::Black);
 		text.setOutlineThickness(1);
 	}
@@ -122,6 +125,8 @@ public:
 std::array<JudgeCombo, MAX_SIDE> judge_combos;
 
 void PlayScore::Init(){
+	background.loadFromFile((GetAppdataPath() / "play.png").string());
+	background_sprite.setTexture(background);
 	sf::Image tmp_image;
 	tmp_image.create(white_w, note_h, sf::Color::White);
 	white_shape.loadFromImage(tmp_image);
@@ -141,8 +146,8 @@ void PlayScore::Init(){
 	text_fps.setFillColor(sf::Color::White);
 	
 	text_info_play.setFont(font_default);
-	text_info_play.setCharacterSize(15);
-	text_info_play.setPosition(400, 0);
+	text_info_play.setCharacterSize(19);
+	text_info_play.setPosition(900, 220);
 	
 	for(int i = 0; i < judge_combos.size(); ++i){
 		judge_combos[i].Init(players[0], static_cast<Side>(i));
@@ -191,14 +196,15 @@ sf::Sprite* GetSpritePtr(lane_t lane){
 	}
 }
 
-float global_scroll = .7f * 240;
+float global_scroll = .7f * 480;
 
 #define SS(x) ss << #x L": " << x << L'\n'
 
 void PlayScore::Draw(sf::RenderTarget& render_target) const{
 	std::wstringstream ss;
 	
-	render_target.draw(judgeline_sprite);
+	render_target.draw(background_sprite);
+	//render_target.draw(judgeline_sprite);
 	for(auto& player : players){
 		ms_type play_ms = player.GetPlayMs();
 		ms_type last_play_ms = play_ms - delta_ms;

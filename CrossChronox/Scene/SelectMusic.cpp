@@ -93,11 +93,11 @@ void SelectMusic::Init(){
 		}
 		
 		text_songlist.setFont(font_default);
-		text_songlist.setPosition(320, 50);
-		text_songlist.setScale(0.75, 0.75);
+		text_songlist.setPosition(1000, 50);
+		text_songlist.setScale(1.5, 1.5);
 		
 		text_info.setFont(font_default);
-		text_info.setCharacterSize(15);
+		text_info.setCharacterSize(40);
 	}
 }
 
