@@ -1,12 +1,4 @@
-﻿//
-//  pch.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 10/7/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#ifndef pch_hpp
+﻿#ifndef pch_hpp
 #define pch_hpp
 
 //SFML
@@ -32,7 +24,6 @@
 #include <cryptopp/md5.h>
 
 //boost
-//#include <boost/filesystem.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <boost/variant.hpp>
@@ -53,21 +44,6 @@
 #include <boost/range/algorithm/upper_bound.hpp>
 #include <boost/range/algorithm/sort.hpp>
 #include <boost/range.hpp>
-
-//#include <boost/serialization/serialization.hpp>
-//#include <boost/archive/xml_iarchive.hpp>
-//#include <boost/archive/xml_oarchive.hpp>
-//#include <boost/archive/xml_wiarchive.hpp>
-//#include <boost/archive/xml_woarchive.hpp>
-//#include <boost/serialization/array.hpp>
-//#include <boost/serialization/unordered_map.hpp>
-//#include <boost/serialization/unique_ptr.hpp>
-//#include <boost/serialization/vector.hpp> // std::vectorをシリアライズしたい場合必要
-//#include <boost/serialization/string.hpp> // std::stringをシリアライズしたい場合必要
-//#include <boost/serialization/export.hpp>
-
-//libguess
-//#include <libguess/libguess.h>
 
 //iconv
 #include <iconv.h>

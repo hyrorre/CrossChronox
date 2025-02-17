@@ -1,12 +1,4 @@
-﻿//
-//  WavManager.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/11/28.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef WavManager_hpp
+﻿#ifndef WavManager_hpp
 #define WavManager_hpp
 
 #include "pch.hpp"

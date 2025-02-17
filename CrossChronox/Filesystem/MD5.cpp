@@ -1,12 +1,4 @@
-﻿//
-//  MD5.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/10/14.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#include "MD5.hpp"
+﻿#include "MD5.hpp"
 
 bool StringToMD5(const char* str, std::string* out, size_t len){
 	

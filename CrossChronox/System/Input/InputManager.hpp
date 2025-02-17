@@ -1,12 +1,4 @@
-﻿//
-//  InputManager.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 10/4/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#ifndef InputManager_hpp
+﻿#ifndef InputManager_hpp
 #define InputManager_hpp
 
 #include "pch.hpp"

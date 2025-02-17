@@ -1,12 +1,4 @@
-﻿//
-//  Account.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/04/19.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#ifndef Account_hpp
+﻿#ifndef Account_hpp
 #define Account_hpp
 
 #include "pch.hpp"

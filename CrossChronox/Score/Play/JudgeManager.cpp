@@ -1,12 +1,4 @@
-﻿//
-//  JudgeManager.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/01/19.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#include "JudgeManager.hpp"
+﻿#include "JudgeManager.hpp"
 
 namespace JudgeManager{
 	//enum{ MAX_JUDGE_TABLE_VALUE = 6 };

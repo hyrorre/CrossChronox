@@ -1,12 +1,4 @@
-﻿//
-//  MessageBox.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/01/19.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#ifndef MessageBox_hpp
+﻿#ifndef MessageBox_hpp
 #define MessageBox_hpp
 
 #include "pch.hpp"

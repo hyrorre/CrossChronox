@@ -1,12 +1,4 @@
-﻿//
-//  Account.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/04/19.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#include "Account.hpp"
+﻿#include "Account.hpp"
 
 std::vector<Account> accounts;
 

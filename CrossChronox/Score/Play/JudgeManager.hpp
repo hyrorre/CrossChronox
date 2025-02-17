@@ -1,12 +1,4 @@
-﻿//
-//  JudgeManager.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/01/19.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#ifndef JudgeManager_hpp
+﻿#ifndef JudgeManager_hpp
 #define JudgeManager_hpp
 
 #include "pch.hpp"

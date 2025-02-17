@@ -1,12 +1,4 @@
-﻿//
-//  ScoreDirectoryInfo.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/22.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef ScoreDirectoryInfo_hpp
+﻿#ifndef ScoreDirectoryInfo_hpp
 #define ScoreDirectoryInfo_hpp
 
 #include "pch.hpp"

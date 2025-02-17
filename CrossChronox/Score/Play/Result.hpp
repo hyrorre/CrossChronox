@@ -1,12 +1,4 @@
-﻿//
-//  Result.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/18.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef Result_hpp
+﻿#ifndef Result_hpp
 #define Result_hpp
 
 #include "pch.hpp"

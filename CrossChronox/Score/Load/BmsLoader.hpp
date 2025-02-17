@@ -1,12 +1,4 @@
-﻿//
-//  BmsLoader.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 10/7/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#ifndef BmsLoader_hpp
+﻿#ifndef BmsLoader_hpp
 #define BmsLoader_hpp
 
 #include "pch.hpp"

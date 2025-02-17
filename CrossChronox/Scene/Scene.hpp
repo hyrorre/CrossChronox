@@ -1,12 +1,4 @@
-﻿//
-//  Scene.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/17.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef Scene_hpp
+﻿#ifndef Scene_hpp
 #define Scene_hpp
 
 #include "pch.hpp"

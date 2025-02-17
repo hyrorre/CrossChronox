@@ -1,12 +1,4 @@
-﻿//
-//  PlayScore.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/10/10.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#include "PlayScore.hpp"
+﻿#include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "System/DefaultFont.hpp"
 #include "SelectMusic.hpp"

@@ -1,12 +1,4 @@
-﻿//
-//  ScoreDirectoryLoader.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/24.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#include "ScoreDirectoryLoader.hpp"
+﻿#include "ScoreDirectoryLoader.hpp"
 #include "Score/Load/BmsLoader.hpp"
 #include "Filesystem/Path.hpp"
 

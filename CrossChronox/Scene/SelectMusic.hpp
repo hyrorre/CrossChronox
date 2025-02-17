@@ -1,12 +1,4 @@
-﻿//
-//  SelectMusic.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/22.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef SelectMusic_hpp
+﻿#ifndef SelectMusic_hpp
 #define SelectMusic_hpp
 
 #include "pch.hpp"

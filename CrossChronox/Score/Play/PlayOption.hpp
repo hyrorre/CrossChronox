@@ -1,12 +1,4 @@
-﻿//
-//  PlayOption.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/04/10.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#ifndef PlayOption_hpp
+﻿#ifndef PlayOption_hpp
 #define PlayOption_hpp
 
 #include "pch.hpp"

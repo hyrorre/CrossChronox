@@ -1,12 +1,4 @@
-﻿//
-//  Path.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/01/18.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#include "Path.hpp"
+﻿#include "Path.hpp"
 
 const fs::path& GetAppdataPath(){
 	static fs::path apath;

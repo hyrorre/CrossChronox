@@ -1,12 +1,4 @@
-﻿//
-//  Application.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 9/23/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#ifndef Application_hpp
+﻿#ifndef Application_hpp
 #define Application_hpp
 
 #include "pch.hpp"

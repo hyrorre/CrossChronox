@@ -1,12 +1,4 @@
-﻿//
-//  Total.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2017/01/11.
-//  Copyright © 2017年 hyrorre. All rights reserved.
-//
-
-#ifndef Total_hpp
+﻿#ifndef Total_hpp
 #define Total_hpp
 
 #include "pch.hpp"
