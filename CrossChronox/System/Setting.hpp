@@ -1,5 +1,4 @@
-﻿#ifndef Setting_hpp
-#define Setting_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -116,5 +115,3 @@ extern Setting setting;
 
 //BOOST_CLASS_VERSION(Setting, 1);
 
-
-#endif /* Setting_hpp */

@@ -1,5 +1,4 @@
-﻿#ifndef WavManager_hpp
-#define WavManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "WavPlayer.hpp"
@@ -31,5 +30,3 @@ public:
 	
 	WavManager(){}
 };
-
-#endif /* WavManager_hpp */

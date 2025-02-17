@@ -1,5 +1,4 @@
-﻿#ifndef Total_hpp
-#define Total_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Mode.hpp"
@@ -40,5 +39,3 @@ public:
 };
 
 //BOOST_CLASS_VERSION(Total, 1);
-
-#endif /* Total_hpp */

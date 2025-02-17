@@ -1,5 +1,4 @@
-﻿#ifndef ScoreData_hpp
-#define ScoreData_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "System/TimeManager.hpp"
@@ -124,5 +123,3 @@ struct ScoreData : boost::noncopyable{
 		wavbufs.clear();
 	}
 };
-
-#endif /* ScoreData_hpp */

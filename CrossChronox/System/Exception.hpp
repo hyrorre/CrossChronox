@@ -1,5 +1,4 @@
-﻿#ifndef Exception_hpp
-#define Exception_hpp
+﻿#pragma once
 
 //exceptions
 class LoadError : public std::runtime_error{
@@ -25,5 +24,3 @@ public:
 	InitError(const std::string& msg): std::runtime_error(msg){}
 	virtual ~InitError(){}
 };
-
-#endif /* Exception_hpp */

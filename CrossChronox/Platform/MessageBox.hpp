@@ -1,5 +1,4 @@
-﻿#ifndef MessageBox_hpp
-#define MessageBox_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -28,5 +27,3 @@ enum{
 	BUTTON_YES = 1,
 	BUTTON_NO = 0,
 };
-
-#endif /* MessageBox_hpp */

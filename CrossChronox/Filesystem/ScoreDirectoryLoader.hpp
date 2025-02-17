@@ -1,5 +1,4 @@
-﻿#ifndef ScoreDirectoryLoader_hpp
-#define ScoreDirectoryLoader_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "ScoreDirectoryInfo.hpp"
@@ -11,5 +10,3 @@ class ScoreDirectoryLoader{
 public:
 	void Load(const fs::path& path, ScoreDirectoryInfo* out);
 };
-
-#endif /* ScoreDirectoryLoader_hpp */

@@ -1,5 +1,4 @@
-﻿#ifndef SceneManager_hpp
-#define SceneManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Scene.hpp"
@@ -14,5 +13,3 @@ namespace SceneManager{
 	void Draw(sf::RenderTarget& render_target);
 	void Deinit();
 };
-
-#endif /* SceneManager_hpp */

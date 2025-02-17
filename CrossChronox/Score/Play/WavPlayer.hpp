@@ -1,5 +1,4 @@
-﻿#ifndef WavPlayer_hpp
-#define WavPlayer_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
@@ -35,5 +34,3 @@ public:
 		sound.play();
 	}
 };
-
-#endif /* WavPlayer_hpp */

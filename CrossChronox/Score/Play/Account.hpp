@@ -1,5 +1,4 @@
-﻿#ifndef Account_hpp
-#define Account_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Score/Play/PlayOption.hpp"
@@ -47,5 +46,3 @@ extern Account guest_account;
 extern std::vector<Account> accounts;
 
 void LoadAccounts(std::string directorypath);
-
-#endif /* Account_hpp */

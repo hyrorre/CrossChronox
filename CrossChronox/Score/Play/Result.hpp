@@ -1,5 +1,4 @@
-﻿#ifndef Result_hpp
-#define Result_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
@@ -85,5 +84,3 @@ public:
 	std::wstring GetResultStr() const;
 };
 
-
-#endif /* Result_hpp */

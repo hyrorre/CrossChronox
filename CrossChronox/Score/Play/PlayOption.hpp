@@ -1,5 +1,4 @@
-﻿#ifndef PlayOption_hpp
-#define PlayOption_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -297,5 +296,3 @@ public:
 	
 	std::string GetInfoStr() const;
 };
-
-#endif /* PlayOption_hpp */

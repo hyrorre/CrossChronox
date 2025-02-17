@@ -1,5 +1,4 @@
-﻿#ifndef InputManager_hpp
-#define InputManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "System/TimeManager.hpp"
@@ -26,5 +25,3 @@ namespace InputManager{
 	KeyState GetKeyState(const std::string& key_str);
 	KeyState GetKeyFuncState(const std::string& key_func_str);
 };
-
-#endif /* InputManager_hpp */

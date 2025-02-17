@@ -1,5 +1,4 @@
-﻿#ifndef SelectMusic_hpp
-#define SelectMusic_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Scene.hpp"
@@ -19,5 +18,3 @@ public:
 };
 
 extern SelectMusic* scene_select_music_ptr;
-
-#endif /* SelectMusic_hpp */

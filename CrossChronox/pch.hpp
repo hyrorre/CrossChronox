@@ -1,5 +1,4 @@
-﻿#ifndef pch_hpp
-#define pch_hpp
+﻿#pragma once
 
 //SFML
 #include <SFML/Audio.hpp>
@@ -98,5 +97,3 @@ extern std::mt19937 mt_rand;
 
 //pragma
 #pragma execution_character_set("utf-8")
-
-#endif /* pch_hpp */

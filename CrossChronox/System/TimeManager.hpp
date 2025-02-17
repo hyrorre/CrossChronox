@@ -1,5 +1,4 @@
-﻿#ifndef TimeManager_hpp
-#define TimeManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -25,5 +24,3 @@ namespace TimeManager{
 };
 
 using namespace TimeManager;
-
-#endif /* TimeManager_hpp */

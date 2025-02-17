@@ -1,5 +1,4 @@
-﻿#ifndef ScoreDirectoryInfo_hpp
-#define ScoreDirectoryInfo_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "ScoreInfoBase.hpp"
@@ -89,5 +88,3 @@ public:
 
 //BOOST_CLASS_EXPORT_GUID(ScoreDirectoryInfo, "ScoreDirectoryInfo");
 //BOOST_CLASS_VERSION(ScoreDirectoryInfo, 1);
-
-#endif /* ScoreDirectoryInfo_hpp */

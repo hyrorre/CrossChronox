@@ -1,5 +1,4 @@
-﻿#ifndef Application_hpp
-#define Application_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -34,5 +33,3 @@ public:
 	void HandleException(std::exception& e);
 };
 
-
-#endif /* Application_hpp */

@@ -1,5 +1,4 @@
-﻿#ifndef JudgeRank_hpp
-#define JudgeRank_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Mode.hpp"
@@ -64,5 +63,3 @@ public:
 };
 
 //BOOST_CLASS_VERSION(JudgeRank, 1);
-
-#endif /* JudgeRank_hpp */

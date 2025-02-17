@@ -1,5 +1,4 @@
-﻿#ifndef ScorePlayer_hpp
-#define ScorePlayer_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
@@ -69,5 +68,3 @@ public:
 enum{ MAX_PLAYER = 1 };
 
 extern std::array<ScorePlayer, MAX_PLAYER> players;
-
-#endif /* ScorePlayer_hpp */

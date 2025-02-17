@@ -1,5 +1,4 @@
-﻿#ifndef Scene_hpp
-#define Scene_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -19,5 +18,3 @@ public:
 	virtual Scene* Update() = 0;     // update data
 	virtual void Draw(sf::RenderTarget& render_target) const = 0;   // シーンの描画
 };
-
-#endif /* Scene_hpp */

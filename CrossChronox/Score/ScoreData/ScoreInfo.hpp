@@ -1,5 +1,4 @@
-﻿#ifndef ScoreInfo_hpp
-#define ScoreInfo_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Filesystem/ScoreInfoBase.hpp"
@@ -139,5 +138,3 @@ struct ScoreInfo : public ScoreInfoBase{
 
 //BOOST_CLASS_EXPORT_GUID(ScoreInfo, "ScoreInfo");
 //BOOST_CLASS_VERSION(ScoreInfo, 1);
-
-#endif /* ScoreInfo_hpp */

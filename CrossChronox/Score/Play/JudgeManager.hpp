@@ -1,5 +1,4 @@
-﻿#ifndef JudgeManager_hpp
-#define JudgeManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
@@ -32,5 +31,3 @@ namespace JudgeManager{
 	// return pointer to note which sound should be started to play
 	Note* UpdateLane(const std::vector<Note*>& lane_timeline, InputManager::KeyState key_state, ms_type play_ms, lane_t lane, Mode mode, LnType ln_type, std::vector<NoteJudge>* out);
 }
-
-#endif /* JudgeManager_hpp */

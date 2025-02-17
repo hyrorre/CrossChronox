@@ -1,5 +1,4 @@
-﻿#ifndef Mode_hpp
-#define Mode_hpp
+﻿#pragma once
 
 //#include "pch.hpp"
 
@@ -11,5 +10,3 @@ enum Mode{
 	POPN_5K,
 	POPN_9K,
 };
-
-#endif /* Mode_hpp */

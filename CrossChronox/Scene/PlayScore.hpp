@@ -1,5 +1,4 @@
-﻿#ifndef PlayScore_hpp
-#define PlayScore_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Scene.hpp"
@@ -14,5 +13,3 @@ public:
 };
 
 extern PlayScore* scene_play_score_ptr;
-
-#endif /* PlayScore_hpp */

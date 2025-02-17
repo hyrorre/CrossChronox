@@ -1,5 +1,4 @@
-﻿#ifndef WavBuffer_hpp
-#define WavBuffer_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -16,5 +15,3 @@ public:
 	WavBuffer(const char* filename): filename(filename){}
 	bool Load(const std::string& score_directory);
 };
-
-#endif /* WavBuffer_hpp */

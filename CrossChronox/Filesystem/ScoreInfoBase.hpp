@@ -1,5 +1,4 @@
-﻿#ifndef ScoreInfoBase_hpp
-#define ScoreInfoBase_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 
@@ -34,5 +33,3 @@ public:
 
 //BOOST_CLASS_EXPORT(ScoreInfoBase);
 //BOOST_CLASS_VERSION(ScoreInfoBase, 1);
-
-#endif /* ScoreInfoBase_hpp */
