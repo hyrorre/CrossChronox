@@ -4,14 +4,15 @@
 
 class WavPlayer;
 
-class WavBuffer{
-	friend WavPlayer;
+class WavBuffer {
+    friend WavPlayer;
     sf::SoundBuffer buf;
-public:
+
+  public:
     std::string filename;
-    
-    WavBuffer(){}
-    WavBuffer(const std::string& filename): filename(filename){}
-	WavBuffer(const char* filename): filename(filename){}
-	bool Load(const std::string& score_directory);
+
+    WavBuffer() {}
+    WavBuffer(const std::string& filename) : filename(filename) {}
+    WavBuffer(const char* filename) : filename(filename) {}
+    bool Load(const std::string& score_directory);
 };
