@@ -2,11 +2,8 @@
 
 #include "pch.hpp"
 
-// オーナーウィンドウのハンドル
-// メッセージボックス内のテキスト
-// メッセージボックスのタイトル
-// メッセージボックスのスタイル
-int MBox(sf::WindowHandle handle, const char* title, const char* text, unsigned flag);
+#if !defined(_WIN64) && !defined(_WIN32) // if not Windows
+int MessageBoxA(sf::WindowHandle handle, const char* title, const char* text, unsigned flag);
 
 enum : unsigned {
     // buttons
@@ -27,3 +24,4 @@ enum {
     BUTTON_YES = 1,
     BUTTON_NO = 0,
 };
+#endif

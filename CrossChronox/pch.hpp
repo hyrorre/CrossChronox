@@ -1,5 +1,33 @@
 ﻿#pragma once
 
+// C std
+#include <cmath>
+#include <cwchar>
+
+// C++ std
+#include <algorithm>
+#include <array>
+#include <bitset>
+#include <chrono>
+#include <codecvt>
+#include <exception>
+#include <filesystem>
+#include <forward_list>
+#include <fstream>
+#include <locale>
+#include <memory>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <stack>
+#include <stdexcept>
+#include <system_error>
+#include <type_traits>
+#include <typeinfo>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 // SFML
 #include <SFML/Audio.hpp>
 #include <SFML/Config.hpp>
@@ -47,33 +75,50 @@
 // iconv
 #include <iconv.h>
 
-// C std
-#include <cmath>
-#include <cwchar>
-
-// C++ std
-#include <algorithm>
-#include <array>
-#include <bitset>
-#include <chrono>
-#include <codecvt>
-#include <exception>
-#include <filesystem>
-#include <forward_list>
-#include <fstream>
-#include <locale>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <random>
-#include <stack>
-#include <stdexcept>
-#include <system_error>
-#include <type_traits>
-#include <typeinfo>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+// Windows
+#if defined(_WIN64) || defined(_WIN32) // if Windows
+#define WIN32_LEAN_AND_MEAN
+#define NOGDICAPMASKS
+#define NOVIRTUALKEYCODES
+#define NOWINMESSAGES
+#define NOWINSTYLES
+#define NOSYSMETRICS
+#define NOMENUS
+#define NOICONS
+#define NOKEYSTATES
+#define NOSYSCOMMANDS
+#define NORASTEROPS
+#define NOSHOWWINDOW
+#define OEMRESOURCE
+#define NOATOM
+#define NOCLIPBOARD
+#define NOCOLOR
+#define NOCTLMGR
+#define NODRAWTEXT
+#define NOGDI
+#define NOKERNEL
+#define NOUSER
+#define NONLS
+#define NOMB
+#define NOMEMMGR
+#define NOMETAFILE
+#define NOMINMAX
+#define NOMSG
+#define NOOPENFILE
+#define NOSCROLL
+#define NOSERVICE
+#define NOSOUND
+#define NOTEXTMETRIC
+#define NOWH
+#define NOWINOFFSETS
+#define NOCOMM
+#define NOKANJI
+#define NOHELP
+#define NOPROFILER
+#define NODEFERWINDOWPOS
+#define NOMCX
+#include <windows.h>
+#endif
 
 // using (namespace)
 namespace fs = std::filesystem;
