@@ -1,4 +1,4 @@
-#include "Application.hpp"
+﻿#include "Application.hpp"
 #include "Filesystem/Path.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Scene/SceneManager.hpp"
@@ -59,7 +59,7 @@ void Application::Init() {
     SceneManager::Init();
 
     // set up InputManager
-    InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.json").string());
+    InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 }
 

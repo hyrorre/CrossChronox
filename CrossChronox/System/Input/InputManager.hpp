@@ -15,7 +15,7 @@ struct KeyState {
 };
 
 // Call these funcs before using
-void LoadConfig(const std::string& json_path);
+void LoadConfig(const std::string& config_path);
 void SetMode(const std::string& mode);
 
 // Call this func each frame

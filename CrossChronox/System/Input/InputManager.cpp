@@ -64,10 +64,35 @@ modemap_t modemap;
 
 Mode* now_mode = nullptr;
 
-void LoadConfig(const std::string& json_path) {
-    std::ifstream ifs(json_path);
+void LoadConfig(const std::string& config_path) {
+#define INPUT_MANAGER_TOML
+#ifdef INPUT_MANAGER_TOML
+    auto root = toml::parse(config_path).as_table();
+    for (auto& mode_pair : root) {
+        auto& mode = modemap[mode_pair.first];
+        auto& mode_data = mode_pair.second.as_table();
+        auto keymap = mode_data.at("Key").as_table();
+        for (auto& key_pair : keymap) {
+            auto& keyids = mode.keymap[key_pair.first];
+            for (auto keyid : key_pair.second.as_array()) {
+                keyid_t tmp = static_cast<keyid_t>(keyid.as_integer());
+                keyids.emplace_back(tmp);
+                key_states[tmp];
+            }
+        }
+        auto& keyfuncmap = mode_data.at("KeyFunc").as_table();
+        for (auto& func_pair : keyfuncmap) {
+            auto& keynames = mode.keyfuncmap[func_pair.first];
+            for (auto& keyname : func_pair.second.as_array()) {
+                keynames.emplace_back(keyname.as_string());
+            }
+        }
+    }
+#endif
+#ifdef INPUT_MANAGER_JSON
+    std::ifstream ifs(config_path);
     if (!ifs) {
-        throw OpenError(std::string("\"") + json_path + "\" could be not opened.");
+        throw OpenError(std::string("\"") + config_path + "\" could be not opened.");
     }
     picojson::value root_value;
     picojson::parse(root_value, ifs);
@@ -93,6 +118,7 @@ void LoadConfig(const std::string& json_path) {
             }
         }
     }
+#endif
 }
 
 void SetMode(const std::string& mode) {
