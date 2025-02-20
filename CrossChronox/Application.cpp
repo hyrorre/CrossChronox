@@ -1,4 +1,4 @@
-﻿#include "Application.hpp"
+#include "Application.hpp"
 #include "Filesystem/Path.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Scene/SceneManager.hpp"
@@ -67,8 +67,6 @@ Application::Application(int argc, char* argv[]) { //: qapp(argc, argv){
     ParseArgs(argc, argv);
 }
 
-#include <iostream>
-
 int Application::Run() {
 
     // ウインドウが開いている（ゲームループ）
@@ -79,14 +77,6 @@ int Application::Run() {
             // 「クローズが要求された」イベント：ウインドウを閉じる
             if (event.type == sf::Event::Closed) {
                 endflag = true;
-            }
-#ifndef NDEBUG // デバッグ時のみ キーが押された、または離されたとき標準出力に表示
-            if (event.type == sf::Event::KeyPressed) {
-                std::cout << "key code " << event.key.code << " was pressed." << std::endl;
-            }
-            if (event.type == sf::Event::KeyReleased) {
-                std::cout << "key code " << event.key.code << " was released." << std::endl;
-#endif
             }
         }
 
