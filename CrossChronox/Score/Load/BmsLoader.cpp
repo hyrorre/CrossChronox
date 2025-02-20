@@ -292,7 +292,7 @@ const auto PmeChannelToLane = [](int channel) {
 };
 
 int BmsLoader::GetIndex() {
-    boost::string_ref line = nowline;
+    std::string_view line = nowline;
     // #WAV01 music.wav
     auto pos = line.find_first_of("vV");
     if (pos != std::string::npos) {
@@ -469,7 +469,7 @@ bool BmsLoader::TryParseHeaderLine() {
                 // out->info.chart_name = sf::String(difficulty_str.at(out->info.difficulty)).toWideString();
                 Widen(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
             } else if (boost::istarts_with(header, "RANK")) {
-                int i = boost::algorithm::clamp(atoi(GetArg()), 0, 3);
+                int i = std::clamp(atoi(GetArg()), 0, 3);
                 out->info.judge_rank.SetValue(i);
             } else if (boost::istarts_with(header, "BASEBPM")) {
                 out->info.base_bpm = atof(GetArg());
@@ -522,13 +522,13 @@ void BmsLoader::SetSubtitle() {
             {L'<', L'>'},
             {L'\"', L'\"'}};
         boost::trim_right(out->info.title);
-        boost::wstring_ref title = out->info.title;
+        std::wstring_view title = out->info.title;
         for (delim_type delim : delim_list) {
             if (title.back() == delim.second) {
                 auto pos_delim1 = title.substr(0, title.length() - 1).find_last_of(delim.first);
                 if (pos_delim1 != std::string::npos && pos_delim1 != 0) {
-                    out->info.subtitle = title.substr(pos_delim1).to_string();
-                    out->info.title = title.substr(0, pos_delim1).to_string();
+                    out->info.subtitle = std::wstring(title.substr(pos_delim1));
+                    out->info.title = std::wstring(title.substr(0, pos_delim1));
                     boost::trim_right(out->info.title);
                     break;
                 }
@@ -602,10 +602,10 @@ void BmsLoader::SetNotesAndEvents() {
     }
 
     // Sort tmp_notes
-    boost::sort(tmp_notes, ptr_less<TmpNoteData>());
+    std::sort(tmp_notes.begin(), tmp_notes.end(), ptr_less<TmpNoteData>());
 
     // Sort lnobj
-    boost::sort(lnobj);
+    std::sort(lnobj.begin(), lnobj.end());
 
     size_t note_count = 0;
 
@@ -653,7 +653,7 @@ void BmsLoader::SetNotesAndEvents() {
                 if (ln_pushing[lane])
                     lnend_flag = true;
                 ln_pushing[lane] = !ln_pushing[lane];
-            } else if (boost::binary_search(lnobj, tmp_note->index))
+            } else if (std::binary_search(lnobj.begin(), lnobj.end(), tmp_note->index))
                 lnend_flag = true;
             if (lnend_flag) {
                 last_note[lane]->len = tmp_note->global_pulse - last_note[lane]->pulse;

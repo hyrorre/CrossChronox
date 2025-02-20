@@ -99,7 +99,7 @@ struct BGA {
     std::vector<BGAEvent> poor_events;  // picture sequence when missed
 };
 
-struct ScoreData : boost::noncopyable {
+struct ScoreData : private boost::noncopyable {
     std::string version;                               // bmson version
     ScoreInfo info;                                    // information, e.g. title, artist, …
     std::vector<BarLine> lines;                        // location of bar-lines in pulses

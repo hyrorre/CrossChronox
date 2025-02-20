@@ -51,26 +51,7 @@
 #include <cryptopp/md5.h>
 
 // boost
-#include <boost/algorithm/algorithm.hpp>
-#include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/assign.hpp>
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-#include <boost/functional.hpp>
-#include <boost/integer_traits.hpp>
-#include <boost/optional.hpp>
-#include <boost/range.hpp>
-#include <boost/range/algorithm/binary_search.hpp>
-#include <boost/range/algorithm/lower_bound.hpp>
-#include <boost/range/algorithm/sort.hpp>
-#include <boost/range/algorithm/upper_bound.hpp>
-#include <boost/range/algorithm_ext.hpp>
-#include <boost/rational.hpp>
-#include <boost/swap.hpp>
-#include <boost/utility.hpp>
-#include <boost/utility/string_ref.hpp>
-#include <boost/variant.hpp>
 
 // iconv
 #include <iconv.h>
