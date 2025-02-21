@@ -829,7 +829,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
         LoadWavs(path);
 }
 
-void LoadBms(const std::string& path, ScoreData* out, bool load_header_only_flag) throw(LoadError, OpenError, ParseError) {
+void LoadBms(const std::string& path, ScoreData* out, bool load_header_only_flag) noexcept(false) {
     BmsLoader loader;
     loader.Load(path, out, load_header_only_flag);
 }

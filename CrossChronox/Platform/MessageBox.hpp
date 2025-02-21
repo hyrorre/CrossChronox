@@ -3,19 +3,27 @@
 #include "pch.hpp"
 
 #if !defined(_WIN64) && !defined(_WIN32) // if not Windows
-int MessageBoxA(sf::WindowHandle handle, const char* title, const char* text, unsigned flag);
+int MessageBoxA(sf::WindowHandle handle, const char* text, const char* title, unsigned flag);
 
-enum : unsigned {
+enum : long {
     // buttons
-    MBOX_OK = 0b1,
-    MBOX_YESNO = 0b10,
-    MBOX_YESNOCANCEL = 0b100,
+    MB_OK = 0x00000000L,
+    MB_OKCANCEL = 0x00000001L,
+    MB_ABORTRETRYIGNORE = 0x00000002L,
+    MB_YESNOCANCEL = 0x00000003L,
+    MB_YESNO = 0x00000004L,
+    MB_RETRYCANCEL = 0x00000005L,
+    MB_CANCELTRYCONTINUE = 0x00000006L,
 
     // icon
-    MBOX_ICONWARNING = 0b1000,
-    MBOX_ICONINFORMATION = 0b10000,
-    MBOX_ICONQUESTION = 0b100000,
-    MBOX_ICONERROR = 0b1000000,
+    MB_ICONSTOP = 0x00000010L,
+    MB_ICONERROR = 0x00000010L,
+    MB_ICONHAND = 0x00000010L,
+    MB_ICONQUESTION = 0x00000020L,
+    MB_ICONEXCLAMATION = 0x00000030L,
+    MB_ICONWARNING = 0x00000030L,
+    MB_ICONINFORMATION = 0x00000040L,
+    MB_ICONASTERISK = 0x00000040L,
 };
 
 enum {

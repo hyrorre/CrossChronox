@@ -29,29 +29,50 @@
 		563C711D1DAB3C9000CCD81F /* SceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C710E1DAB3C9000CCD81F /* SceneManager.cpp */; };
 		563C713B1DABD71C00CCD81F /* BmsLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71371DABD71C00CCD81F /* BmsLoader.cpp */; };
 		563C71421DABD7E400CCD81F /* PlayScore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 563C71401DABD7E400CCD81F /* PlayScore.cpp */; };
-		563DD46C1E194698002B98A6 /* libboost_filesystem-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD4661E194698002B98A6 /* libboost_filesystem-mt.a */; };
-		563DD46D1E194698002B98A6 /* libboost_filesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD4671E194698002B98A6 /* libboost_filesystem.a */; };
-		563DD46E1E194698002B98A6 /* libboost_serialization-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD4681E194698002B98A6 /* libboost_serialization-mt.a */; };
-		563DD46F1E194698002B98A6 /* libboost_serialization.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD4691E194698002B98A6 /* libboost_serialization.a */; };
-		563DD4701E194698002B98A6 /* libboost_system-mt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD46A1E194698002B98A6 /* libboost_system-mt.a */; };
-		563DD4711E194698002B98A6 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 563DD46B1E194698002B98A6 /* libboost_system.a */; };
 		566C26AC1E530EF40041B70B /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AA1E530EF40041B70B /* Path.cpp */; };
 		566C26B01E530FD80041B70B /* InputManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 566C26AE1E530FD80041B70B /* InputManager.cpp */; };
 		569BC0201EA75A0D006E3CF3 /* Account.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 569BC01E1EA75A0D006E3CF3 /* Account.cpp */; };
 		56A1D4131E9B3F5A0092BBFD /* PlayOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */; };
-		56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B090601E180FD200EDB891 /* libiconv.2.dylib */; };
-		56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B708541E724CEC00BDF44E /* libcryptopp.a */; };
 		56D4A2681E05416800198EF6 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56D4A2661E05416800198EF6 /* Scene.cpp */; };
 		56EAC9FF1DCC191A00511911 /* ScorePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */; };
 		56EACA061DCC509300511911 /* TimeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EACA041DCC509300511911 /* TimeManager.cpp */; };
 		56F1CB4B1DEB2D78007BD827 /* WavManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F1CB491DEB2D78007BD827 /* WavManager.cpp */; };
 		56FD88551EA1E47100F5AF91 /* Setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56FD88531EA1E47100F5AF91 /* Setting.cpp */; };
 		752486961FAC2A8700FC55FE /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486951FAC2A8700FC55FE /* AppKit.framework */; };
-		7524869C1FAC2D2100FC55FE /* libsfml-audio.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */; };
-		7524869D1FAC2D2100FC55FE /* libsfml-graphics.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */; };
-		7524869E1FAC2D2100FC55FE /* libsfml-network.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */; };
-		7524869F1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */; };
-		752486A01FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */; };
+		758E7EBD2D67943600FBB8F3 /* libFLAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EA72D67943400FBB8F3 /* libFLAC.a */; };
+		758E7EBE2D67943600FBB8F3 /* libsfml-network-s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EA82D67943400FBB8F3 /* libsfml-network-s.a */; };
+		758E7EBF2D67943600FBB8F3 /* libFLAC++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EA92D67943400FBB8F3 /* libFLAC++.a */; };
+		758E7EC02D67943600FBB8F3 /* libvorbis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAA2D67943400FBB8F3 /* libvorbis.a */; };
+		758E7EC12D67943600FBB8F3 /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAB2D67943400FBB8F3 /* libvorbisenc.a */; };
+		758E7EC22D67943600FBB8F3 /* libsfml-graphics-s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAC2D67943400FBB8F3 /* libsfml-graphics-s.a */; };
+		758E7EC32D67943600FBB8F3 /* libboost_regex.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAD2D67943500FBB8F3 /* libboost_regex.a */; };
+		758E7EC42D67943600FBB8F3 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAE2D67943500FBB8F3 /* libcryptopp.a */; };
+		758E7EC52D67943600FBB8F3 /* libopenal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EAF2D67943500FBB8F3 /* libopenal.a */; };
+		758E7EC62D67943600FBB8F3 /* libogg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB02D67943500FBB8F3 /* libogg.a */; };
+		758E7EC72D67943600FBB8F3 /* libbrotlienc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB12D67943500FBB8F3 /* libbrotlienc.a */; };
+		758E7EC82D67943600FBB8F3 /* libsfml-window-s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB22D67943500FBB8F3 /* libsfml-window-s.a */; };
+		758E7EC92D67943600FBB8F3 /* libsfml-system-s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB32D67943500FBB8F3 /* libsfml-system-s.a */; };
+		758E7ECA2D67943600FBB8F3 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB42D67943500FBB8F3 /* libz.a */; };
+		758E7ECB2D67943600FBB8F3 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB52D67943500FBB8F3 /* libpng.a */; };
+		758E7ECC2D67943600FBB8F3 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB62D67943500FBB8F3 /* libfreetype.a */; };
+		758E7ECD2D67943600FBB8F3 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB72D67943500FBB8F3 /* libbz2.a */; };
+		758E7ECE2D67943600FBB8F3 /* libvorbisfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB82D67943500FBB8F3 /* libvorbisfile.a */; };
+		758E7ECF2D67943600FBB8F3 /* libbrotlicommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EB92D67943500FBB8F3 /* libbrotlicommon.a */; };
+		758E7ED02D67943600FBB8F3 /* libsfml-audio-s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EBA2D67943500FBB8F3 /* libsfml-audio-s.a */; };
+		758E7ED12D67943600FBB8F3 /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EBB2D67943600FBB8F3 /* libpng16.a */; };
+		758E7ED22D67943600FBB8F3 /* libbrotlidec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EBC2D67943600FBB8F3 /* libbrotlidec.a */; };
+		758E7ED42D67983A00FBB8F3 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7ED32D67983A00FBB8F3 /* CoreAudio.framework */; };
+		758E7ED62D6798AE00FBB8F3 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7ED52D6798AE00FBB8F3 /* IOKit.framework */; };
+		758E7ED82D6798CE00FBB8F3 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7ED72D6798CD00FBB8F3 /* CoreGraphics.framework */; };
+		758E7EDA2D67990700FBB8F3 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7ED92D67990700FBB8F3 /* ApplicationServices.framework */; };
+		758E7EDC2D67993A00FBB8F3 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EDB2D67993900FBB8F3 /* CoreText.framework */; };
+		758E7EDE2D67996900FBB8F3 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EDD2D67996900FBB8F3 /* Carbon.framework */; };
+		758E7EE52D679B7000FBB8F3 /* sfml-audio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EDF2D679B7000FBB8F3 /* sfml-audio.framework */; };
+		758E7EE62D679B7000FBB8F3 /* sfml-system.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EE02D679B7000FBB8F3 /* sfml-system.framework */; };
+		758E7EE72D679B7000FBB8F3 /* sfml-window.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EE12D679B7000FBB8F3 /* sfml-window.framework */; };
+		758E7EE82D679B7000FBB8F3 /* SFML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EE22D679B7000FBB8F3 /* SFML.framework */; };
+		758E7EE92D679B7000FBB8F3 /* sfml-graphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EE32D679B7000FBB8F3 /* sfml-graphics.framework */; };
+		758E7EEA2D679B7000FBB8F3 /* sfml-network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 758E7EE42D679B7000FBB8F3 /* sfml-network.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -115,12 +136,6 @@
 		563C71381DABD71C00CCD81F /* BmsLoader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BmsLoader.hpp; sourceTree = "<group>"; };
 		563C71401DABD7E400CCD81F /* PlayScore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayScore.cpp; sourceTree = "<group>"; };
 		563C71411DABD7E400CCD81F /* PlayScore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayScore.hpp; sourceTree = "<group>"; };
-		563DD4661E194698002B98A6 /* libboost_filesystem-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_filesystem-mt.a"; path = "/Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_filesystem-mt.a"; sourceTree = "<absolute>"; };
-		563DD4671E194698002B98A6 /* libboost_filesystem.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_filesystem.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_filesystem.a; sourceTree = "<absolute>"; };
-		563DD4681E194698002B98A6 /* libboost_serialization-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_serialization-mt.a"; path = "/Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_serialization-mt.a"; sourceTree = "<absolute>"; };
-		563DD4691E194698002B98A6 /* libboost_serialization.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_serialization.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_serialization.a; sourceTree = "<absolute>"; };
-		563DD46A1E194698002B98A6 /* libboost_system-mt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libboost_system-mt.a"; path = "/Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_system-mt.a"; sourceTree = "<absolute>"; };
-		563DD46B1E194698002B98A6 /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libboost_system.a; sourceTree = "<absolute>"; };
 		566C26AA1E530EF40041B70B /* Path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Path.cpp; sourceTree = "<group>"; };
 		566C26AB1E530EF40041B70B /* Path.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Path.hpp; sourceTree = "<group>"; };
 		566C26AE1E530FD80041B70B /* InputManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InputManager.cpp; sourceTree = "<group>"; };
@@ -129,8 +144,6 @@
 		569BC01F1EA75A0D006E3CF3 /* Account.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Account.hpp; sourceTree = "<group>"; };
 		56A1D4111E9B3F5A0092BBFD /* PlayOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayOption.cpp; sourceTree = "<group>"; };
 		56A1D4121E9B3F5A0092BBFD /* PlayOption.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayOption.hpp; sourceTree = "<group>"; };
-		56B090601E180FD200EDB891 /* libiconv.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.dylib; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/lib/libiconv.2.dylib; sourceTree = "<absolute>"; };
-		56B708541E724CEC00BDF44E /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = /Users/HY_RORRE/Documents/Xcode/CrossChronox/../../../../../usr/local/lib/libcryptopp.a; sourceTree = "<absolute>"; };
 		56D4A2661E05416800198EF6 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		56D4A2671E05416800198EF6 /* Scene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
 		56EAC9FD1DCC191A00511911 /* ScorePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScorePlayer.cpp; sourceTree = "<group>"; };
@@ -142,11 +155,40 @@
 		56FD88531EA1E47100F5AF91 /* Setting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Setting.cpp; sourceTree = "<group>"; };
 		56FD88541EA1E47100F5AF91 /* Setting.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Setting.hpp; sourceTree = "<group>"; };
 		752486951FAC2A8700FC55FE /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-audio.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-audio.2.4.2.dylib"; sourceTree = "<group>"; };
-		752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-graphics.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-graphics.2.4.2.dylib"; sourceTree = "<group>"; };
-		752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-network.2.4.2.dylib"; sourceTree = "<group>"; };
-		7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-system.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-system.2.4.2.dylib"; sourceTree = "<group>"; };
-		7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-window.2.4.2.dylib"; path = "../../../../../../usr/local/Cellar/sfml/2.4.2_1/lib/libsfml-window.2.4.2.dylib"; sourceTree = "<group>"; };
+		758E7EA72D67943400FBB8F3 /* libFLAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFLAC.a; path = "vcpkg_installed/x64-osx/lib/libFLAC.a"; sourceTree = "<group>"; };
+		758E7EA82D67943400FBB8F3 /* libsfml-network-s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-network-s.a"; path = "vcpkg_installed/x64-osx/lib/libsfml-network-s.a"; sourceTree = "<group>"; };
+		758E7EA92D67943400FBB8F3 /* libFLAC++.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libFLAC++.a"; path = "vcpkg_installed/x64-osx/lib/libFLAC++.a"; sourceTree = "<group>"; };
+		758E7EAA2D67943400FBB8F3 /* libvorbis.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbis.a; path = "vcpkg_installed/x64-osx/lib/libvorbis.a"; sourceTree = "<group>"; };
+		758E7EAB2D67943400FBB8F3 /* libvorbisenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisenc.a; path = "vcpkg_installed/x64-osx/lib/libvorbisenc.a"; sourceTree = "<group>"; };
+		758E7EAC2D67943400FBB8F3 /* libsfml-graphics-s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-graphics-s.a"; path = "vcpkg_installed/x64-osx/lib/libsfml-graphics-s.a"; sourceTree = "<group>"; };
+		758E7EAD2D67943500FBB8F3 /* libboost_regex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_regex.a; path = "vcpkg_installed/x64-osx/lib/libboost_regex.a"; sourceTree = "<group>"; };
+		758E7EAE2D67943500FBB8F3 /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = "vcpkg_installed/x64-osx/lib/libcryptopp.a"; sourceTree = "<group>"; };
+		758E7EAF2D67943500FBB8F3 /* libopenal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenal.a; path = "vcpkg_installed/x64-osx/lib/libopenal.a"; sourceTree = "<group>"; };
+		758E7EB02D67943500FBB8F3 /* libogg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libogg.a; path = "vcpkg_installed/x64-osx/lib/libogg.a"; sourceTree = "<group>"; };
+		758E7EB12D67943500FBB8F3 /* libbrotlienc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbrotlienc.a; path = "vcpkg_installed/x64-osx/lib/libbrotlienc.a"; sourceTree = "<group>"; };
+		758E7EB22D67943500FBB8F3 /* libsfml-window-s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-window-s.a"; path = "vcpkg_installed/x64-osx/lib/libsfml-window-s.a"; sourceTree = "<group>"; };
+		758E7EB32D67943500FBB8F3 /* libsfml-system-s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-system-s.a"; path = "vcpkg_installed/x64-osx/lib/libsfml-system-s.a"; sourceTree = "<group>"; };
+		758E7EB42D67943500FBB8F3 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "vcpkg_installed/x64-osx/lib/libz.a"; sourceTree = "<group>"; };
+		758E7EB52D67943500FBB8F3 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = "vcpkg_installed/x64-osx/lib/libpng.a"; sourceTree = "<group>"; };
+		758E7EB62D67943500FBB8F3 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = "vcpkg_installed/x64-osx/lib/libfreetype.a"; sourceTree = "<group>"; };
+		758E7EB72D67943500FBB8F3 /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbz2.a; path = "vcpkg_installed/x64-osx/lib/libbz2.a"; sourceTree = "<group>"; };
+		758E7EB82D67943500FBB8F3 /* libvorbisfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisfile.a; path = "vcpkg_installed/x64-osx/lib/libvorbisfile.a"; sourceTree = "<group>"; };
+		758E7EB92D67943500FBB8F3 /* libbrotlicommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbrotlicommon.a; path = "vcpkg_installed/x64-osx/lib/libbrotlicommon.a"; sourceTree = "<group>"; };
+		758E7EBA2D67943500FBB8F3 /* libsfml-audio-s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-audio-s.a"; path = "vcpkg_installed/x64-osx/lib/libsfml-audio-s.a"; sourceTree = "<group>"; };
+		758E7EBB2D67943600FBB8F3 /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = "vcpkg_installed/x64-osx/lib/libpng16.a"; sourceTree = "<group>"; };
+		758E7EBC2D67943600FBB8F3 /* libbrotlidec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbrotlidec.a; path = "vcpkg_installed/x64-osx/lib/libbrotlidec.a"; sourceTree = "<group>"; };
+		758E7ED32D67983A00FBB8F3 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		758E7ED52D6798AE00FBB8F3 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		758E7ED72D6798CD00FBB8F3 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		758E7ED92D67990700FBB8F3 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+		758E7EDB2D67993900FBB8F3 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		758E7EDD2D67996900FBB8F3 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		758E7EDF2D679B7000FBB8F3 /* sfml-audio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-audio.framework"; path = "../../../../../Library/Frameworks/sfml-audio.framework"; sourceTree = "<group>"; };
+		758E7EE02D679B7000FBB8F3 /* sfml-system.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-system.framework"; path = "../../../../../Library/Frameworks/sfml-system.framework"; sourceTree = "<group>"; };
+		758E7EE12D679B7000FBB8F3 /* sfml-window.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-window.framework"; path = "../../../../../Library/Frameworks/sfml-window.framework"; sourceTree = "<group>"; };
+		758E7EE22D679B7000FBB8F3 /* SFML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SFML.framework; path = ../../../../../Library/Frameworks/SFML.framework; sourceTree = "<group>"; };
+		758E7EE32D679B7000FBB8F3 /* sfml-graphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-graphics.framework"; path = "../../../../../Library/Frameworks/sfml-graphics.framework"; sourceTree = "<group>"; };
+		758E7EE42D679B7000FBB8F3 /* sfml-network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-network.framework"; path = "../../../../../Library/Frameworks/sfml-network.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,20 +196,41 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7524869C1FAC2D2100FC55FE /* libsfml-audio.2.4.2.dylib in Frameworks */,
-				7524869D1FAC2D2100FC55FE /* libsfml-graphics.2.4.2.dylib in Frameworks */,
-				7524869E1FAC2D2100FC55FE /* libsfml-network.2.4.2.dylib in Frameworks */,
-				7524869F1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib in Frameworks */,
-				752486A01FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib in Frameworks */,
+				758E7EE52D679B7000FBB8F3 /* sfml-audio.framework in Frameworks */,
+				758E7EE62D679B7000FBB8F3 /* sfml-system.framework in Frameworks */,
+				758E7EE72D679B7000FBB8F3 /* sfml-window.framework in Frameworks */,
+				758E7EE82D679B7000FBB8F3 /* SFML.framework in Frameworks */,
+				758E7EE92D679B7000FBB8F3 /* sfml-graphics.framework in Frameworks */,
+				758E7EEA2D679B7000FBB8F3 /* sfml-network.framework in Frameworks */,
+				758E7EDE2D67996900FBB8F3 /* Carbon.framework in Frameworks */,
+				758E7EDC2D67993A00FBB8F3 /* CoreText.framework in Frameworks */,
+				758E7EDA2D67990700FBB8F3 /* ApplicationServices.framework in Frameworks */,
+				758E7ED82D6798CE00FBB8F3 /* CoreGraphics.framework in Frameworks */,
+				758E7ED62D6798AE00FBB8F3 /* IOKit.framework in Frameworks */,
+				758E7ED42D67983A00FBB8F3 /* CoreAudio.framework in Frameworks */,
+				758E7ECA2D67943600FBB8F3 /* libz.a in Frameworks */,
 				752486961FAC2A8700FC55FE /* AppKit.framework in Frameworks */,
-				56B090631E180FD300EDB891 /* libiconv.2.dylib in Frameworks */,
-				563DD46E1E194698002B98A6 /* libboost_serialization-mt.a in Frameworks */,
-				563DD4701E194698002B98A6 /* libboost_system-mt.a in Frameworks */,
-				563DD4711E194698002B98A6 /* libboost_system.a in Frameworks */,
-				563DD46C1E194698002B98A6 /* libboost_filesystem-mt.a in Frameworks */,
-				56B708551E724CEC00BDF44E /* libcryptopp.a in Frameworks */,
-				563DD46D1E194698002B98A6 /* libboost_filesystem.a in Frameworks */,
-				563DD46F1E194698002B98A6 /* libboost_serialization.a in Frameworks */,
+				758E7ECC2D67943600FBB8F3 /* libfreetype.a in Frameworks */,
+				758E7EC42D67943600FBB8F3 /* libcryptopp.a in Frameworks */,
+				758E7ED12D67943600FBB8F3 /* libpng16.a in Frameworks */,
+				758E7ECB2D67943600FBB8F3 /* libpng.a in Frameworks */,
+				758E7EC82D67943600FBB8F3 /* libsfml-window-s.a in Frameworks */,
+				758E7EC22D67943600FBB8F3 /* libsfml-graphics-s.a in Frameworks */,
+				758E7EC92D67943600FBB8F3 /* libsfml-system-s.a in Frameworks */,
+				758E7EC62D67943600FBB8F3 /* libogg.a in Frameworks */,
+				758E7EC02D67943600FBB8F3 /* libvorbis.a in Frameworks */,
+				758E7ED22D67943600FBB8F3 /* libbrotlidec.a in Frameworks */,
+				758E7EC52D67943600FBB8F3 /* libopenal.a in Frameworks */,
+				758E7ED02D67943600FBB8F3 /* libsfml-audio-s.a in Frameworks */,
+				758E7EBF2D67943600FBB8F3 /* libFLAC++.a in Frameworks */,
+				758E7EBE2D67943600FBB8F3 /* libsfml-network-s.a in Frameworks */,
+				758E7EBD2D67943600FBB8F3 /* libFLAC.a in Frameworks */,
+				758E7ECE2D67943600FBB8F3 /* libvorbisfile.a in Frameworks */,
+				758E7EC12D67943600FBB8F3 /* libvorbisenc.a in Frameworks */,
+				758E7ECF2D67943600FBB8F3 /* libbrotlicommon.a in Frameworks */,
+				758E7EC72D67943600FBB8F3 /* libbrotlienc.a in Frameworks */,
+				758E7ECD2D67943600FBB8F3 /* libbz2.a in Frameworks */,
+				758E7EC32D67943600FBB8F3 /* libboost_regex.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +309,6 @@
 				563C70E71DAB3C5700CCD81F /* CrossChronox */,
 				563C71221DAB3D2B00CCD81F /* Frameworks */,
 				563C70E61DAB3C5700CCD81F /* Products */,
-				563C70EF1DAB3C5700CCD81F /* Resources */,
 				563C70E81DAB3C5700CCD81F /* Supporting Files */,
 				563690251E27E274009F1A35 /* .gitignore */,
 				563690231E27E241009F1A35 /* README.md */,
@@ -286,13 +348,6 @@
 			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		563C70EF1DAB3C5700CCD81F /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
 		563C71041DAB3C9000CCD81F /* Platform */ = {
 			isa = PBXGroup;
 			children = (
@@ -320,20 +375,41 @@
 		563C71221DAB3D2B00CCD81F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				752486971FAC2D2000FC55FE /* libsfml-audio.2.4.2.dylib */,
-				752486981FAC2D2000FC55FE /* libsfml-graphics.2.4.2.dylib */,
-				752486991FAC2D2000FC55FE /* libsfml-network.2.4.2.dylib */,
-				7524869A1FAC2D2100FC55FE /* libsfml-system.2.4.2.dylib */,
-				7524869B1FAC2D2100FC55FE /* libsfml-window.2.4.2.dylib */,
+				758E7EDF2D679B7000FBB8F3 /* sfml-audio.framework */,
+				758E7EE32D679B7000FBB8F3 /* sfml-graphics.framework */,
+				758E7EE42D679B7000FBB8F3 /* sfml-network.framework */,
+				758E7EE02D679B7000FBB8F3 /* sfml-system.framework */,
+				758E7EE12D679B7000FBB8F3 /* sfml-window.framework */,
+				758E7EE22D679B7000FBB8F3 /* SFML.framework */,
+				758E7EDD2D67996900FBB8F3 /* Carbon.framework */,
+				758E7EDB2D67993900FBB8F3 /* CoreText.framework */,
+				758E7ED92D67990700FBB8F3 /* ApplicationServices.framework */,
+				758E7ED72D6798CD00FBB8F3 /* CoreGraphics.framework */,
+				758E7ED52D6798AE00FBB8F3 /* IOKit.framework */,
+				758E7ED32D67983A00FBB8F3 /* CoreAudio.framework */,
+				758E7EAD2D67943500FBB8F3 /* libboost_regex.a */,
+				758E7EB92D67943500FBB8F3 /* libbrotlicommon.a */,
+				758E7EBC2D67943600FBB8F3 /* libbrotlidec.a */,
+				758E7EB12D67943500FBB8F3 /* libbrotlienc.a */,
+				758E7EB72D67943500FBB8F3 /* libbz2.a */,
+				758E7EAE2D67943500FBB8F3 /* libcryptopp.a */,
+				758E7EA72D67943400FBB8F3 /* libFLAC.a */,
+				758E7EA92D67943400FBB8F3 /* libFLAC++.a */,
+				758E7EB62D67943500FBB8F3 /* libfreetype.a */,
+				758E7EB02D67943500FBB8F3 /* libogg.a */,
+				758E7EAF2D67943500FBB8F3 /* libopenal.a */,
+				758E7EB52D67943500FBB8F3 /* libpng.a */,
+				758E7EBB2D67943600FBB8F3 /* libpng16.a */,
+				758E7EBA2D67943500FBB8F3 /* libsfml-audio-s.a */,
+				758E7EAC2D67943400FBB8F3 /* libsfml-graphics-s.a */,
+				758E7EA82D67943400FBB8F3 /* libsfml-network-s.a */,
+				758E7EB32D67943500FBB8F3 /* libsfml-system-s.a */,
+				758E7EB22D67943500FBB8F3 /* libsfml-window-s.a */,
+				758E7EAA2D67943400FBB8F3 /* libvorbis.a */,
+				758E7EAB2D67943400FBB8F3 /* libvorbisenc.a */,
+				758E7EB82D67943500FBB8F3 /* libvorbisfile.a */,
+				758E7EB42D67943500FBB8F3 /* libz.a */,
 				752486951FAC2A8700FC55FE /* AppKit.framework */,
-				563DD4661E194698002B98A6 /* libboost_filesystem-mt.a */,
-				563DD4671E194698002B98A6 /* libboost_filesystem.a */,
-				563DD4681E194698002B98A6 /* libboost_serialization-mt.a */,
-				563DD4691E194698002B98A6 /* libboost_serialization.a */,
-				563DD46A1E194698002B98A6 /* libboost_system-mt.a */,
-				563DD46B1E194698002B98A6 /* libboost_system.a */,
-				56B090601E180FD200EDB891 /* libiconv.2.dylib */,
-				56B708541E724CEC00BDF44E /* libcryptopp.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -399,7 +475,7 @@
 		563C70DC1DAB3C5700CCD81F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = hyrorre;
 				TargetAttributes = {
 					563C70E41DAB3C5700CCD81F = {
@@ -411,10 +487,11 @@
 			};
 			buildConfigurationList = 563C70DF1DAB3C5700CCD81F /* Build configuration list for PBXProject "CrossChronox" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 563C70DB1DAB3C5700CCD81F;
 			productRefGroup = 563C70E61DAB3C5700CCD81F /* Products */;
@@ -487,14 +564,24 @@
 		563C70F81DAB3C5700CCD81F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -522,14 +609,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"$(SFML_SYSTEM)",
-					"$(SFML_WINDOW)",
-					"$(SFML_GRAPHICS)",
-					"$(SFML_AUDIO)",
-					"$(SFML_NETWORK)",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				SFML_AUDIO = "$(SFML_LINK_PREFIX) sfml-audio$(SFML_LINK_SUFFIX)";
 				SFML_BINARY_TYPE = FRAMEWORKS;
 				SFML_GRAPHICS = "$(SFML_LINK_PREFIX) sfml-graphics$(SFML_LINK_SUFFIX)";
@@ -549,14 +629,24 @@
 		563C70F91DAB3C5700CCD81F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -582,14 +672,7 @@
 					"$(inherited)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"$(SFML_SYSTEM)",
-					"$(SFML_WINDOW)",
-					"$(SFML_GRAPHICS)",
-					"$(SFML_AUDIO)",
-					"$(SFML_NETWORK)",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				SFML_AUDIO = "$(SFML_LINK_PREFIX) sfml-audio$(SFML_LINK_SUFFIX)";
 				SFML_BINARY_TYPE = FRAMEWORKS;
 				SFML_GRAPHICS = "$(SFML_LINK_PREFIX) sfml-graphics$(SFML_LINK_SUFFIX)";
@@ -609,10 +692,14 @@
 		563C70FB1DAB3C5700CCD81F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
-				DEVELOPMENT_TEAM = XXNJ6K5U32;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
@@ -620,37 +707,72 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Library/Frameworks/QtCore.framework/Headers,
-					/Library/Frameworks/QtWidgets.framework/Headers,
 					"$(PROJECT_DIR)/CrossChronox",
+					"$(PROJECT_DIR)/vcpkg_installed/x64-osx/include",
 				);
 				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/vcpkg_installed/x64-osx/lib",
 					"$(inherited)",
-					/usr/local/Cellar/cryptopp/5.6.4/lib,
-					/usr/local/Cellar/jpeg/8d/lib,
-					/usr/local/Cellar/sfml/2.4.2_1/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
+				OTHER_LDFLAGS = (
+					"-lsfml-system-s",
+					"-lsfml-window-s",
+					"-lsfml-graphics-s",
+					"-lsfml-audio-s",
+					"-lsfml-network-s",
+					"$(inherited)",
+					"-framework",
+					CoreAudio,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					CoreFoundation,
+					"-framework",
+					CoreAudio,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					CoreFoundation,
+					"-framework",
+					CoreGraphics,
+					"-framework",
+					ApplicationServices,
+					"-framework",
+					CoreText,
+					"-framework",
+					Carbon,
+					"-liconv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hyrorre.crosschronox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SFML_BINARY_TYPE = "";
+				SFML_LINK_FRAMEWORKS_PREFIX = "";
 			};
 			name = Debug;
 		};
 		563C70FC1DAB3C5700CCD81F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
-				DEVELOPMENT_TEAM = XXNJ6K5U32;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
@@ -658,26 +780,57 @@
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = CrossChronox/pch.hpp;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Library/Frameworks/QtCore.framework/Headers,
-					/Library/Frameworks/QtWidgets.framework/Headers,
 					"$(PROJECT_DIR)/CrossChronox",
+					"$(PROJECT_DIR)/vcpkg_installed/x64-osx/include",
 				);
 				INFOPLIST_FILE = "Supporting Files/CrossChronox-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/vcpkg_installed/x64-osx/lib",
 					"$(inherited)",
-					/usr/local/Cellar/cryptopp/5.6.4/lib,
-					/usr/local/Cellar/jpeg/8d/lib,
-					/usr/local/Cellar/sfml/2.4.2_1/lib,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "hyrorre.${PRODUCT_NAME:rfc1034identifier}";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_LDFLAGS = (
+					"-lsfml-system-s",
+					"-lsfml-window-s",
+					"-lsfml-graphics-s",
+					"-lsfml-audio-s",
+					"-lsfml-network-s",
+					"$(inherited)",
+					"-framework",
+					CoreAudio,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					CoreFoundation,
+					"-framework",
+					CoreAudio,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					CoreFoundation,
+					"-framework",
+					CoreGraphics,
+					"-framework",
+					ApplicationServices,
+					"-framework",
+					CoreText,
+					"-framework",
+					Carbon,
+					"-liconv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hyrorre.crosschronox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SFML_BINARY_TYPE = "";
+				SFML_LINK_FRAMEWORKS_PREFIX = "";
 			};
 			name = Release;
 		};

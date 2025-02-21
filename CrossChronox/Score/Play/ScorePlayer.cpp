@@ -13,11 +13,11 @@ void ScorePlayer::SetLaneTimelines() {
     for (auto& tl : lane_timelines)
         tl.clear();
     std::vector<lane_t> placements;
-    if (score.info.mode = BEAT_7K) {
+    if (score.info.mode == BEAT_7K) {
         placements.resize(7);
         if (players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == RANDOM) {
             std::iota(placements.begin(), placements.end(), 1);
-            for (int i = placements.size() - 1; i > 0; --i) {
+            for (int i = static_cast<int>(placements.size() - 1); i > 0; --i) {
                 std::uniform_int_distribution<int> dist(0, i);
                 int j = dist(mt_rand);
                 std::swap(placements[i], placements[j]);

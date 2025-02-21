@@ -1,7 +1,7 @@
 ﻿#include "MD5.hpp"
 
 bool StringToMD5(const char* str, std::string* out, size_t len) {
-
+    typedef unsigned char byte;
     byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
 
     CryptoPP::Weak::MD5 hash;
