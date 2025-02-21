@@ -10,15 +10,14 @@ LICENSE : LGPL v3
 
 # Dependencies
 * boost
-* picojson
 * SFML2
 * Crypto++
 * libiconv (only Windows)
 
 # Building on macOS(Xcode)
-1. Install boost, picojson, Crypto++, SFML2 and libiconv with vcpkg
+1. Install boost, Crypto++, SFML2 and libiconv with vcpkg
 1. Open CrossChronox.xcodeproj and build!
 
 # Building on Windows(Visual Studio 2022)
-1. Install boost, picojson, Crypto++, SFML2 and libiconv with vcpkg
+1. Install boost, Crypto++, SFML2 and libiconv with vcpkg
 1. Open CrossChronox.sln and build!

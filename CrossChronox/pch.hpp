@@ -39,10 +39,6 @@
 // libiconv (iconv)
 #include <iconv.h>
 
-// picojson
-#define PICOJSON_USE_INT64
-#include <picojson/picojson.h>
-
 // serdepp
 #include <serdepp/adaptor/toml11.hpp>
 #include <serdepp/serde.hpp>

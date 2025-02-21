@@ -3,7 +3,6 @@
     "boost-algorithm",
     "cryptopp",
     "libiconv",
-    "picojson",
     "serdepp",
     "sfml",
     "toml11"
