@@ -29,13 +29,10 @@ class Total {
         this->value = value;
     }
 
-    // private:
-    //	friend class boost::serialization::access;
-    //	template<class Archive>
-    //	void serialize(Archive& ar, const unsigned int version){
-    //		ar & BOOST_SERIALIZATION_NVP(type);
-    //		ar & BOOST_SERIALIZATION_NVP(value);
-    //	}
+    template <class Context>
+    constexpr static void serde(Context& context, Total& value) {
+        serde::serde_struct(context, value)
+            .field(&Total::type, "type")
+            .field(&Total::value, "value");
+    }
 };
-
-// BOOST_CLASS_VERSION(Total, 1);

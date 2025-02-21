@@ -1,12 +1,12 @@
 # CrossChronox
 # score info cache file
-Song.xml
+Song.toml
 
 # backup files
 *.bak
 
 # setting files
-Setting.xml
+Setting.toml
 
 # Dependencies
 lib

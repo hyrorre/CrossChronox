@@ -73,7 +73,7 @@ void ScoreDirectoryLoader::Load(const fs::path& path, ScoreDirectoryInfo* out) {
             if (IsScoreFolder(it->path())) {
                 LoadScores(it->path(), out);
             } else {
-                auto* child = new ScoreDirectoryInfo(it->path());
+                auto* child = new ScoreDirectoryInfo(it->path().string());
                 out->children.emplace_back(child);
                 child->parent = out;
                 child->title = it->path().filename().wstring();

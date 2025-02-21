@@ -53,13 +53,10 @@ class JudgeRank {
         this->value = value;
     }
 
-    // private:
-    //	friend class boost::serialization::access;
-    //	template<class Archive>
-    //	void serialize(Archive& ar, const unsigned int version){
-    //		ar & BOOST_SERIALIZATION_NVP(type);
-    //		ar & BOOST_SERIALIZATION_NVP(value);
-    //	}
+    template <class Context>
+    constexpr static void serde(Context& context, JudgeRank& value) {
+        serde::serde_struct(context, value)
+            .field(&JudgeRank::type, "type")
+            .field(&JudgeRank::value, "value");
+    }
 };
-
-// BOOST_CLASS_VERSION(JudgeRank, 1);

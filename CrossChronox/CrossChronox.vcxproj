@@ -151,7 +151,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -168,7 +168,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -187,7 +187,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -208,7 +208,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>

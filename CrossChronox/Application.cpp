@@ -30,7 +30,7 @@ void Application::Init() {
     setlocale(LC_ALL, "");
     // std::locale::global(std::locale(""));
 
-    setting.TryLoadFile((GetAppdataPath() / "Config/Setting.xml").string());
+    setting.TryLoadFile((GetAppdataPath() / "Config/Setting.toml").string());
 
     int w = setting.GetResolutionX();
     int h = setting.GetResolutionY();
@@ -116,7 +116,7 @@ int Application::Run() {
 void Application::Quit() {
     // TODO: なぜかgetPosition()が絶対に(0, 0)を返すため保留
     // setting.SetWindowPos(window.getPosition());
-    setting.SaveFile((GetAppdataPath() / "Config/Setting.xml").string());
+    setting.SaveFile((GetAppdataPath() / "Config/Setting.toml").string());
 }
 
 Application::~Application() {

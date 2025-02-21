@@ -71,12 +71,8 @@ class Setting {
 
     bool TryLoadFile(const std::string& filepath) {
         try {
-            std::ifstream ifs(filepath);
-            if (!ifs) {
-                return false;
-            }
-            // boost::archive::xml_iarchive iarchive(ifs);
-            // iarchive >> boost::serialization::make_nvp("root", *this);
+            auto str = serde::parse_file<serde::toml_v>(filepath);
+            *this = serde::deserialize<Setting>(str);
             return true;
         } catch (std::exception& e) {
             return false;
@@ -85,31 +81,28 @@ class Setting {
 
     void SaveFile(const std::string& filepath) {
         std::ofstream ofs(filepath);
-        // boost::archive::xml_oarchive oarchive(ofs);
-        // oarchive << boost::serialization::make_nvp("root", *this);
+        auto str = serde::serialize<serde::toml_v>(*this);
+        ofs << str;
     }
 
-    // private:
-    //	friend class boost::serialization::access;
-    //	template<class Archive>
-    //	void serialize(Archive& ar, const unsigned int version){
-    //		ar & BOOST_SERIALIZATION_NVP(window_type);
-    //		ar & BOOST_SERIALIZATION_NVP(save_resolution);
-    //		ar & BOOST_SERIALIZATION_NVP(resolution_x);
-    //		ar & BOOST_SERIALIZATION_NVP(resolution_y);
-    //		ar & BOOST_SERIALIZATION_NVP(save_window_pos);
-    //		ar & BOOST_SERIALIZATION_NVP(window_pos_x);
-    //		ar & BOOST_SERIALIZATION_NVP(window_pos_y);
-    //		ar & BOOST_SERIALIZATION_NVP(save_window_size);
-    //		ar & BOOST_SERIALIZATION_NVP(window_size_x);
-    //		ar & BOOST_SERIALIZATION_NVP(window_size_y);
-    //		ar & BOOST_SERIALIZATION_NVP(vsync);
-    //		ar & BOOST_SERIALIZATION_NVP(max_fps);
-    //		ar & BOOST_SERIALIZATION_NVP(song_paths);
-    //		ar & BOOST_SERIALIZATION_NVP(table_urls);
-    //	}
+    template <class Context>
+    constexpr static void serde(Context& context, Setting& value) {
+        serde::serde_struct(context, value)
+            .field(&Setting::window_type, "window_type")
+            .field(&Setting::save_resolution, "save_resolution")
+            .field(&Setting::resolution_x, "resolution_x")
+            .field(&Setting::resolution_y, "resolution_y")
+            .field(&Setting::save_window_size, "save_window_size")
+            .field(&Setting::window_size_x, "window_size_x")
+            .field(&Setting::window_size_y, "window_size_y")
+            .field(&Setting::save_window_pos, "save_window_pos")
+            .field(&Setting::window_pos_x, "window_pos_x")
+            .field(&Setting::window_pos_y, "window_pos_y")
+            .field(&Setting::vsync, "vsync")
+            .field(&Setting::max_fps, "max_fps")
+            .field(&Setting::song_paths, "song_paths")
+            .field(&Setting::table_urls, "table_urls");
+    }
 };
 
 extern Setting setting;
-
-// BOOST_CLASS_VERSION(Setting, 1);

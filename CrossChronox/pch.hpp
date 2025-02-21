@@ -28,6 +28,25 @@
 #include <utility>
 #include <vector>
 
+// boost
+#include <boost/algorithm/string.hpp>
+
+// Crypto++ (cryptopp)
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 // to use md5
+#include <cryptopp/hex.h>
+#include <cryptopp/md5.h>
+
+// libiconv (iconv)
+#include <iconv.h>
+
+// picojson
+#define PICOJSON_USE_INT64
+#include <picojson/picojson.h>
+
+// serdepp
+#include <serdepp/adaptor/toml11.hpp>
+#include <serdepp/serde.hpp>
+
 // SFML
 #include <SFML/Audio.hpp>
 #include <SFML/Config.hpp>
@@ -40,21 +59,6 @@
 
 // toml11
 #include <toml.hpp>
-
-// picojson
-#define PICOJSON_USE_INT64
-#include <picojson/picojson.h>
-
-// Crypto++ (cryptopp)
-#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 // to use md5
-#include <cryptopp/hex.h>
-#include <cryptopp/md5.h>
-
-// boost
-#include <boost/algorithm/string.hpp>
-
-// iconv
-#include <iconv.h>
 
 // Windows
 #if defined(_WIN64) || defined(_WIN32) // if Windows

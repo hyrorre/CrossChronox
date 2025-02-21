@@ -5,13 +5,14 @@
 std::string score_info_cache_path;
 
 void SetScoreInfoCachePath() {
-    // static bool inited = false;
-    // if(!inited){
-    // 	inited = true;
-    // 	fs::path database = GetAppdataPath() / "Database";
-    // 	if(!fs::exists(database)) fs::create_directories(database);
-    // 	score_info_cache_path = (database / "Song.xml").string();
-    // }
+    static bool inited = false;
+    if (!inited) {
+        inited = true;
+        fs::path database = GetAppdataPath() / "Database";
+        if (!fs::exists(database))
+            fs::create_directories(database);
+        score_info_cache_path = (database / "Song.toml").string();
+    }
 }
 
 void ScoreDirectoryInfo::LoadScoreDirectory() {
@@ -20,32 +21,23 @@ void ScoreDirectoryInfo::LoadScoreDirectory() {
 }
 
 void ScoreDirectoryInfo::SaveScoreDirectoryCache() const {
-    // SetScoreInfoCachePath();
-    // std::ofstream ofs(score_info_cache_path);
-    // ofs.imbue(std::locale(""));
-    // boost::archive::xml_oarchive oarchive(ofs);
-    // oarchive.register_type<ScoreInfo>();
-    // oarchive.register_type<ScoreDirectoryInfo>();
-    // oarchive << boost::serialization::make_nvp("root", *this);
+    SetScoreInfoCachePath();
+    std::ofstream ofs(score_info_cache_path);
+    auto str = serde::serialize<serde::toml_v>(*this);
+    ofs << str;
 }
 
 bool ScoreDirectoryInfo::TryLoadScoreDirectoryCache() {
-    SetScoreInfoCachePath();
-    std::ifstream ifs(score_info_cache_path);
-    ifs.imbue(std::locale(""));
-    if (!ifs) { // if score info cache does not exist
-        return false;
-    } else
-        try {
-            children.clear();
-            // boost::archive::xml_iarchive iarchive(ifs);
-            // iarchive.register_type<ScoreInfo>();
-            // iarchive.register_type<ScoreDirectoryInfo>();
+    try {
+        SetScoreInfoCachePath();
+        children.clear();
 
-            // iarchive >> boost::serialization::make_nvp("root", *this);
-            return true;
-        } catch (std::exception& e) {
-            Clear();
-            return false;
-        }
+        // auto str = serde::parse_file<serde::toml_v>(score_info_cache_path);
+        // *this = serde::deserialize<ScoreDirectoryInfo>(str);
+        // return true;
+        return false;
+    } catch (std::exception& e) {
+        Clear();
+        return false;
+    }
 }

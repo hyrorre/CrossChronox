@@ -4,7 +4,9 @@
     "cryptopp",
     "libiconv",
     "picojson",
+    "serdepp",
     "sfml",
     "toml11"
-  ]
+  ],
+  "overrides": [{ "name": "toml11", "version": "3.7.1" }]
 }
