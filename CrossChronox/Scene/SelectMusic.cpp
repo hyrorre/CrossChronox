@@ -1,8 +1,8 @@
 ﻿#include "SelectMusic.hpp"
 #include "Application.hpp"
 #include "PlayScore.hpp"
-#include "System/DefaultFont.hpp"
 #include "System/Input/InputManager.hpp"
+#include "Filesystem/ScoreDirectoryLoader.hpp"
 
 SelectMusic scene_select_music;
 
@@ -62,12 +62,12 @@ Scene* SelectMusic::Update() {
                     text_info.setString(now_directory->At(0)->GetInfoStr());
                 }
             } else {
-                Application::SetScoreFilePath(tmp_info->path);
+                app_ptr->SetScoreFilePath(tmp_info->path);
                 return scene_play_score_ptr;
             }
         }
         if (InputManager::GetKeyFuncState("ReloadFolder").now == 1) {
-            root.LoadScoreDirectory();
+            ScoreDirectoryLoader().Load(GetAppdataPath() / "Songs", &root);
             root.SaveScoreDirectoryCache();
         }
     }
@@ -78,15 +78,15 @@ void SelectMusic::Init() {
     if (!inited) {
         inited = true;
         if (!root.TryLoadScoreDirectoryCache()) {
-            root.LoadScoreDirectory();
+            ScoreDirectoryLoader().Load(GetAppdataPath() / "Songs", &root);
             root.SaveScoreDirectoryCache();
         }
 
-        text_songlist.setFont(font_default);
+        text_songlist.setFont(app_ptr->GetDefaultFont());
         text_songlist.setPosition(1000, 50);
         text_songlist.setScale(1.5, 1.5);
 
-        text_info.setFont(font_default);
+        text_info.setFont(app_ptr->GetDefaultFont());
         text_info.setCharacterSize(40);
     }
 }

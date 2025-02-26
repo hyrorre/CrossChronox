@@ -2,7 +2,39 @@
 
 #include "pch.hpp"
 
-bool FileToMD5(const std::string& path, std::string* out);
-bool StringToMD5(const std::string& str, std::string* out);
-bool StringToMD5(const char* str, std::string* out);
-bool StringToMD5(const char* str, std::string* out, size_t len);
+
+
+inline bool StringToMD5(const char* str, std::string* out, size_t len) {
+    typedef unsigned char byte;
+    byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
+
+    CryptoPP::Weak::MD5 hash;
+    hash.CalculateDigest(digest, (const byte*)str, len);
+
+    CryptoPP::HexEncoder encoder;
+
+    encoder.Attach(new CryptoPP::StringSink(*out));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+    return true;
+}
+
+
+inline bool StringToMD5(const char* str, std::string* out) {
+    return StringToMD5(str, out, strlen(str));
+}
+
+inline bool StringToMD5(const std::string& str, std::string* out) {
+    return StringToMD5(str.c_str(), out, str.length());
+}
+
+inline bool FileToMD5(const std::string& path, std::string* out) {
+    std::ifstream ifs(path);
+    if (!ifs)
+        return false;
+    std::istreambuf_iterator<char> it(ifs);
+    std::istreambuf_iterator<char> last;
+    std::string file_str(it, last);
+
+    return StringToMD5(file_str, out);
+}

@@ -104,5 +104,3 @@ class Setting {
             .field(&Setting::table_urls, "table_urls");
     }
 };
-
-extern Setting setting;

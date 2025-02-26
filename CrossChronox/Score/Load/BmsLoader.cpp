@@ -1,5 +1,6 @@
 ﻿#include "BmsLoader.hpp"
 #include "Filesystem/MD5.hpp"
+#include "Application.hpp"
 
 // BMS command memo (draft) (English)
 // http://hitkey.nekokan.dyndns.info/cmds.htm
@@ -413,7 +414,7 @@ bool BmsLoader::TryParseHeaderLine() {
         } else if (boost::istarts_with(header, "RANDOM")) {
             int random_max = atoi(GetArg());
             std::uniform_int_distribution<> dist(1, random_max);
-            random_num = dist(mt_rand);
+            random_num = dist(app_ptr->Rand());
             out->info.random_flag = true;
         }
         // Other Headers

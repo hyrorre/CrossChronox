@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "pch.hpp"
 #include "Filesystem/ScoreInfoBase.hpp"
@@ -8,7 +8,17 @@
 
 using pulse_t = unsigned long;
 
-const std::string& GetModeString(Mode mode);
+const std::wstring GetModeString(Mode mode) {
+    const std::vector<std::wstring> mode_str = {
+        L"beat-5k",
+        L"beat-7k",
+        L"beat-10k",
+        L"beat-14k",
+        L"popn-5k",
+        L"popn-9k"
+    };
+    return mode_str[static_cast<size_t>(mode)];
+}
 
 enum LnType {
     LN_NORMAL,
@@ -53,7 +63,26 @@ struct ScoreInfo : public ScoreInfoBase {
         return ss.str();
     }
 
-    std::wstring GetInfoStr() const;
+    std::wstring GetInfoStr() const {
+        std::wstringstream ss;
+        ss << L"title" << title;
+        ss << L"subtitle" << subtitle;
+        ss << L"artist" << artist;
+        ss << L"genre" << genre;
+        ss << L"mode"
+            L": "
+        << GetModeString(mode) << L'\n';
+        ss << L"chart_name" << chart_name;
+        ss << L"difficulty" << difficulty;
+        ss << L"level" << level;
+        ss << L"note_count" << note_count;
+        ss << L"init_bpm" << init_bpm;
+        ss << L"base_bpm" << base_bpm;
+        ss << L"max_bpm" << max_bpm;
+        ss << L"min_bpm" << min_bpm;
+        ss << std::endl;
+        return ss.str();
+    }
 
     ScoreInfo() {}
     ScoreInfo(std::string path) : ScoreInfoBase(path) {}

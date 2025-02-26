@@ -1,8 +1,8 @@
-﻿#include "PlayScore.hpp"
+#include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
-#include "System/DefaultFont.hpp"
 #include "System/Input/InputManager.hpp"
+#include "Application.hpp"
 
 PlayScore scene_play_score;
 
@@ -96,7 +96,7 @@ class JudgeCombo {
     void Init(const ScorePlayer& player, Side side) {
         this->side = side;
         this->player = &player;
-        text.setFont(font_default);
+        text.setFont(app_ptr->GetDefaultFont());
         text.setPosition(judge_combo_x, judge_combo_y);
         text.setCharacterSize(68);
         text.setOutlineColor(sf::Color::Black);
@@ -136,10 +136,10 @@ void PlayScore::Init() {
     judgeline_sprite.setTexture(judgeline_shape);
     judgeline_sprite.setPosition(scr_x, judgeline_y);
 
-    text_fps.setFont(font_default);
+    text_fps.setFont(app_ptr->GetDefaultFont());
     text_fps.setFillColor(sf::Color::White);
 
-    text_info_play.setFont(font_default);
+    text_info_play.setFont(app_ptr->GetDefaultFont());
     text_info_play.setCharacterSize(19);
     text_info_play.setPosition(900, 220);
 

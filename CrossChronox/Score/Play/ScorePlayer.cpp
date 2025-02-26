@@ -1,4 +1,4 @@
-﻿#include "ScorePlayer.hpp"
+#include "ScorePlayer.hpp"
 #include "Application.hpp"
 #include "JudgeManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
@@ -19,7 +19,7 @@ void ScorePlayer::SetLaneTimelines() {
             std::iota(placements.begin(), placements.end(), 1);
             for (int i = static_cast<int>(placements.size() - 1); i > 0; --i) {
                 std::uniform_int_distribution<int> dist(0, i);
-                int j = dist(mt_rand);
+                int j = dist(app_ptr->Rand());
                 std::swap(placements[i], placements[j]);
             }
         } else if (players[0].GetVariableAccount().info.GetPlayOption().GetPlacement(LEFT) == MIRROR) {
@@ -43,7 +43,7 @@ void ScorePlayer::SetLaneTimelines() {
 }
 
 void ScorePlayer::Init() {
-    LoadBms(Application::GetScoreFilePath().string(), &score);
+    LoadBms(app_ptr->GetScoreFilePath().string(), &score);
     SetLaneTimelines();
     wav_manager.Init();
     result = Result();

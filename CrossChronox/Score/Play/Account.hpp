@@ -40,8 +40,8 @@ struct Account {
     ResultDatabase result_database;
 };
 
-extern Account guest_account;
-
-extern std::vector<Account> accounts;
-
-void LoadAccounts(std::string directorypath);
+// TODO implement
+inline void LoadAccounts(std::string directorypath) {
+    Account account;
+    // accounts.push_back(account);
+}

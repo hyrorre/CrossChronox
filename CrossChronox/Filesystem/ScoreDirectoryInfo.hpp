@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "pch.hpp"
 #include "ScoreInfoBase.hpp"
@@ -50,13 +50,37 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
         return L"";
     }
 
-    void LoadScoreDirectory();
-    void SaveScoreDirectoryCache() const;
-    void LoadScoreDirectorySaveCache() {
-        LoadScoreDirectory();
-        SaveScoreDirectoryCache();
+    fs::path GetScoreInfoCachePath() const {
+        fs::path database = GetAppdataPath() / "Database";
+        if (!fs::exists(database))
+            fs::create_directories(database);
+        return (database / "Song.toml").string();
     }
-    bool TryLoadScoreDirectoryCache();
+
+    void SaveScoreDirectoryCache() const {
+        std::ofstream ofs(GetScoreInfoCachePath());
+        auto str = serde::serialize<serde::toml_v>(*this);
+        ofs << str;
+    }
+
+    bool TryLoadScoreDirectoryCache() {
+        try {
+            children.clear();
+
+            // auto str = serde::parse_file<serde::toml_v>(GetScoreInfoCachePath());
+            // *this = serde::deserialize<ScoreDirectoryInfo>(str);
+            // return true;
+            return false;
+        } catch (std::exception& e) {
+            Clear();
+            return false;
+        }
+    }
+
+    void LoadScoreDirectorySaveCache() {
+//        LoadScoreDirectory();
+//        SaveScoreDirectoryCache();
+    }
 
     ScoreDirectoryInfo() {}
     ScoreDirectoryInfo(std::string path) : ScoreInfoBase(path) {}

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "pch.hpp"
 #include "Score/Play/Account.hpp"
@@ -12,7 +12,7 @@ class ScorePlayer {
     WavManager wav_manager;
     ScoreData score;
     Result result;
-    Account* account = &guest_account;
+    Account* account;
 
     static ms_type start_ms;
 

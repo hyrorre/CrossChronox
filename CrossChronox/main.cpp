@@ -1,6 +1,8 @@
 ﻿#include "Application.hpp"
 #include "Filesystem/Path.hpp"
 
+Application* app_ptr = nullptr;
+
 #if !defined(_WIN64) && !defined(_WIN32) // if not Windows
 int main(int argc, char* argv[]) {
 #else // if Windows
@@ -9,6 +11,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     char** argv = __argv;
 #endif
     Application app(argc, argv);
+    app_ptr = &app;
     try {
         app.Init();
         return app.Run();

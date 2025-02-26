@@ -4,12 +4,9 @@
 #include "Scene/SceneManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
 #include "Score/Play/ScorePlayer.hpp"
-#include "System/DefaultFont.hpp"
 #include "System/Input/InputManager.hpp"
 #include "System/Setting.hpp"
 #include "System/TimeManager.hpp"
-
-fs::path Application::scorefile_path;
 
 void Application::ParseArgs(int argc, char* argv[]) {
     if (argc > 0)

@@ -290,5 +290,8 @@ class PlayOption {
         return result;
     }
 
-    std::string GetInfoStr() const;
+    std::string GetInfoStr() const {
+        std::stringstream ss;
+        return "";
+    }
 };

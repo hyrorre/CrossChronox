@@ -110,8 +110,25 @@ struct ScoreData : private boost::noncopyable {
     std::vector<std::unique_ptr<Note>> notes; // Note timeline
     std::vector<std::unique_ptr<WavBuffer>> wavbufs;
 
-    pulse_t MsToPulse(ms_type ms) const;
-    // ms_type PulseToMs(pulse_t pulse) const;
+    pulse_t MsToPulse(ms_type ms) const {
+        min_type min = MsToMin(ms);
+        pulse_t total_pulse = 0;
+        BpmEvent* last = nullptr;
+        for (auto& event : bpm_events) {
+            if (last) {
+                min_type duration_min = (event->pulse - last->pulse) / (info.resolution * last->bpm);
+                if (duration_min < min) {
+                    min -= duration_min;
+                    total_pulse += last->bpm * duration_min * info.resolution;
+                } else {
+                    break;
+                }
+            }
+            last = event.get();
+        }
+        total_pulse += last->bpm * min * info.resolution;
+        return total_pulse;
+    }
 
     void Init() {
         version.clear();

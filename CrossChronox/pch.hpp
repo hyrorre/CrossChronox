@@ -115,9 +115,6 @@ struct ptr_less {
     }
 };
 
-// global variables
-extern std::mt19937 mt_rand;
-
 // macros
 #define _CRT_SECURE_NO_WARNINGS
 
