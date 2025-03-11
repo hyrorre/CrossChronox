@@ -3,7 +3,7 @@
 #include "pch.hpp"
 
 namespace TimeManager {
-using ms_type = sf::Uint32;
+using ms_type = std::uint32_t;
 using sec_type = double;
 using min_type = double;
 

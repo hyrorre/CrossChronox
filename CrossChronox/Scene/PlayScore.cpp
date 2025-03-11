@@ -29,17 +29,17 @@ Scene* PlayScore::Update() {
         return scene_select_music_ptr;
 }
 
-float scr_w = 89;
-float white_w = 51;
-float black_w = 39;
+unsigned scr_w = 89;
+unsigned white_w = 51;
+unsigned black_w = 39;
 
-float note_h = 10;
+unsigned note_h = 10;
 
-float space = 3;
+unsigned space = 3;
 
 float scr_x = 76;
 
-float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
+unsigned judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
 
 float judgeline_y = 715;
 
@@ -47,23 +47,27 @@ float judge_combo_x = scr_x + 50;
 
 float judge_combo_y = judgeline_y - 180;
 
-sf::Texture background;
-sf::Sprite background_sprite;
+sf::Texture background((GetAppdataPath() / "play.png").string());
+sf::Sprite background_sprite(background);
 
-sf::Texture white_shape;
-sf::Sprite white_sprite;
+sf::Image white_image({white_w, note_h}, sf::Color::White);
+sf::Texture white_shape(white_image);
+sf::Sprite white_sprite(white_shape);
 
-sf::Texture black_shape;
-sf::Sprite black_sprite;
+sf::Image black_image({black_w, note_h}, sf::Color::Cyan);
+sf::Texture black_shape(black_image);
+sf::Sprite black_sprite(black_shape);
 
-sf::Texture scr_shape;
-sf::Sprite scr_sprite;
+sf::Image scr_image({scr_w, note_h}, sf::Color::Magenta);
+sf::Texture scr_shape(scr_image);
+sf::Sprite scr_sprite(scr_shape);
 
-sf::Texture judgeline_shape;
-sf::Sprite judgeline_sprite;
+sf::Image judgeline_image({judgeline_w, note_h}, sf::Color::Red);
+sf::Texture judgeline_shape(judgeline_image);
+sf::Sprite judgeline_sprite(judgeline_shape);
 
-sf::Text text_fps;
-sf::Text text_info_play;
+sf::Text text_fps(font_default);
+sf::Text text_info_play(font_default);
 
 sf::Clock clock_fps;
 int fps_count = 0;
@@ -86,7 +90,7 @@ std::string str_judge_combo[] = {
 
 class JudgeCombo {
     const ScorePlayer* player;
-    sf::Text text;
+    sf::Text text = sf::Text(font_default);
     Side side = LEFT;
 
     ms_type last_ms = 0;
@@ -96,8 +100,7 @@ class JudgeCombo {
     void Init(const ScorePlayer& player, Side side) {
         this->side = side;
         this->player = &player;
-        text.setFont(font_default);
-        text.setPosition(judge_combo_x, judge_combo_y);
+        text.setPosition({judge_combo_x, judge_combo_y});
         text.setCharacterSize(68);
         text.setOutlineColor(sf::Color::Black);
         text.setOutlineThickness(1);
@@ -122,26 +125,26 @@ void PlayScore::Init() {
     background.loadFromFile((GetAppdataPath() / "play.png").string());
     background_sprite.setTexture(background);
     sf::Image tmp_image;
-    tmp_image.create(white_w, note_h, sf::Color::White);
+    tmp_image.resize({white_w, note_h}, sf::Color::White);
     white_shape.loadFromImage(tmp_image);
     white_sprite.setTexture(white_shape);
-    tmp_image.create(black_w, note_h, sf::Color::Cyan);
+    tmp_image.resize({black_w, note_h}, sf::Color::Cyan);
     black_shape.loadFromImage(tmp_image);
     black_sprite.setTexture(black_shape);
-    tmp_image.create(scr_w, note_h, sf::Color::Magenta);
+    tmp_image.resize({scr_w, note_h}, sf::Color::Magenta);
     scr_shape.loadFromImage(tmp_image);
     scr_sprite.setTexture(scr_shape);
-    tmp_image.create(judgeline_w, note_h, sf::Color::Red);
+    tmp_image.resize({judgeline_w, note_h}, sf::Color::Red);
     judgeline_shape.loadFromImage(tmp_image);
     judgeline_sprite.setTexture(judgeline_shape);
-    judgeline_sprite.setPosition(scr_x, judgeline_y);
+    judgeline_sprite.setPosition({scr_x, judgeline_y});
 
     text_fps.setFont(font_default);
     text_fps.setFillColor(sf::Color::White);
 
     text_info_play.setFont(font_default);
     text_info_play.setCharacterSize(19);
-    text_info_play.setPosition(900, 220);
+    text_info_play.setPosition({900, 220});
 
     for (int i = 0; i < judge_combos.size(); ++i) {
         judge_combos[i].Init(players[0], static_cast<Side>(i));
@@ -221,7 +224,7 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const {
             sf::Sprite* sprite = GetSpritePtr(note->lane);
             if (sprite) {
                 if (note->len == 0) { // if note is not LN
-                    sprite->setPosition(GetNoteX(note->lane), note_y);
+                    sprite->setPosition({GetNoteX(note->lane), note_y});
                     render_target.draw(*sprite);
                 } else { // if note is LN
                     sf::Sprite ln_sprite = *sprite;
@@ -230,12 +233,12 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const {
                     }
                     float lnend_y = note_y;
                     float note_x = GetNoteX(note->lane);
-                    sprite->setPosition(note_x, lnstart_y);
+                    sprite->setPosition({note_x, lnstart_y});
                     render_target.draw(*sprite);
-                    sprite->setPosition(note_x, lnend_y);
+                    sprite->setPosition({note_x, lnend_y});
                     render_target.draw(*sprite);
-                    ln_sprite.setPosition(note_x, lnend_y);
-                    ln_sprite.setScale(1, (lnstart_y - lnend_y) / note_h);
+                    ln_sprite.setPosition({note_x, lnend_y});
+                    ln_sprite.setScale({1.0f, (lnstart_y - lnend_y) / note_h});
                     render_target.draw(ln_sprite);
                 }
             }

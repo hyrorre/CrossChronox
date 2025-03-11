@@ -4,6 +4,8 @@
 #include "Score/ScoreData/ScoreData.hpp"
 
 class WavPlayer {
+    static const sf::SoundBuffer buf;
+
     const Note* note_ptr = nullptr;
     sf::Sound sound;
 
@@ -25,7 +27,7 @@ class WavPlayer {
         return note_ptr;
     }
 
-    WavPlayer() {}
+    WavPlayer() : sound(buf) {}
     WavPlayer(const Note* note_ptr) : note_ptr(note_ptr), sound(note_ptr->wavbuf_ptr->buf) {
         sound.play();
     }

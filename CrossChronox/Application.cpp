@@ -23,25 +23,21 @@ void Application::ParseArgs(int argc, char* argv[]) {
 }
 
 void Application::Init() {
-    if (!TryInitDefaultFont())
-        throw InitError("Default font was not found.");
-
     // set locale
     setlocale(LC_ALL, "");
     // std::locale::global(std::locale(""));
 
     setting.TryLoadFile((GetAppdataPath() / "Config/Setting.toml").string());
 
-    int w = setting.GetResolutionX();
-    int h = setting.GetResolutionY();
+    unsigned int w = setting.GetResolutionX();
+    unsigned int h = setting.GetResolutionY();
     int bpp = 32;
 
     auto style = sf::Style::Close | sf::Style::Titlebar;
-    if (setting.GetWindowType() == FULLSCREEN)
-        style = sf::Style::Fullscreen;
+    sf::State state = setting.GetWindowType() == FULLSCREEN ? sf::State::Fullscreen : sf::State::Windowed;
 
     // set up window
-    window.create(sf::VideoMode(w, h, bpp), "CrossChronox v0.0.1", style);
+    window.create(sf::VideoMode({w, h}, bpp), "CrossChronox v0.0.1", style);
     window.setSize(sf::Vector2u(setting.GetWindowSizeX(), setting.GetWindowSizeY()));
     window.setKeyRepeatEnabled(false);
     window.setVerticalSyncEnabled(setting.GetVsync());
@@ -51,7 +47,7 @@ void Application::Init() {
     window.setPosition(setting.GetWindowPos());
 
     // set up rendertexture
-    if (!renderer.create(w, h, true))
+    if (!renderer.resize({w, h}))
         throw InitError("Could not create RenderTexture.");
     renderer.setSmooth(true);
 
@@ -63,7 +59,7 @@ void Application::Init() {
     InputManager::SetMode("Beat");
 }
 
-Application::Application(int argc, char* argv[]) { //: qapp(argc, argv){
+Application::Application(int argc, char* argv[]) {
     ParseArgs(argc, argv);
 }
 
@@ -96,6 +92,10 @@ void Application::Update() {
         window.clear();
         renderer.clear(sf::Color::Black); // バッファ画面を黒でクリア
     }
+
+    // 終了処理 finalize application
+    SceneManager::Deinit();
+    window.close();
 }
 
 int Application::Run() {
@@ -106,19 +106,14 @@ int Application::Run() {
 
     // only handling close event in main thread
     while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
+        while (const std::optional event = window.pollEvent()) {
             // 「クローズが要求された」イベント：ウインドウを閉じる
-            if (event.type == sf::Event::Closed) {
+            if (event->is<sf::Event::Closed>()) {
                 endflag = true;
             }
         }
 
-        // 終了処理 finalize application
-        if (endflag == true) {
-            SceneManager::Deinit();
-            window.close();
-        }
+        sf::sleep(sf::milliseconds(1));
     }
     updateThreadInstance.join();
     return 0;
@@ -135,5 +130,5 @@ Application::~Application() {
 }
 
 void Application::HandleException(std::exception& e) {
-    MessageBoxA(window.getSystemHandle(), e.what(), "Error", MB_OK | MB_ICONERROR);
+    MessageBoxA(window.getNativeHandle(), e.what(), "Error", MB_OK | MB_ICONERROR);
 }

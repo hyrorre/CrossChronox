@@ -8,8 +8,8 @@ SelectMusic scene_select_music;
 
 SelectMusic* scene_select_music_ptr = &scene_select_music;
 
-sf::Text text_songlist;
-sf::Text text_info;
+sf::Text text_songlist(font_default);
+sf::Text text_info(font_default);
 
 Scene* SelectMusic::Update() {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
@@ -82,11 +82,9 @@ void SelectMusic::Init() {
             root.SaveScoreDirectoryCache();
         }
 
-        text_songlist.setFont(font_default);
-        text_songlist.setPosition(1000, 50);
-        text_songlist.setScale(1.5, 1.5);
+        text_songlist.setPosition({1000.0f, 50.0f});
+        text_songlist.setScale({1.5f, 1.5f});
 
-        text_info.setFont(font_default);
         text_info.setCharacterSize(40);
     }
 }
