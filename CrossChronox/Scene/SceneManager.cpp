@@ -2,36 +2,3 @@
 #include "PlayScore.hpp"
 #include "SelectMusic.hpp"
 
-namespace SceneManager {
-Scene* now_scene = scene_select_music_ptr;
-
-void Init() {
-    now_scene->Init();
-}
-
-State Update() {
-    Scene* next_scene = now_scene->Update();
-    if (now_scene != next_scene) {
-        now_scene->Deinit();
-        if (next_scene == nullptr) {
-            return FINISH;
-        }
-        now_scene = next_scene;
-        next_scene->Init();
-        next_scene->Update();
-    }
-    return CONTINUE;
-}
-
-void Draw(sf::RenderTarget& render_target) {
-    if (now_scene)
-        now_scene->Draw(render_target);
-}
-
-void Deinit() {
-    if (now_scene) {
-        now_scene->Deinit();
-        now_scene = nullptr;
-    }
-}
-} // namespace SceneManager

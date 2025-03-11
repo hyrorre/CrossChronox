@@ -1,4 +1,4 @@
-#include "ScorePlayer.hpp"
+﻿#include "ScorePlayer.hpp"
 #include "Application.hpp"
 #include "JudgeManager.hpp"
 #include "Score/Load/BmsLoader.hpp"

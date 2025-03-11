@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Filesystem/ScoreInfoBase.hpp"
@@ -8,15 +8,14 @@
 
 using pulse_t = unsigned long;
 
-const std::wstring GetModeString(Mode mode) {
+inline const std::wstring GetModeString(Mode mode) {
     const std::vector<std::wstring> mode_str = {
         L"beat-5k",
         L"beat-7k",
         L"beat-10k",
         L"beat-14k",
         L"popn-5k",
-        L"popn-9k"
-    };
+        L"popn-9k"};
     return mode_str[static_cast<size_t>(mode)];
 }
 
@@ -70,8 +69,8 @@ struct ScoreInfo : public ScoreInfoBase {
         ss << L"artist" << artist;
         ss << L"genre" << genre;
         ss << L"mode"
-            L": "
-        << GetModeString(mode) << L'\n';
+              L": "
+           << GetModeString(mode) << L'\n';
         ss << L"chart_name" << chart_name;
         ss << L"difficulty" << difficulty;
         ss << L"level" << level;

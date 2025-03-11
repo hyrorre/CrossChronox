@@ -1,6 +1,6 @@
 ﻿#include "BmsLoader.hpp"
-#include "Filesystem/MD5.hpp"
 #include "Application.hpp"
+#include "Filesystem/MD5.hpp"
 
 // BMS command memo (draft) (English)
 // http://hitkey.nekokan.dyndns.info/cmds.htm
@@ -314,14 +314,14 @@ int BmsLoader::GetIndex(const char* str, int base) {
 }
 
 void trim_left(const char*& str) {
-    while (isblank(*str))
+    while (std::isblank(static_cast<unsigned char>(*str)))
         ++str;
 }
 
 void trim_right(char* str) {
     char* blank_ptr = nullptr;
     for (; *str; ++str) {
-        if (isblank(*str)) {
+        if (std::isblank(static_cast<unsigned char>(*str))) {
             if (blank_ptr == nullptr)
                 blank_ptr = str;
         } else {
@@ -334,7 +334,7 @@ void trim_right(char* str) {
 
 const char* BmsLoader::GetArg() {
     const char* line = nowline;
-    while (!isblank(*line))
+    while (!std::isblank(static_cast<unsigned char>(*line)))
         ++line;
     trim_left(line);
     return line;
@@ -428,7 +428,7 @@ bool BmsLoader::TryParseHeaderLine() {
                 // 0123456
                 // BPM 130
                 // BPM01 130
-                if (isblank(header[3])) {
+                if (std::isblank(static_cast<unsigned char>(header[3]))) {
                     double bpm = out->info.init_bpm = atof(GetArg());
                     out->bpm_events.clear();
                     out->bpm_events.emplace_back(new BpmEvent(0, bpm));

@@ -1,15 +1,8 @@
 ﻿#include "SelectMusic.hpp"
 #include "Application.hpp"
+#include "Filesystem/ScoreDirectoryLoader.hpp"
 #include "PlayScore.hpp"
 #include "System/Input/InputManager.hpp"
-#include "Filesystem/ScoreDirectoryLoader.hpp"
-
-SelectMusic scene_select_music;
-
-SelectMusic* scene_select_music_ptr = &scene_select_music;
-
-sf::Text text_songlist;
-sf::Text text_info;
 
 Scene* SelectMusic::Update() {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
@@ -63,7 +56,7 @@ Scene* SelectMusic::Update() {
                 }
             } else {
                 app_ptr->SetScoreFilePath(tmp_info->path);
-                return scene_play_score_ptr;
+                return &app_ptr->GetSceneManager().play_score;
             }
         }
         if (InputManager::GetKeyFuncState("ReloadFolder").now == 1) {
@@ -71,7 +64,7 @@ Scene* SelectMusic::Update() {
             root.SaveScoreDirectoryCache();
         }
     }
-    return scene_select_music_ptr;
+    return &app_ptr->GetSceneManager().select_music;
 }
 
 void SelectMusic::Init() {
@@ -91,9 +84,7 @@ void SelectMusic::Init() {
     }
 }
 
-std::wstring str_songlist;
-
-void SelectMusic::Draw(sf::RenderTarget& render_target) const {
+void SelectMusic::Draw(sf::RenderTarget& render_target) {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
         str_songlist.clear();
         int player = 0;

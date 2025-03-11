@@ -1,12 +1,84 @@
-#include "PlayScore.hpp"
+﻿#include "PlayScore.hpp"
+#include "Application.hpp"
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
 #include "System/Input/InputManager.hpp"
-#include "Application.hpp"
 
-PlayScore scene_play_score;
+const float scr_w = 89;
+const float white_w = 51;
+const float black_w = 39;
 
-PlayScore* scene_play_score_ptr = &scene_play_score;
+const float note_h = 10;
+
+const float space = 3;
+
+const float scr_x = 76;
+
+const float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
+
+const float judgeline_y = 715;
+
+const float judge_combo_x = scr_x + 50;
+
+const float judge_combo_y = judgeline_y - 180;
+
+const std::vector<sf::Color> color_judge_combo = {
+    sf::Color::Cyan,   // PGREAT
+    sf::Color::Yellow, // GREAT
+    sf::Color::Yellow, // GOOD
+    sf::Color::Red,    // BAD
+    sf::Color::Red,    // POOR
+};
+
+const std::vector<std::string> str_judge_combo = {
+    "GREAT ", // PGREAT
+    "GREAT ", // GREAT
+    "GOOD ",  // GOOD
+    "BAD ",   // BAD
+    "POOR ",  // POOR
+};
+
+float GetNoteX(lane_t lane) {
+    switch (lane) {
+    case 8:
+        return scr_x;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        return scr_x + scr_w + int(lane / 2) * white_w + int((lane - 1) / 2) * black_w + lane * space;
+    default:
+        return 0;
+    }
+}
+
+const float global_scroll = .7f * 480;
+
+void JudgeCombo::Init(const ScorePlayer& player, Side side) {
+    this->side = side;
+    this->player = &player;
+    text.setFont(app_ptr->GetDefaultFont());
+    text.setPosition(judge_combo_x, judge_combo_y);
+    text.setCharacterSize(68);
+    text.setOutlineColor(sf::Color::Black);
+    text.setOutlineThickness(1);
+}
+
+const sf::Text* JudgeCombo::GetText() {
+    JudgeInfo info = player->GetResult().GetLastJudgeInfo(side);
+    if (info.judge != JUDGE_YET) {
+        ms_type elapsed = player->GetPlayMs() - info.ms;
+        if (elapsed < 2000 && (info.judge == Judge::PGREAT || (elapsed / 10) % 3 == 1)) {
+            text.setString(str_judge_combo[info.judge] + std::to_string(info.combo));
+            text.setFillColor(color_judge_combo[info.judge]);
+            return &text;
+        }
+    }
+    return nullptr;
+}
 
 void PlayScore::Deinit() {
     // これが無いと恐らくリソースの解放順の問題で強制終了する
@@ -17,106 +89,17 @@ void PlayScore::Deinit() {
 
 Scene* PlayScore::Update() {
     if (InputManager::GetKeyState("Esc").now == 1) {
-        return scene_select_music_ptr;
+        return &app_ptr->GetSceneManager().select_music;
     }
     int continue_flag = 0;
     for (auto& player : players) {
         continue_flag += player.Update();
     }
     if (continue_flag)
-        return scene_play_score_ptr;
+        return &app_ptr->GetSceneManager().play_score;
     else
-        return scene_select_music_ptr;
+        return &app_ptr->GetSceneManager().select_music;
 }
-
-float scr_w = 89;
-float white_w = 51;
-float black_w = 39;
-
-float note_h = 10;
-
-float space = 3;
-
-float scr_x = 76;
-
-float judgeline_w = scr_w + white_w * 4 + black_w * 3 + space * 7;
-
-float judgeline_y = 715;
-
-float judge_combo_x = scr_x + 50;
-
-float judge_combo_y = judgeline_y - 180;
-
-sf::Texture background;
-sf::Sprite background_sprite;
-
-sf::Texture white_shape;
-sf::Sprite white_sprite;
-
-sf::Texture black_shape;
-sf::Sprite black_sprite;
-
-sf::Texture scr_shape;
-sf::Sprite scr_sprite;
-
-sf::Texture judgeline_shape;
-sf::Sprite judgeline_sprite;
-
-sf::Text text_fps;
-sf::Text text_info_play;
-
-sf::Clock clock_fps;
-int fps_count = 0;
-
-sf::Color color_judge_combo[] = {
-    sf::Color::Cyan,   // PGREAT
-    sf::Color::Yellow, // GREAT
-    sf::Color::Yellow, // GOOD
-    sf::Color::Red,    // BAD
-    sf::Color::Red,    // POOR
-};
-
-std::string str_judge_combo[] = {
-    "GREAT ", // PGREAT
-    "GREAT ", // GREAT
-    "GOOD ",  // GOOD
-    "BAD ",   // BAD
-    "POOR ",  // POOR
-};
-
-class JudgeCombo {
-    const ScorePlayer* player;
-    sf::Text text;
-    Side side = LEFT;
-
-    ms_type last_ms = 0;
-    size_t last_combo = 0;
-
-  public:
-    void Init(const ScorePlayer& player, Side side) {
-        this->side = side;
-        this->player = &player;
-        text.setFont(app_ptr->GetDefaultFont());
-        text.setPosition(judge_combo_x, judge_combo_y);
-        text.setCharacterSize(68);
-        text.setOutlineColor(sf::Color::Black);
-        text.setOutlineThickness(1);
-    }
-    const sf::Text* GetText() {
-        JudgeInfo info = player->GetResult().GetLastJudgeInfo(side);
-        if (info.judge != JUDGE_YET) {
-            ms_type elapsed = player->GetPlayMs() - info.ms;
-            if (elapsed < 2000 && (info.judge == Judge::PGREAT || (elapsed / 10) % 3 == 1)) {
-                text.setString(str_judge_combo[info.judge] + std::to_string(info.combo));
-                text.setFillColor(color_judge_combo[info.judge]);
-                return &text;
-            }
-        }
-        return nullptr;
-    }
-};
-
-std::array<JudgeCombo, MAX_SIDE> judge_combos;
 
 void PlayScore::Init() {
     background.loadFromFile((GetAppdataPath() / "play.png").string());
@@ -155,46 +138,9 @@ void PlayScore::Init() {
     ScorePlayer::Start();
 }
 
-float GetNoteX(lane_t lane) {
-    switch (lane) {
-    case 8:
-        return scr_x;
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-        return scr_x + scr_w + int(lane / 2) * white_w + int((lane - 1) / 2) * black_w + lane * space;
-    default:
-        return 0;
-    }
-}
-
-sf::Sprite* GetSpritePtr(lane_t lane) {
-    switch (lane) {
-    case 8:
-        return &scr_sprite;
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-        return &white_sprite;
-    case 2:
-    case 4:
-    case 6:
-        return &black_sprite;
-    default:
-        return nullptr;
-    }
-}
-
-float global_scroll = .7f * 480;
-
 #define SS(x) ss << #x L": " << x << L'\n'
 
-void PlayScore::Draw(sf::RenderTarget& render_target) const {
+void PlayScore::Draw(sf::RenderTarget& render_target) {
     std::wstringstream ss;
 
     render_target.draw(background_sprite);

@@ -53,14 +53,14 @@ void Application::Init() {
     renderer.setSmooth(true);
 
     // set up SceneManager
-    SceneManager::Init();
+    scene_manager.Init();
 
     // set up InputManager
     InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 }
 
-Application::Application(int argc, char* argv[]) { //: qapp(argc, argv){
+Application::Application(int argc, char* argv[]) {
     ParseArgs(argc, argv);
 }
 
@@ -84,19 +84,19 @@ int Application::Run() {
         InputManager::Update();
 
         // Scene Update and Draw
-        if (SceneManager::Update() == SceneManager::State::FINISH) {
+        if (scene_manager.Update() == SceneManager::State::FINISH) {
             endflag = true;
         }
 
         // 終了処理 finalize application
         if (endflag == true) {
-            SceneManager::Deinit();
+            scene_manager.Deinit();
             window.close();
             break;
         }
 
         // 描画 drawing
-        SceneManager::Draw(window);
+        scene_manager.Draw(window);
 
         // 描画終わり
         renderer.display();                       // バッファ画面をアップデート

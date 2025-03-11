@@ -50,7 +50,6 @@
     <ClInclude Include="Score\ScoreData\ScoreInfo.hpp" />
     <ClInclude Include="Score\ScoreData\Total.hpp" />
     <ClInclude Include="Score\ScoreData\WavBuffer.hpp" />
-    <ClInclude Include="System\DefaultFont.hpp" />
     <ClInclude Include="System\Exception.hpp" />
     <ClInclude Include="Filesystem\Path.hpp" />
     <ClInclude Include="System\Setting.hpp" />
@@ -58,38 +57,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Filesystem\MD5.cpp" />
-    <ClCompile Include="Filesystem\ScoreDirectoryInfo.cpp" />
-    <ClCompile Include="Filesystem\ScoreDirectoryLoader.cpp" />
-    <ClCompile Include="Filesystem\ScoreInfoBase.cpp" />
-    <ClCompile Include="Score\Play\Account.cpp" />
+    <ClCompile Include="Scene\PlayScore.cpp" />
     <ClCompile Include="Score\Play\JudgeManager.cpp" />
-    <ClCompile Include="Score\Play\Result.cpp" />
     <ClCompile Include="System\Input\InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Scene\PlayScore.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\SceneManager.cpp" />
     <ClCompile Include="Scene\SelectMusic.cpp" />
     <ClCompile Include="Score\Load\BmsLoader.cpp" />
     <ClCompile Include="Score\Play\ScorePlayer.cpp" />
-    <ClCompile Include="Score\Play\WavManager.cpp" />
-    <ClCompile Include="Score\Play\WavPlayer.cpp" />
-    <ClCompile Include="Score\ScoreData\JudgeRank.cpp" />
-    <ClCompile Include="Score\ScoreData\Mode.cpp" />
-    <ClCompile Include="Score\ScoreData\ScoreData.cpp" />
-    <ClCompile Include="Score\ScoreData\ScoreInfo.cpp" />
-    <ClCompile Include="Score\ScoreData\Total.cpp" />
-    <ClCompile Include="Score\ScoreData\WavBuffer.cpp" />
-    <ClCompile Include="System\DefaultFont.cpp" />
-    <ClCompile Include="Filesystem\Path.cpp" />
-    <ClCompile Include="System\Setting.cpp" />
     <ClCompile Include="System\TimeManager.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -153,7 +129,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -170,7 +146,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -189,7 +165,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -210,7 +186,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)/Dependencies/include;$(ProjectDir);$(SolutionDir)/vcpkg_installed\x64-windows\include\magic_enum;$(SolutionDir)/vcpkg_installed\x64-windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>
       <LanguageStandard>stdcpp20</LanguageStandard>

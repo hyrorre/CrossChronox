@@ -3,8 +3,11 @@
 #include "pch.hpp"
 #include "Filesystem/Path.hpp"
 #include "System/Setting.hpp"
+#include "Scene/SceneManager.hpp"
 
 class Application {
+    SceneManager scene_manager;
+
     sf::RenderWindow window;
     sf::RenderTexture renderer;
 
@@ -32,6 +35,10 @@ class Application {
 
     void Init();
     int Run();
+
+    SceneManager& GetSceneManager() {
+        return scene_manager;
+    }
 
     sf::Font GetDefaultFont() {
         return font_default;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "pch.hpp"
 #include "ScoreInfoBase.hpp"
@@ -78,8 +78,8 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     }
 
     void LoadScoreDirectorySaveCache() {
-//        LoadScoreDirectory();
-//        SaveScoreDirectoryCache();
+        //        LoadScoreDirectory();
+        //        SaveScoreDirectoryCache();
     }
 
     ScoreDirectoryInfo() {}
