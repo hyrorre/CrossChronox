@@ -22,6 +22,7 @@ class Application {
 
     void Init();
     int Run();
+    void Update();
 
     static fs::path& GetScoreFilePath() {
         return scorefile_path;

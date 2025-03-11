@@ -67,19 +67,12 @@ Application::Application(int argc, char* argv[]) { //: qapp(argc, argv){
     ParseArgs(argc, argv);
 }
 
-int Application::Run() {
+std::atomic<bool> endflag(false);
 
-    // ウインドウが開いている（ゲームループ）
-    bool endflag = false;
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            // 「クローズが要求された」イベント：ウインドウを閉じる
-            if (event.type == sf::Event::Closed) {
-                endflag = true;
-            }
-        }
+void Application::Update() {
+    window.setActive(true);
 
+    while (!endflag) {
         // update time
         TimeManager::Update();
 
@@ -89,13 +82,6 @@ int Application::Run() {
         // Scene Update and Draw
         if (SceneManager::Update() == SceneManager::State::FINISH) {
             endflag = true;
-        }
-
-        // 終了処理 finalize application
-        if (endflag == true) {
-            SceneManager::Deinit();
-            window.close();
-            break;
         }
 
         // 描画 drawing
@@ -110,6 +96,31 @@ int Application::Run() {
         window.clear();
         renderer.clear(sf::Color::Black); // バッファ画面を黒でクリア
     }
+}
+
+int Application::Run() {
+    // start new thread for main game process
+    // メインスレッド以外でレンダリングしないと、ウィンドウのドラッグ中に処理が止まってしまう
+    window.setActive(false);
+    std::thread updateThreadInstance(&Application::Update, this);
+
+    // only handling close event in main thread
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            // 「クローズが要求された」イベント：ウインドウを閉じる
+            if (event.type == sf::Event::Closed) {
+                endflag = true;
+            }
+        }
+
+        // 終了処理 finalize application
+        if (endflag == true) {
+            SceneManager::Deinit();
+            window.close();
+        }
+    }
+    updateThreadInstance.join();
     return 0;
 }
 
