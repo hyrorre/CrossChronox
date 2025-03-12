@@ -1,16 +1,22 @@
 # CrossChronox
 # score info cache file
 Song.xml
+Song.toml
 
 # backup files
 *.bak
 
 # setting files
 Setting.xml
+Setting.toml
 
 # Dependencies
 lib
 include
+vcpkg_installed
+
+# VSCode
+.vscode/c_cpp_properties.json
 
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883
