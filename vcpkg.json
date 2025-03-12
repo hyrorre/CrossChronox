@@ -1,0 +1,14 @@
+{
+  "dependencies": [
+    "boost-algorithm",
+    "cryptopp",
+    "libiconv",
+    "serdepp",
+    "sfml",
+    "toml11"
+  ],
+  "overrides": [
+    { "name": "sfml", "version": "3.0.0" },
+    { "name": "toml11", "version": "3.7.1" }
+  ]
+}

@@ -1,119 +1,80 @@
-﻿//
-//  pch.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 10/7/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
+﻿#pragma once
 
-#ifndef pch_hpp
-#define pch_hpp
-
-//SDL3
-#include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-
-//picojson
-#define PICOJSON_USE_INT64
-#include <picojson/picojson.h>
-
-//Crypto++ (cryptopp)
-//#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 //to use md5
-//#include <cryptopp/hex.h>
-//#include <cryptopp/md5.h>
-
-//boost
-#define BOOST_ALL_DYN_LINK
-//#include <boost/filesystem.hpp>
-//#include <boost/utility.hpp>
-//#include <boost/utility/string_ref.hpp>
-//#include <boost/variant.hpp>
-//#include <boost/function.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
-//#include <boost/bind.hpp>
-//#include <boost/rational.hpp>
-//#include <boost/integer_traits.hpp>
-//#include <boost/functional.hpp>
-//#include <boost/assign.hpp>
-//#include <boost/swap.hpp>
-//#include <boost/optional.hpp>
-//#include <boost/algorithm/algorithm.hpp>
-//#include <boost/algorithm/clamp.hpp>
-//#include <boost/range/algorithm_ext.hpp>
-//#include <boost/range/algorithm/binary_search.hpp>
-//#include <boost/range/algorithm/lower_bound.hpp>
-//#include <boost/range/algorithm/upper_bound.hpp>
-//#include <boost/range/algorithm/sort.hpp>
-//#include <boost/range.hpp>
-//
-//#include <boost/serialization/serialization.hpp>
-//#include <boost/archive/xml_iarchive.hpp>
-//#include <boost/archive/xml_oarchive.hpp>
-//#include <boost/archive/xml_wiarchive.hpp>
-//#include <boost/archive/xml_woarchive.hpp>
-//#include <boost/serialization/array.hpp>
-//#include <boost/serialization/unordered_map.hpp>
-//#include <boost/serialization/unique_ptr.hpp>
-//#include <boost/serialization/vector.hpp> // std::vectorをシリアライズしたい場合必要
-//#include <boost/serialization/string.hpp> // std::stringをシリアライズしたい場合必要
-//#include <boost/serialization/export.hpp>
-
-//libguess
-//#include <libguess/libguess.h>
-
-//iconv
-#include <iconv.h>
-
-//C std
+// C std
 #include <cmath>
 #include <cwchar>
 
-//C++ std
-#include <forward_list>
-#include <vector>
-#include <unordered_map>
+// C++ std
+#include <algorithm>
 #include <array>
 #include <bitset>
-#include <memory>
+#include <chrono>
+#include <codecvt>
 #include <exception>
+#include <filesystem>
+#include <forward_list>
+#include <fstream>
+#include <locale>
+#include <memory>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <stack>
 #include <stdexcept>
 #include <system_error>
-#include <algorithm>
-#include <stack>
-#include <queue>
-#include <locale>
-#include <chrono>
-#include <random>
 #include <type_traits>
 #include <typeinfo>
-#include <fstream>
+#include <unordered_map>
 #include <utility>
-#include <numeric>
-#include <codecvt>
-#include <filesystem>
+#include <vector>
 
-//using (namespace)
+// boost
+#include <boost/algorithm/string.hpp>
+
+// Crypto++ (cryptopp)
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1 // to use md5
+#include <cryptopp/hex.h>
+#include <cryptopp/md5.h>
+
+// libiconv (iconv)
+#include <iconv.h>
+
+// serdepp
+#include <serdepp/adaptor/toml11.hpp>
+#include <serdepp/serde.hpp>
+
+// SDL
+#include <SDL3-image/SDL3-image.hpp>
+#include <SDL3/SDL3.hpp>
+
+// toml11
+#include <toml.hpp>
+
+// Windows
+#if defined(_WIN64) || defined(_WIN32) // if Windows
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+// using (namespace)
 namespace fs = std::filesystem;
 
-//global funcs
-template<class T>
-struct ptr_less{
-	bool operator()(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) const{
+// global funcs
+template <class T>
+struct ptr_less {
+    bool operator()(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) const {
         return *a < *b;
     }
-	bool operator()(const T* a, const T* b) const{
-		return *a < *b;
-	}
+    bool operator()(const T* a, const T* b) const {
+        return *a < *b;
+    }
 };
 
-//global variables
+// global variables
 extern std::mt19937 mt_rand;
 
-//macros
+// macros
 #define _CRT_SECURE_NO_WARNINGS
 
-//pragma
+// pragma
 #pragma execution_character_set("utf-8")
-
-#endif /* pch_hpp */

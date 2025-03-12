@@ -1,13 +1,4 @@
-﻿//
-//  PlayScore.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/10/10.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef PlayScore_hpp
-#define PlayScore_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Scene.hpp"
@@ -22,5 +13,3 @@ public:
 };
 
 extern PlayScore* scene_play_score_ptr;
-
-#endif /* PlayScore_hpp */

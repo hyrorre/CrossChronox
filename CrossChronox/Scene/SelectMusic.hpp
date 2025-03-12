@@ -1,18 +1,9 @@
-﻿//
-//  SelectMusic.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 2016/12/22.
-//  Copyright © 2016年 hyrorre. All rights reserved.
-//
-
-#ifndef SelectMusic_hpp
-#define SelectMusic_hpp
+﻿#pragma once
 
 #include "pch.hpp"
-#include "Scene.hpp"
-#include "Filesystem/ScoreDirectoryInfo.hpp"
 #include "Filesystem/Path.hpp"
+#include "Filesystem/ScoreDirectoryInfo.hpp"
+#include "Scene.hpp"
 
 class SelectMusic : public Scene{
 	bool inited = false;
@@ -27,5 +18,3 @@ public:
 };
 
 extern SelectMusic* scene_select_music_ptr;
-
-#endif /* SelectMusic_hpp */

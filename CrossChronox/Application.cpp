@@ -1,20 +1,11 @@
-﻿//
-//  Application.cpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 9/23/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#include "Application.hpp"
+﻿#include "Application.hpp"
 #include "Filesystem/Path.hpp"
-#include "Score/Play/ScorePlayer.hpp"
-#include "Score/Load/BmsLoader.hpp"
-#include "System/TimeManager.hpp"
-#include "Scene/SceneManager.hpp"
-#include "System/Input/InputManager.hpp"
-#include "System/DefaultFont.hpp"
 #include "Platform/MessageBox.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Score/Load/BmsLoader.hpp"
+#include "Score/Play/ScorePlayer.hpp"
+#include "System/DefaultFont.hpp"
+#include "System/Input/InputManager.hpp"
 #include "System/Setting.hpp"
 //
 Application app;

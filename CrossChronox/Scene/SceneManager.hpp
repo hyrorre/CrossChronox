@@ -1,26 +1,15 @@
-﻿//
-//  SceneManager.hpp
-//  CrossChronox
-//
-//  Created by HY_RORRE on 9/24/16.
-//  Copyright © 2016 hyrorre. All rights reserved.
-//
-
-#ifndef SceneManager_hpp
-#define SceneManager_hpp
+﻿#pragma once
 
 #include "pch.hpp"
 #include "Scene.hpp"
 
-namespace SceneManager{
-	enum State{
-		FINISH,
-		CONTINUE
-	};
-	void Init();
-	State Update();
-	void Draw(SDL_Renderer* renderer);
-	void Deinit();
+namespace SceneManager {
+enum State {
+    FINISH,
+    CONTINUE
 };
-
-#endif /* SceneManager_hpp */
+void Init();
+State Update();
+void Draw(sf::RenderTarget& render_target);
+void Deinit();
+}; // namespace SceneManager
