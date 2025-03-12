@@ -194,10 +194,10 @@ float GetNoteX(lane_t lane) {
 
 float global_scroll = .7f * 480;
 
-#define SS(x) ss << #x L": " << x << L'\n'
+#define SS(x) ss << #x ": " << x << '\n'
 
 void PlayScore::Draw(SDL_Renderer* render_target) const {
-    // std::wstringstream ss;
+    // std::stringstream ss;
 
     // // render_target.draw(background_sprite);
     // // render_target.draw(judgeline_sprite);

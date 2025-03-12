@@ -7,8 +7,8 @@ class ScoreDirectoryInfo;
 
 class ScoreInfoBase {
   public:
-    virtual std::wstring GetTitleSubtitle() const = 0;
-    virtual std::wstring GetInfoStr() const = 0;
+    virtual std::string GetTitleSubtitle() const = 0;
+    virtual std::string GetInfoStr() const = 0;
     virtual void SetParent(ScoreDirectoryInfo* parent) {}
     std::string path;
 

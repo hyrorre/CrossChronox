@@ -30,6 +30,11 @@ SDL_AppResult Application::Init() {
         return SDL_APP_FAILURE;
     }
 
+    if (!TTF_Init()) {
+        SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
     if (!SDL_CreateWindowAndRenderer("CrossChronox", 800, 600, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
@@ -38,12 +43,17 @@ SDL_AppResult Application::Init() {
     InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 
+    SceneManager::Init();
+
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult Application::Event(SDL_Event* event) {
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
+    }
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        std::cout << event->key.scancode << std::endl;
     }
     return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -52,11 +62,15 @@ SDL_AppResult Application::Run() {
     TimeManager::Update();
     InputManager::Update();
 
+    SceneManager::Update();
     SceneManager::Draw(renderer);
 
     SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
     return SDL_APP_CONTINUE;
 }
 
 void Application::Quit() {
+    TTF_Quit();
+    SDL_Quit();
 }

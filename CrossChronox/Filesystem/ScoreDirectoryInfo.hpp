@@ -11,7 +11,7 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     ScoreDirectoryInfo* parent = nullptr;
     std::vector<std::unique_ptr<ScoreInfoBase>> children;
     int cursor = 0;
-    std::wstring title;
+    std::string title;
 
   public:
     void DownMusic() {
@@ -20,7 +20,7 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     void UpMusic() {
         --cursor;
     }
-    std::wstring GetTitleSubtitle() const {
+    std::string GetTitleSubtitle() const {
         return title;
     }
     ScoreDirectoryInfo* GetParent() {
@@ -46,8 +46,8 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
         children.clear();
     }
 
-    std::wstring GetInfoStr() const {
-        return L"";
+    std::string GetInfoStr() const {
+        return "";
     }
 
     void LoadScoreDirectory();

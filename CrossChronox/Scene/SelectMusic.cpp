@@ -73,6 +73,8 @@ Scene* SelectMusic::Update() {
     return scene_select_music_ptr;
 }
 
+TTF_Font* font = nullptr;
+
 void SelectMusic::Init() {
     if (!inited) {
         inited = true;
@@ -81,6 +83,9 @@ void SelectMusic::Init() {
             root.SaveScoreDirectoryCache();
         }
 
+        if (!font)
+            font = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 24);
+
         // text_songlist.setPosition({1000.0f, 50.0f});
         // text_songlist.setScale({1.5f, 1.5f});
 
@@ -88,7 +93,7 @@ void SelectMusic::Init() {
     }
 }
 
-std::wstring str_songlist;
+std::string str_songlist;
 
 void SelectMusic::Draw(SDL_Renderer* render_target) const {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
@@ -96,20 +101,27 @@ void SelectMusic::Draw(SDL_Renderer* render_target) const {
         int player = 0;
         PlayOption& option = players[player].GetVariableAccount().info.GetVariablePlayOption();
         str_songlist +=
-            std::wstring(L"PLACE : ") + placement_str[option.GetPlacement(LEFT)] + L'\n' +
-            L"GAUGE : " + gauge_type_str[option.GetGaugeType()] + L'\n' +
-            L"ASSYST : " + assist_str[option.GetAssistType()] + L'\n' +
-            L"DISPLAY_AREA : " + display_area_str[option.GetDisplayArea()] + L'\n' +
-            L"FLIP : " + (option.GetFlip() ? L"ON" : L"OFF");
+            std::string("PLACE : ") + placement_str[option.GetPlacement(LEFT)] + '\n' +
+            "GAUGE : " + gauge_type_str[option.GetGaugeType()] + '\n' +
+            "ASSYST : " + assist_str[option.GetAssistType()] + '\n' +
+            "DISPLAY_AREA : " + display_area_str[option.GetDisplayArea()] + '\n' +
+            "FLIP : " + (option.GetFlip() ? "ON" : "OFF");
     } else {
         str_songlist.clear();
         for (int i = -3; i < 5; ++i) {
             if (i == 0)
-                str_songlist += L'▶';
+                str_songlist += '→';
             str_songlist += now_directory->At(i)->GetTitleSubtitle();
-            str_songlist += L"\n\n";
+            str_songlist += "\n\n";
         }
     }
+    SDL_Color textColor = {255, 255, 255, 255};
+    SDL_Surface* textSurface = TTF_RenderText_Solid_Wrapped(font, str_songlist.c_str(), 0, textColor, 0);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(render_target, textSurface);
+    SDL_FRect textRect = {100, 50, textSurface->w, textSurface->h};
+    SDL_RenderTexture(render_target, textTexture, nullptr, &textRect);
+    SDL_DestroySurface(textSurface);
+    SDL_DestroyTexture(textTexture);
     // text_songlist.setString(str_songlist);
     // render_target.draw(text_songlist);
     // render_target.draw(text_info);
