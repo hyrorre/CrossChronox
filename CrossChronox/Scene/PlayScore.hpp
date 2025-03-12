@@ -6,10 +6,10 @@
 
 class PlayScore : public Scene {
   public:
-    void Init(SDL_Renderer* renderer);
+    void Init();
     void Deinit();
     Scene* Update();
-    void Draw(SDL_Renderer* renderer) const;
+    void Draw() const;
 };
 
 extern PlayScore* scene_play_score_ptr;

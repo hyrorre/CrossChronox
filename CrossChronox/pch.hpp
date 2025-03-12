@@ -40,19 +40,17 @@
 #include <iconv.h>
 
 // SDL
-#include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
+#include <raylib.h>
 
 // toml11
 #include <toml.hpp>
 
 // Windows
-#if defined(_WIN64) || defined(_WIN32) // if Windows
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#endif
+// #if defined(_WIN64) || defined(_WIN32) // if Windows
+// #define WIN32_LEAN_AND_MEAN
+// #define NOMINMAX
+// #include <windows.h>
+// #endif
 
 // using (namespace)
 namespace fs = std::filesystem;

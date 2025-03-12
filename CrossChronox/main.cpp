@@ -1,29 +1,36 @@
-﻿#define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
-#include "Application.hpp"
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+﻿#include "pch.hpp"
+#include "FileSystem/Path.hpp"
 
-/* We will use this renderer to draw into this window every frame. */
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
+int main() {
+    // 画面サイズ
+    const int screenWidth = 1920;
+    const int screenHeight = 1080;
 
-/* This function runs once at startup. */
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    app.Init();
-    return SDL_APP_CONTINUE; /* carry on with the program! */
-}
+    // ウィンドウの作成
+    InitWindow(screenWidth, screenHeight, "raylib - PNG Load Example");
 
-/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    return app.Event(event);
-}
+    // テクスチャのロード (PNG 画像)
+    Texture2D texture = LoadTexture((GetAppdataPath() / "play.png").string().c_str());
 
-/* This function runs once per frame, and is the heart of the program. */
-SDL_AppResult SDL_AppIterate(void* appstate) {
-    return app.Run();
-}
+    int i = 0;
+    SetTargetFPS(60);
 
-/* This function runs once at shutdown. */
-void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-    /* SDL will clean up the window/renderer for us. */
+    // メインループ
+    while (!WindowShouldClose()) { // ESCキーかウィンドウを閉じたら終了
+        BeginDrawing();
+        ClearBackground(BLACK);
+
+        // 画像の描画 (左上に配置)
+        DrawTexture(texture, ++i, 0, WHITE);
+
+        DrawText("PNG Image Displayed!", 200, 400, 20, WHITE);
+
+        EndDrawing();
+    }
+
+    // メモリ解放
+    UnloadTexture(texture);
+    CloseWindow();
+
+    return 0;
 }

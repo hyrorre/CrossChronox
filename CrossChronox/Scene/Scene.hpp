@@ -9,9 +9,9 @@ class Scene {
     Scene() {}
     virtual ~Scene() {}
 
-    virtual void Init(SDL_Renderer* renderer) {} // called when scene switched in
+    virtual void Init() {}   // called when scene switched in
     virtual void Deinit() {} // called when scene switched out
 
     virtual Scene* Update() = 0;   // update data
-    virtual void Draw(SDL_Renderer* renderer) const = 0; // シーンの描画
+    virtual void Draw() const = 0; // シーンの描画
 };

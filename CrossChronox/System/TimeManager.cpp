@@ -11,11 +11,11 @@ namespace TimeManager {
 
     void Update() {
         lastframe_ms_ = now_ms_;
-        now_ms_ = SDL_GetTicks();
+        now_ms_ = static_cast<ms_type>(GetTime() * 1000);
         delta_ms_ = now_ms_ - lastframe_ms_;
     }
 
     ms_type GetRealtime() {
-        return SDL_GetTicks();
+        return static_cast<ms_type>(GetTime() * 1000);
     }
 } // namespace TimeManager

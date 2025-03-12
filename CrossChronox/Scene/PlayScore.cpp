@@ -46,12 +46,12 @@ float judge_combo_x = scr_x + 50;
 
 float judge_combo_y = judgeline_y - 180;
 
-TTF_Font* fontPlay = nullptr;
-
-SDL_Texture* background = nullptr;
-SDL_Texture* white = nullptr;
-SDL_Texture* black = nullptr;
-SDL_Texture* scr = nullptr;
+//TTF_Font* fontPlay = nullptr;
+//
+//SDL_Texture* background = nullptr;
+//SDL_Texture* white = nullptr;
+//SDL_Texture* black = nullptr;
+//SDL_Texture* scr = nullptr;
 
 // sf::Texture background((GetAppdataPath() / "play.png").string());
 // sf::Sprite background_sprite(background);
@@ -127,10 +127,10 @@ class JudgeCombo {
 
 // std::array<JudgeCombo, MAX_SIDE> judge_combos;
 
-void PlayScore::Init(SDL_Renderer* renderer) {
-    if (!background) {
-        background = IMG_LoadTexture(renderer, (GetAppdataPath() / "play.png").string().c_str());
-    }
+void PlayScore::Init() {
+    //if (!background) {
+    //    background = IMG_LoadTexture(renderer, (GetAppdataPath() / "play.png").string().c_str());
+    //}
     // background.loadFromFile((GetAppdataPath() / "play.png").string());
     // background_sprite.setTexture(background);
     // sf::Image tmp_image;
@@ -206,10 +206,10 @@ float global_scroll = .7f * 480;
 
 #define SS(x) ss << #x ": " << x << '\n'
 
-void PlayScore::Draw(SDL_Renderer* renderer) const {
+void PlayScore::Draw() const {
     // std::stringstream ss;
 
-    SDL_RenderTexture(renderer, background, nullptr, nullptr);
+    //SDL_RenderTexture(renderer, background, nullptr, nullptr);
     // // renderer.draw(judgeline_sprite);
     // for (auto& player : players) {
     //     ms_type play_ms = player.GetPlayMs();

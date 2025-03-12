@@ -4,10 +4,10 @@ namespace InputManager {
 
     using keyid_t = unsigned;
 
-    const bool* sdl_keyboard_states = nullptr;
+    // const bool* sdl_keyboard_states = nullptr;
 
     bool IsKeyPressed(keyid_t keyid) {
-        return sdl_keyboard_states[keyid];
+        // return sdl_keyboard_states[keyid];
         // if (keyid < 1000) { // keyboard
         //     return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keyid));
         // } else { // joystick
@@ -22,7 +22,7 @@ namespace InputManager {
         //     } else
         //         return sf::Joystick::isButtonPressed(joyid, keyid % 100);
         // }
-        // return false;
+        return false;
     };
 
     using keymap_t = std::unordered_map<std::string, std::vector<keyid_t>>;
@@ -74,7 +74,7 @@ namespace InputManager {
     }
 
     void Update() {
-        sdl_keyboard_states = SDL_GetKeyboardState(nullptr);
+        // sdl_keyboard_states = SDL_GetKeyboardState(nullptr);
         for (auto& key_state : key_states) {
             const keyid_t& keyid = key_state.first;
             auto& state = key_state.second;

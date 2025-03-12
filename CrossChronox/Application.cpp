@@ -21,56 +21,25 @@ void Application::ParseArgs(int argc, char* argv[]) {
     }
 }
 
-SDL_AppResult Application::Init() {
+void Application::Init() {
     // set locale
     setlocale(LC_ALL, "");
-
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    if (!TTF_Init()) {
-        SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, 0, &window, &renderer)) {
-        SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
 
     InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 
-    SceneManager::Init(renderer);
-
-    return SDL_APP_CONTINUE;
+    SceneManager::Init();
 }
 
-SDL_AppResult Application::Event(SDL_Event* event) {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
-    }
-    if (event->type == SDL_EVENT_KEY_DOWN) {
-        std::cout << event->key.scancode << std::endl;
-    }
-    return SDL_APP_CONTINUE; /* carry on with the program! */
-}
-
-SDL_AppResult Application::Run() {
+void Application::Run() {
     TimeManager::Update();
     InputManager::Update();
 
-    SceneManager::Update(renderer);
-    SceneManager::Draw(renderer);
+    SceneManager::Update();
+    SceneManager::Draw();
 
-    SDL_RenderPresent(renderer);
-    SDL_RenderClear(renderer);
-    return SDL_APP_CONTINUE;
+    EndDrawing();
 }
 
 void Application::Quit() {
-    TTF_Quit();
-    SDL_Quit();
 }
