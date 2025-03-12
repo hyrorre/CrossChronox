@@ -1,5 +1,4 @@
 ﻿#include "InputManager.hpp"
-#include "System/Exception.hpp"
 
 namespace InputManager {
 

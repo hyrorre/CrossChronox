@@ -3,7 +3,6 @@
 #include "Scene/SceneManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
 #include "Score/Play/ScorePlayer.hpp"
-#include "System/DefaultFont.hpp"
 #include "System/InputManager.hpp"
 #include "System/Setting.hpp"
 
@@ -50,17 +49,12 @@ SDL_AppResult Application::Event(SDL_Event* event) {
 }
 
 SDL_AppResult Application::Run() {
-    // update time
     TimeManager::Update();
-
-    // update InputManager
     InputManager::Update();
 
-    // 描画 drawing
     SceneManager::Draw(renderer);
 
-    // 描画終わり
-    SDL_RenderPresent(renderer); // バッファ画面をアップデート
+    SDL_RenderPresent(renderer);
     return SDL_APP_CONTINUE;
 }
 

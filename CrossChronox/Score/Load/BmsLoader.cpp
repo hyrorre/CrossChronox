@@ -169,7 +169,7 @@ class BmsLoader : private boost::noncopyable {
             }
             dest = cv.from_bytes(convert_encoding(src, "Shift_JIS", "UTF-8"));
         } catch (std::range_error&) {
-            throw ParseError(std::string("could not read string. (") + src + ")");
+            throw std::runtime_error(std::string("could not read string. (") + src + ")");
         }
     }
 
@@ -453,7 +453,7 @@ bool BmsLoader::TryParseHeaderLine() {
             } else if (boost::istarts_with(header, "TOTAL")) {
                 out->info.total.SetValue(atof(GetArg()));
                 if (out->info.total.GetValue() < 20)
-                    throw ParseError("TOTAL is not appropriate.");
+                    throw std::runtime_error("TOTAL is not appropriate.");
             } else if (boost::istarts_with(header, "BACKBMP")) {
                 Widen(GetArg(), out->info.back_image);
             } else if (boost::istarts_with(header, "STAGEFILE")) {
@@ -486,7 +486,7 @@ bool BmsLoader::TryParseHeaderLine() {
         msg << line_num;
         msg << "\n";
         msg << e.what();
-        throw ParseError(msg.str());
+        throw std::runtime_error(msg.str());
     }
 }
 
@@ -587,7 +587,7 @@ void BmsLoader::SetNotesAndEvents() {
     // Set bar_info
     ++max_bar;
     if (max_bar > 1000) {
-        throw ParseError("Too many bars. (max_bar > 1000)");
+        throw std::runtime_error("Too many bars. (max_bar > 1000)");
     }
     pulse_t total_pulse = 0;
     for (int i = 0; i <= max_bar; ++i) {
@@ -639,7 +639,7 @@ void BmsLoader::SetNotesAndEvents() {
             try {
                 out->bpm_events.emplace_back(new StopEvent(tmp_note->global_pulse, 10 * stop.at(tmp_note->index)));
             } catch (std::out_of_range&) {
-                throw ParseError("Some errors are found. (#STOP)");
+                throw std::runtime_error("Some errors are found. (#STOP)");
             }
             break;
 
@@ -773,7 +773,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
     {
         std::ifstream ifs(path);
         if (!ifs) {
-            throw OpenError(std::string("\"") + path + "\" could not be opened.");
+            throw std::runtime_error(std::string("\"") + path + "\" could not be opened.");
         }
 
         // Get MD5 of the file
@@ -784,7 +784,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
             ifs.clear(); // ここでclearしてEOFフラグを消す // clear EOF flag.
             ifs.seekg(0, ifs.beg);
             if (!StringToMD5(file_str, &out->info.md5)) {
-                throw ParseError("MD5 of the file could not be got.");
+                throw std::runtime_error("MD5 of the file could not be got.");
             }
         }
 

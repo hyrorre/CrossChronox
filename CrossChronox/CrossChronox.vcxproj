@@ -48,8 +48,6 @@
     <ClInclude Include="Score\ScoreData\ScoreInfo.hpp" />
     <ClInclude Include="Score\ScoreData\Total.hpp" />
     <ClInclude Include="Score\ScoreData\WavBuffer.hpp" />
-    <ClInclude Include="System\DefaultFont.hpp" />
-    <ClInclude Include="System\Exception.hpp" />
     <ClInclude Include="Filesystem\Path.hpp" />
     <ClInclude Include="System\InputManager.hpp" />
     <ClInclude Include="System\Setting.hpp" />
@@ -85,7 +83,6 @@
     <ClCompile Include="Score\ScoreData\ScoreInfo.cpp" />
     <ClCompile Include="Score\ScoreData\Total.cpp" />
     <ClCompile Include="Score\ScoreData\WavBuffer.cpp" />
-    <ClCompile Include="System\DefaultFont.cpp" />
     <ClCompile Include="Filesystem\Path.cpp" />
     <ClCompile Include="System\InputManager.cpp" />
     <ClCompile Include="System\Setting.cpp" />
