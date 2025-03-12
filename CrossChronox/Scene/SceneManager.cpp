@@ -5,11 +5,11 @@
 namespace SceneManager {
     Scene* now_scene = scene_select_music_ptr;
 
-    void Init() {
-        now_scene->Init();
+    void Init(SDL_Renderer* renderer) {
+        now_scene->Init(renderer);
     }
 
-    State Update() {
+    State Update(SDL_Renderer* renderer) {
         Scene* next_scene = now_scene->Update();
         if (now_scene != next_scene) {
             now_scene->Deinit();
@@ -17,15 +17,15 @@ namespace SceneManager {
                 return FINISH;
             }
             now_scene = next_scene;
-            next_scene->Init();
+            next_scene->Init(renderer);
             next_scene->Update();
         }
         return CONTINUE;
     }
 
-    void Draw(SDL_Renderer* render_target) {
+    void Draw(SDL_Renderer* renderer) {
         if (now_scene)
-            now_scene->Draw(render_target);
+            now_scene->Draw(renderer);
     }
 
     void Deinit() {

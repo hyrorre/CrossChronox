@@ -11,7 +11,7 @@ class SelectMusic : public Scene {
     ScoreDirectoryInfo* now_directory = &root;
 
   public:
-    void Init();
+    void Init(SDL_Renderer* renderer);
     void Deinit() {}
     Scene* Update();
     void Draw(SDL_Renderer* renderer) const;

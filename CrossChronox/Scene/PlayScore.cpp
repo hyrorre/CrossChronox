@@ -46,6 +46,13 @@ float judge_combo_x = scr_x + 50;
 
 float judge_combo_y = judgeline_y - 180;
 
+TTF_Font* fontPlay = nullptr;
+
+SDL_Texture* background = nullptr;
+SDL_Texture* white = nullptr;
+SDL_Texture* black = nullptr;
+SDL_Texture* scr = nullptr;
+
 // sf::Texture background((GetAppdataPath() / "play.png").string());
 // sf::Sprite background_sprite(background);
 
@@ -120,7 +127,10 @@ class JudgeCombo {
 
 // std::array<JudgeCombo, MAX_SIDE> judge_combos;
 
-void PlayScore::Init() {
+void PlayScore::Init(SDL_Renderer* renderer) {
+    if (!background) {
+        background = IMG_LoadTexture(renderer, (GetAppdataPath() / "play.png").string().c_str());
+    }
     // background.loadFromFile((GetAppdataPath() / "play.png").string());
     // background_sprite.setTexture(background);
     // sf::Image tmp_image;
@@ -196,11 +206,11 @@ float global_scroll = .7f * 480;
 
 #define SS(x) ss << #x ": " << x << '\n'
 
-void PlayScore::Draw(SDL_Renderer* render_target) const {
+void PlayScore::Draw(SDL_Renderer* renderer) const {
     // std::stringstream ss;
 
-    // // render_target.draw(background_sprite);
-    // // render_target.draw(judgeline_sprite);
+    SDL_RenderTexture(renderer, background, nullptr, nullptr);
+    // // renderer.draw(judgeline_sprite);
     // for (auto& player : players) {
     //     ms_type play_ms = player.GetPlayMs();
     //     ms_type last_play_ms = play_ms - delta_ms;
@@ -224,7 +234,7 @@ void PlayScore::Draw(SDL_Renderer* render_target) const {
     //         if (sprite) {
     //             if (note->len == 0) { // if note is not LN
     //                 sprite->setPosition({GetNoteX(note->lane), note_y});
-    //                 render_target.draw(*sprite);
+    //                 renderer.draw(*sprite);
     //             } else { // if note is LN
     //                 sf::Sprite ln_sprite = *sprite;
     //                 if (note->pulse < now_pulse) {
@@ -233,12 +243,12 @@ void PlayScore::Draw(SDL_Renderer* render_target) const {
     //                 float lnend_y = note_y;
     //                 float note_x = GetNoteX(note->lane);
     //                 sprite->setPosition({note_x, lnstart_y});
-    //                 render_target.draw(*sprite);
+    //                 renderer.draw(*sprite);
     //                 sprite->setPosition({note_x, lnend_y});
-    //                 render_target.draw(*sprite);
+    //                 renderer.draw(*sprite);
     //                 ln_sprite.setPosition({note_x, lnend_y});
     //                 ln_sprite.setScale({1.0f, (lnstart_y - lnend_y) / note_h});
-    //                 render_target.draw(ln_sprite);
+    //                 renderer.draw(ln_sprite);
     //             }
     //         }
     //     }
@@ -251,13 +261,13 @@ void PlayScore::Draw(SDL_Renderer* render_target) const {
     //     text_fps.setString(ss.str());
     //     fps_count = 0;
     // }
-    // render_target.draw(text_fps);
+    // renderer.draw(text_fps);
 
     // text_info_play.setString(ss.str());
-    // render_target.draw(text_info_play);
+    // renderer.draw(text_info_play);
 
     // const sf::Text* tmp = judge_combos[0].GetText();
     // if (tmp) {
-    //     render_target.draw(*tmp);
+    //     renderer.draw(*tmp);
     // }
 }

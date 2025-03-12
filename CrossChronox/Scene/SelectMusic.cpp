@@ -75,7 +75,7 @@ Scene* SelectMusic::Update() {
 
 TTF_Font* font = nullptr;
 
-void SelectMusic::Init() {
+void SelectMusic::Init(SDL_Renderer* renderer) {
     if (!inited) {
         inited = true;
         if (!root.TryLoadScoreDirectoryCache()) {
@@ -95,7 +95,7 @@ void SelectMusic::Init() {
 
 std::string str_songlist;
 
-void SelectMusic::Draw(SDL_Renderer* render_target) const {
+void SelectMusic::Draw(SDL_Renderer* renderer) const {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
         str_songlist.clear();
         int player = 0;
@@ -117,12 +117,12 @@ void SelectMusic::Draw(SDL_Renderer* render_target) const {
     }
     SDL_Color textColor = {255, 255, 255, 255};
     SDL_Surface* textSurface = TTF_RenderText_Solid_Wrapped(font, str_songlist.c_str(), 0, textColor, 0);
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(render_target, textSurface);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FRect textRect = {100, 50, textSurface->w, textSurface->h};
-    SDL_RenderTexture(render_target, textTexture, nullptr, &textRect);
+    SDL_RenderTexture(renderer, textTexture, nullptr, &textRect);
     SDL_DestroySurface(textSurface);
     SDL_DestroyTexture(textTexture);
     // text_songlist.setString(str_songlist);
-    // render_target.draw(text_songlist);
-    // render_target.draw(text_info);
+    // renderer.draw(text_songlist);
+    // renderer.draw(text_info);
 }

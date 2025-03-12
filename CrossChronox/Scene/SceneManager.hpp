@@ -8,8 +8,8 @@ namespace SceneManager {
         FINISH,
         CONTINUE
     };
-    void Init();
-    State Update();
-    void Draw(SDL_Renderer* render_target);
+    void Init(SDL_Renderer* renderer);
+    State Update(SDL_Renderer* renderer);
+    void Draw(SDL_Renderer* renderer);
     void Deinit();
 }; // namespace SceneManager

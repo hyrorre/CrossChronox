@@ -35,7 +35,7 @@ SDL_AppResult Application::Init() {
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer("CrossChronox", 800, 600, 0, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, 0, &window, &renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -43,7 +43,7 @@ SDL_AppResult Application::Init() {
     InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 
-    SceneManager::Init();
+    SceneManager::Init(renderer);
 
     return SDL_APP_CONTINUE;
 }
@@ -62,7 +62,7 @@ SDL_AppResult Application::Run() {
     TimeManager::Update();
     InputManager::Update();
 
-    SceneManager::Update();
+    SceneManager::Update(renderer);
     SceneManager::Draw(renderer);
 
     SDL_RenderPresent(renderer);

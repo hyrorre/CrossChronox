@@ -6,7 +6,7 @@
 
 class PlayScore : public Scene {
   public:
-    void Init();
+    void Init(SDL_Renderer* renderer);
     void Deinit();
     Scene* Update();
     void Draw(SDL_Renderer* renderer) const;
