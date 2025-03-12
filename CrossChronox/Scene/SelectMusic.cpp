@@ -8,8 +8,8 @@ SelectMusic scene_select_music;
 
 SelectMusic* scene_select_music_ptr = &scene_select_music;
 
-sf::Text text_songlist(font_default);
-sf::Text text_info(font_default);
+// sf::Text text_songlist(font_default);
+// sf::Text text_info(font_default);
 
 Scene* SelectMusic::Update() {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
@@ -41,16 +41,16 @@ Scene* SelectMusic::Update() {
     } else {
         if (InputManager::GetKeyFuncState("UpMusic").now == 1) {
             now_directory->UpMusic();
-            text_info.setString(now_directory->At(0)->GetInfoStr());
+            // text_info.setString(now_directory->At(0)->GetInfoStr());
         }
         if (InputManager::GetKeyFuncState("DownMusic").now == 1) {
             now_directory->DownMusic();
-            text_info.setString(now_directory->At(0)->GetInfoStr());
+            // text_info.setString(now_directory->At(0)->GetInfoStr());
         }
         if (InputManager::GetKeyFuncState("CloseFolder").now == 1) {
             if (now_directory->GetParent()) {
                 now_directory = now_directory->GetParent();
-                text_info.setString("");
+                // text_info.setString("");
             }
         }
         if (InputManager::GetKeyFuncState("DecideMusic").now == 1) {
@@ -59,7 +59,7 @@ Scene* SelectMusic::Update() {
                 ScoreDirectoryInfo* tmp_directory = static_cast<ScoreDirectoryInfo*>(tmp_info);
                 if (!tmp_directory->Empty()) {
                     now_directory = tmp_directory;
-                    text_info.setString(now_directory->At(0)->GetInfoStr());
+                    // text_info.setString(now_directory->At(0)->GetInfoStr());
                 }
             } else {
                 Application::SetScoreFilePath(tmp_info->path);
@@ -82,16 +82,16 @@ void SelectMusic::Init() {
             root.SaveScoreDirectoryCache();
         }
 
-        text_songlist.setPosition({1000.0f, 50.0f});
-        text_songlist.setScale({1.5f, 1.5f});
+        // text_songlist.setPosition({1000.0f, 50.0f});
+        // text_songlist.setScale({1.5f, 1.5f});
 
-        text_info.setCharacterSize(40);
+        // text_info.setCharacterSize(40);
     }
 }
 
 std::wstring str_songlist;
 
-void SelectMusic::Draw(sf::RenderTarget& render_target) const {
+void SelectMusic::Draw(SDL_Renderer* render_target) const {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
         str_songlist.clear();
         int player = 0;
@@ -111,7 +111,7 @@ void SelectMusic::Draw(sf::RenderTarget& render_target) const {
             str_songlist += L"\n\n";
         }
     }
-    text_songlist.setString(str_songlist);
-    render_target.draw(text_songlist);
-    render_target.draw(text_info);
+    // text_songlist.setString(str_songlist);
+    // render_target.draw(text_songlist);
+    // render_target.draw(text_info);
 }

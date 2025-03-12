@@ -6,7 +6,7 @@ class WavPlayer;
 
 class WavBuffer {
     friend WavPlayer;
-    sf::SoundBuffer buf;
+    //sf::SoundBuffer buf;
 
   public:
     std::string filename;

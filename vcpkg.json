@@ -3,16 +3,9 @@
     "boost-algorithm",
     "cryptopp",
     "libiconv",
-    "serdepp",
     "sdl3",
     "sdl3-image",
     "sdl3-ttf",
     "toml11"
-  ],
-  "overrides": [
-    {
-      "name": "toml11",
-      "version": "3.7.1"
-    }
   ]
 }

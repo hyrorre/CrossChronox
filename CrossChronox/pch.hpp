@@ -39,13 +39,9 @@
 // libiconv (iconv)
 #include <iconv.h>
 
-// serdepp
-#include <serdepp/adaptor/toml11.hpp>
-#include <serdepp/serde.hpp>
-
 // SDL
-#include <SDL3-image/SDL3-image.hpp>
-#include <SDL3/SDL3.hpp>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 // toml11
 #include <toml.hpp>
@@ -53,6 +49,7 @@
 // Windows
 #if defined(_WIN64) || defined(_WIN32) // if Windows
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #endif
 

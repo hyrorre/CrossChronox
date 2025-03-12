@@ -2,4 +2,4 @@
 
 #include "pch.hpp"
 
-extern sf::Font font_default;
+// extern sf::Font font_default;

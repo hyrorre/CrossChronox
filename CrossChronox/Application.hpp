@@ -6,10 +6,10 @@ class Application{
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
 	
-	fs::path executable_path;
+	static fs::path executable_path;
 	static fs::path scorefile_path;
 	
-	//void ParseArgs(int argc, char *argv[]);
+	void ParseArgs(int argc, char *argv[]);
 	
 public:
 	SDL_AppResult Init();
@@ -28,6 +28,3 @@ public:
 };
 
 extern Application app;
-
-
-#endif /* Application_hpp */

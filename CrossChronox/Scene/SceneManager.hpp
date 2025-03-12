@@ -10,6 +10,6 @@ enum State {
 };
 void Init();
 State Update();
-void Draw(sf::RenderTarget& render_target);
+void Draw(SDL_Renderer* render_target);
 void Deinit();
 }; // namespace SceneManager

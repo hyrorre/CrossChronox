@@ -21,10 +21,10 @@ void ScoreDirectoryInfo::LoadScoreDirectory() {
 }
 
 void ScoreDirectoryInfo::SaveScoreDirectoryCache() const {
-    SetScoreInfoCachePath();
-    std::ofstream ofs(score_info_cache_path);
-    auto str = serde::serialize<serde::toml_v>(*this);
-    ofs << str;
+    // SetScoreInfoCachePath();
+    // std::ofstream ofs(score_info_cache_path);
+    // auto str = serde::serialize<serde::toml_v>(*this);
+    // ofs << str;
 }
 
 bool ScoreDirectoryInfo::TryLoadScoreDirectoryCache() {

@@ -61,10 +61,10 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     ScoreDirectoryInfo() {}
     ScoreDirectoryInfo(std::string path) : ScoreInfoBase(path) {}
 
-    template <class Context>
-    constexpr static void serde(Context& context, ScoreDirectoryInfo& value) {
-        serde::serde_struct(context, value)
-            .field(&ScoreDirectoryInfo::title, "title")
-            .field(&ScoreDirectoryInfo::children, "children");
-    }
+    // template <class Context>
+    // constexpr static void serde(Context& context, ScoreDirectoryInfo& value) {
+    //     serde::serde_struct(context, value)
+    //         .field(&ScoreDirectoryInfo::title, "title")
+    //         .field(&ScoreDirectoryInfo::children, "children");
+    // }
 };

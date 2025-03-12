@@ -3,49 +3,24 @@
 
 namespace InputManager {
 
-// keyid
-
-// 0~999 keyid of keyboard(sf::Keyboard)
-
-// 1000~1099 (下二桁) buttonid of joystick 1
-
-// 1100 X < -80 of joystick 1
-// 1101 X > 80  of joystick 1
-// 1200 Y < -80 of joystick 1
-// 1201 Y > 80  of joystick 1
-// ...
-
-// 2000~2099 (下二桁)buttonid of joystick 2
-// 2100 X < -80 of joystick 2
-// and so on...
-
-// Axis IDs
-//	X,    ///< The X axis
-//	Y,    ///< The Y axis
-//	Z,    ///< The Z axis
-//	R,    ///< The R axis
-//	U,    ///< The U axis
-//	V,    ///< The V axis
-//	PovX, ///< The X axis of the point-of-view hat
-//	PovY  ///< The Y axis of the point-of-view hat
-
 using keyid_t = unsigned;
 
 bool IsKeyPressed(keyid_t keyid) {
-    if (keyid < 1000) { // keyboard
-        return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keyid));
-    } else { // joystick
-        unsigned joyid = (keyid / 1000) - 1;
-        if (int axis = (keyid / 100) % 10) {
-            --axis;
-            auto pos = sf::Joystick::getAxisPosition(joyid, static_cast<sf::Joystick::Axis>(axis));
-            if (keyid % 10)
-                return (80 < pos);
-            else
-                return (pos < -80);
-        } else
-            return sf::Joystick::isButtonPressed(joyid, keyid % 100);
-    }
+    // if (keyid < 1000) { // keyboard
+    //     return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(keyid));
+    // } else { // joystick
+    //     unsigned joyid = (keyid / 1000) - 1;
+    //     if (int axis = (keyid / 100) % 10) {
+    //         --axis;
+    //         auto pos = sf::Joystick::getAxisPosition(joyid, static_cast<sf::Joystick::Axis>(axis));
+    //         if (keyid % 10)
+    //             return (80 < pos);
+    //         else
+    //             return (pos < -80);
+    //     } else
+    //         return sf::Joystick::isButtonPressed(joyid, keyid % 100);
+    // }
+    return false;
 };
 
 using keymap_t = std::unordered_map<std::string, std::vector<keyid_t>>;

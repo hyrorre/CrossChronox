@@ -23,7 +23,7 @@ State Update() {
     return CONTINUE;
 }
 
-void Draw(sf::RenderTarget& render_target) {
+void Draw(SDL_Renderer* render_target) {
     if (now_scene)
         now_scene->Draw(render_target);
 }

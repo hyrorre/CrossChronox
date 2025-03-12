@@ -78,9 +78,6 @@
     <ClInclude Include="Filesystem\ScoreInfoBase.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\MessageBox.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\PlayScore.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
