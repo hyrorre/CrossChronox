@@ -4,11 +4,15 @@
     "cryptopp",
     "libiconv",
     "serdepp",
-    "sfml",
+    "sdl3",
+    "sdl3-image",
+    "sdl3-ttf",
     "toml11"
   ],
   "overrides": [
-    { "name": "sfml", "version": "3.0.0" },
-    { "name": "toml11", "version": "3.7.1" }
+    {
+      "name": "toml11",
+      "version": "3.7.1"
+    }
   ]
 }
