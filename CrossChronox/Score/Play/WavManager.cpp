@@ -6,10 +6,10 @@ void WavManager::Update() {
 void WavManager::PlayWav(const Note* note) {
     if (note && note->wavbuf_ptr) {
         for (auto& player : players) {
-            //if (player.GetStatus() == sf::Sound::Status::Stopped) {
-            //    player.ResetSound(note);
-            //    break;
-            //}
+            // if (player.GetStatus() == sf::Sound::Status::Stopped) {
+            //     player.ResetSound(note);
+            //     break;
+            // }
         }
     }
 }

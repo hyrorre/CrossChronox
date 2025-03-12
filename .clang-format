@@ -9,6 +9,8 @@ Language: Cpp
 DerivePointerAlignment: false
 PointerAlignment: Left
 
+NamespaceIndentation: All
+
 ColumnLimit: 0
 
 IncludeCategories:
