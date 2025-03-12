@@ -2,7 +2,7 @@
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
 #include "System/DefaultFont.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 
 PlayScore scene_play_score;
 

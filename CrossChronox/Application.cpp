@@ -1,11 +1,10 @@
 ﻿#include "Application.hpp"
 #include "Filesystem/Path.hpp"
-#include "Platform/MessageBox.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
 #include "Score/Play/ScorePlayer.hpp"
 #include "System/DefaultFont.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 #include "System/Setting.hpp"
 
 Application app;

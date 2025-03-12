@@ -2,7 +2,7 @@
 #include "Application.hpp"
 #include "PlayScore.hpp"
 #include "System/DefaultFont.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 
 SelectMusic scene_select_music;
 

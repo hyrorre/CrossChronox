@@ -33,7 +33,6 @@
     <ClInclude Include="Score\Play\Account.hpp" />
     <ClInclude Include="score\play\judgemanager.hpp" />
     <ClInclude Include="Score\Play\Result.hpp" />
-    <ClInclude Include="System\Input\InputManager.hpp" />
     <ClInclude Include="pch.hpp" />
     <ClInclude Include="Scene\PlayScore.hpp" />
     <ClInclude Include="Scene\Scene.hpp" />
@@ -52,6 +51,7 @@
     <ClInclude Include="System\DefaultFont.hpp" />
     <ClInclude Include="System\Exception.hpp" />
     <ClInclude Include="Filesystem\Path.hpp" />
+    <ClInclude Include="System\InputManager.hpp" />
     <ClInclude Include="System\Setting.hpp" />
     <ClInclude Include="System\TimeManager.hpp" />
   </ItemGroup>
@@ -64,7 +64,6 @@
     <ClCompile Include="Score\Play\Account.cpp" />
     <ClCompile Include="Score\Play\JudgeManager.cpp" />
     <ClCompile Include="Score\Play\Result.cpp" />
-    <ClCompile Include="System\Input\InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -88,6 +87,7 @@
     <ClCompile Include="Score\ScoreData\WavBuffer.cpp" />
     <ClCompile Include="System\DefaultFont.cpp" />
     <ClCompile Include="Filesystem\Path.cpp" />
+    <ClCompile Include="System\InputManager.cpp" />
     <ClCompile Include="System\Setting.cpp" />
     <ClCompile Include="System\TimeManager.cpp" />
   </ItemGroup>
@@ -187,7 +187,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>
@@ -208,7 +208,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)/../Dependencies/include;$(ProjectDir);</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch.hpp</ForcedIncludeFiles>

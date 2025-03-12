@@ -2,7 +2,7 @@
 
 #include "pch.hpp"
 #include "Score/ScoreData/ScoreData.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 
 // enum{
 //	JUDGE_ALGORITHM_LR2,
