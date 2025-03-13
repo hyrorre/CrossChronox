@@ -35,33 +35,24 @@ class Setting {
     int GetResolutionY() const {
         return resolution_y;
     }
-    // sf::Vector2i GetResolution() const {
-    //     return sf::Vector2i(GetResolutionX(), GetResolutionY());
-    // }
     int GetWindowSizeX() const {
         return window_size_x;
     }
     int GetWindowSizeY() const {
         return window_size_y;
     }
-    // sf::Vector2i GetWindowSize() const {
-    //     return sf::Vector2i(GetWindowSizeX(), GetWindowSizeY());
-    // }
     int GetWindowsPosX() const {
         return window_pos_x;
     }
     int GetWindowPosY() const {
         return window_pos_y;
     }
-    // sf::Vector2i GetWindowPos() const {
-    //     return sf::Vector2i(GetWindowsPosX(), GetWindowPosY());
-    // }
-    // void SetWindowPos(const sf::Vector2i& value) {
-    //    if (save_window_pos) {
-    //        window_pos_x = value.x;
-    //        window_pos_y = value.y;
-    //    }
-    //}
+    void SetWindowPos(int x, int y) {
+        if (save_window_pos) {
+            window_pos_x = x;
+            window_pos_y = y;
+        }
+    }
     bool GetVsync() const {
         return vsync;
     }

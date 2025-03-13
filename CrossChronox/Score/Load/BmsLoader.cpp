@@ -442,7 +442,6 @@ bool BmsLoader::TryParseHeaderLine() {
             } else if (boost::istarts_with(header, "ARTIST")) {
                 ToUTF8(GetArg(), out->info.artist);
             } else if (boost::istarts_with(header, "SUBARTIST")) {
-                // out->info.subartists.emplace_back(sf::String(GetArg()).toWideString());
                 out->info.subartists.emplace_back();
                 ToUTF8(GetArg(), out->info.subartists.back());
             } else if (boost::istarts_with(header, "GENRE")) {
@@ -463,7 +462,6 @@ bool BmsLoader::TryParseHeaderLine() {
                 out->info.level = atoi(GetArg());
             } else if (boost::istarts_with(header, "DIFFICULTY")) {
                 out->info.difficulty = atoi(GetArg());
-                // out->info.chart_name = sf::String(difficulty_str.at(out->info.difficulty)).toWideString();
                 ToUTF8(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
             } else if (boost::istarts_with(header, "RANK")) {
                 int i = std::clamp(atoi(GetArg()), 0, 3);

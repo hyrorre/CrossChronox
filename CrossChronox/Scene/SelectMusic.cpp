@@ -7,9 +7,6 @@ SelectMusic scene_select_music;
 
 SelectMusic* scene_select_music_ptr = &scene_select_music;
 
-// sf::Text text_songlist(font_default);
-// sf::Text text_info(font_default);
-
 Scene* SelectMusic::Update() {
     if (InputManager::GetKeyFuncState("Option").now > 0) {
         // TODO: 複数プレイヤーおよびDPに対応
@@ -84,12 +81,7 @@ void SelectMusic::Init(SDL_Renderer* renderer) {
         }
 
         if (!font)
-            font = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 24);
-
-        // text_songlist.setPosition({1000.0f, 50.0f});
-        // text_songlist.setScale({1.5f, 1.5f});
-
-        // text_info.setCharacterSize(40);
+            font = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 40);
     }
 }
 
@@ -115,14 +107,11 @@ void SelectMusic::Draw(SDL_Renderer* renderer) const {
             str_songlist += "\n\n";
         }
     }
-    SDL_Color textColor = {255, 255, 255, 255};
-    SDL_Surface* textSurface = TTF_RenderText_Solid_Wrapped(font, str_songlist.c_str(), 0, textColor, 0);
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    SDL_FRect textRect = {100, 50, textSurface->w, textSurface->h};
-    SDL_RenderTexture(renderer, textTexture, nullptr, &textRect);
-    SDL_DestroySurface(textSurface);
-    SDL_DestroyTexture(textTexture);
-    // text_songlist.setString(str_songlist);
-    // renderer.draw(text_songlist);
-    // renderer.draw(text_info);
+    SDL_Color text_color = {255, 255, 255, 255};
+    SDL_Surface* text_surface = TTF_RenderText_Solid_Wrapped(font, str_songlist.c_str(), 0, text_color, 0);
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+    SDL_FRect text_rect = {100, 50, text_surface->w, text_surface->h};
+    SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
+    SDL_DestroySurface(text_surface);
+    SDL_DestroyTexture(text_texture);
 }
