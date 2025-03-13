@@ -16,9 +16,9 @@ class ScoreInfoBase {
     ScoreInfoBase(std::string path) : path(path) {}
     virtual ~ScoreInfoBase() {}
 
-    template <class Context>
-    constexpr static void serde(Context& context, ScoreInfoBase& value) {
-        serde::serde_struct(context, value)
-            .field(&ScoreInfoBase::path, "path");
-    }
+    //template <class Context>
+    //constexpr static void serde(Context& context, ScoreInfoBase& value) {
+    //    serde::serde_struct(context, value)
+    //        .field(&ScoreInfoBase::path, "path");
+    //}
 };

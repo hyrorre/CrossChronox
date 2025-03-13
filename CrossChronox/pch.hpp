@@ -39,10 +39,6 @@
 // libiconv (iconv)
 #include <iconv.h>
 
-// serdepp
-#include <serdepp/adaptor/toml11.hpp>
-#include <serdepp/serde.hpp>
-
 // SFML
 #include <SFML/Audio.hpp>
 #include <SFML/Config.hpp>

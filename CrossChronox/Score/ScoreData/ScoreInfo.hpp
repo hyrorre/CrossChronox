@@ -58,34 +58,34 @@ struct ScoreInfo : public ScoreInfoBase {
     ScoreInfo() {}
     ScoreInfo(std::string path) : ScoreInfoBase(path) {}
 
-    template <class Context>
-    constexpr static void serde(Context& context, ScoreInfo& value) {
-        serde::serde_struct(context, value)
-            .field(&ScoreInfo::title, "title")
-            .field(&ScoreInfo::subtitle, "subtitle")
-            .field(&ScoreInfo::artist, "artist")
-            .field(&ScoreInfo::subartists, "subartists")
-            .field(&ScoreInfo::genre, "genre")
-            .field(&ScoreInfo::mode, "mode")
-            .field(&ScoreInfo::chart_name, "chart_name")
-            .field(&ScoreInfo::difficulty, "difficulty")
-            .field(&ScoreInfo::level, "level")
-            .field(&ScoreInfo::init_bpm, "init_bpm")
-            .field(&ScoreInfo::judge_rank, "judge_rank")
-            .field(&ScoreInfo::total, "total")
-            .field(&ScoreInfo::back_image, "back_image")
-            .field(&ScoreInfo::eyecatch_image, "eyecatch_image")
-            .field(&ScoreInfo::banner_image, "banner_image")
-            .field(&ScoreInfo::preview_music, "preview_music")
-            .field(&ScoreInfo::resolution, "resolution")
-            .field(&ScoreInfo::end_pulse, "end_pulse")
-            .field(&ScoreInfo::end_ms, "end_ms")
-            .field(&ScoreInfo::max_bpm, "max_bpm")
-            .field(&ScoreInfo::min_bpm, "min_bpm")
-            .field(&ScoreInfo::base_bpm, "base_bpm")
-            .field(&ScoreInfo::note_count, "note_count")
-            .field(&ScoreInfo::md5, "md5")
-            .field(&ScoreInfo::random_flag, "random_flag")
-            .field(&ScoreInfo::ln_type, "ln_type");
-    }
+    //template <class Context>
+    //constexpr static void serde(Context& context, ScoreInfo& value) {
+    //    serde::serde_struct(context, value)
+    //        .field(&ScoreInfo::title, "title")
+    //        .field(&ScoreInfo::subtitle, "subtitle")
+    //        .field(&ScoreInfo::artist, "artist")
+    //        .field(&ScoreInfo::subartists, "subartists")
+    //        .field(&ScoreInfo::genre, "genre")
+    //        .field(&ScoreInfo::mode, "mode")
+    //        .field(&ScoreInfo::chart_name, "chart_name")
+    //        .field(&ScoreInfo::difficulty, "difficulty")
+    //        .field(&ScoreInfo::level, "level")
+    //        .field(&ScoreInfo::init_bpm, "init_bpm")
+    //        .field(&ScoreInfo::judge_rank, "judge_rank")
+    //        .field(&ScoreInfo::total, "total")
+    //        .field(&ScoreInfo::back_image, "back_image")
+    //        .field(&ScoreInfo::eyecatch_image, "eyecatch_image")
+    //        .field(&ScoreInfo::banner_image, "banner_image")
+    //        .field(&ScoreInfo::preview_music, "preview_music")
+    //        .field(&ScoreInfo::resolution, "resolution")
+    //        .field(&ScoreInfo::end_pulse, "end_pulse")
+    //        .field(&ScoreInfo::end_ms, "end_ms")
+    //        .field(&ScoreInfo::max_bpm, "max_bpm")
+    //        .field(&ScoreInfo::min_bpm, "min_bpm")
+    //        .field(&ScoreInfo::base_bpm, "base_bpm")
+    //        .field(&ScoreInfo::note_count, "note_count")
+    //        .field(&ScoreInfo::md5, "md5")
+    //        .field(&ScoreInfo::random_flag, "random_flag")
+    //        .field(&ScoreInfo::ln_type, "ln_type");
+    //}
 };
