@@ -1,17 +1,23 @@
 # CrossChronox
 # score info cache file
+Song.xml
 Song.toml
 
 # backup files
 *.bak
 
 # setting files
+Setting.xml
 Setting.toml
 
 # Dependencies
 lib
 include
 vcpkg_installed
+
+# VSCode
+.vscode/c_cpp_properties.json
+.vscode/settings.json
 
 # Xcodeのビルドファイル
 # https://gist.github.com/adamgit/3786883
@@ -437,7 +443,6 @@ __pycache__/
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
