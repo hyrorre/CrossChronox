@@ -1,3 +1,3 @@
 ﻿#include "WavPlayer.hpp"
 
-// const sf::SoundBuffer WavPlayer::buf;
+const sf::SoundBuffer WavPlayer::buf;

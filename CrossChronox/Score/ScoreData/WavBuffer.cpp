@@ -24,6 +24,6 @@ bool WavBuffer::Load(const std::string& score_directory) {
         return false;
     }
 File_Exist:
-    // return buf.loadFromFile(score_path.string());
+    return buf.loadFromFile(score_path.string());
     return false;
 }
