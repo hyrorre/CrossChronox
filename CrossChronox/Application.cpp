@@ -1,4 +1,4 @@
-﻿#include "Application.hpp"
+#include "Application.hpp"
 #include "Filesystem/Path.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
@@ -25,7 +25,7 @@ SDL_AppResult Application::Init() {
     // set locale
     setlocale(LC_ALL, "");
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -35,7 +35,7 @@ SDL_AppResult Application::Init() {
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, 0, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -53,7 +53,7 @@ SDL_AppResult Application::Event(SDL_Event* event) {
         return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
     }
     if (event->type == SDL_EVENT_KEY_DOWN) {
-        std::cout << event->key.scancode << std::endl;
+        // std::cout << event->key.scancode << std::endl;
     }
     return SDL_APP_CONTINUE; /* carry on with the program! */
 }

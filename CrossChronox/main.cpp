@@ -1,4 +1,4 @@
-﻿#define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
+#define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
 #include "Application.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -9,8 +9,7 @@ static SDL_Renderer* renderer = NULL;
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    app.Init();
-    return SDL_APP_CONTINUE; /* carry on with the program! */
+    return app.Init();
 }
 
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */

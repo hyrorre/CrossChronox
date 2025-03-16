@@ -1,4 +1,4 @@
-﻿#include "SelectMusic.hpp"
+#include "SelectMusic.hpp"
 #include "Application.hpp"
 #include "PlayScore.hpp"
 #include "System/InputManager.hpp"
@@ -102,7 +102,7 @@ void SelectMusic::Draw(SDL_Renderer* renderer) const {
         str_songlist.clear();
         for (int i = -3; i < 5; ++i) {
             if (i == 0)
-                str_songlist += '→';
+                str_songlist += "→";
             str_songlist += now_directory->At(i)->GetTitleSubtitle();
             str_songlist += "\n\n";
         }
@@ -110,7 +110,7 @@ void SelectMusic::Draw(SDL_Renderer* renderer) const {
     SDL_Color text_color = {255, 255, 255, 255};
     SDL_Surface* text_surface = TTF_RenderText_Solid_Wrapped(font, str_songlist.c_str(), 0, text_color, 0);
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    SDL_FRect text_rect = {100, 50, text_surface->w, text_surface->h};
+    SDL_FRect text_rect = {100, 50, (float)text_surface->w, (float)text_surface->h};
     SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
     SDL_DestroySurface(text_surface);
     SDL_DestroyTexture(text_texture);

@@ -1,4 +1,4 @@
-﻿#include "BmsLoader.hpp"
+#include "BmsLoader.hpp"
 #include "Filesystem/MD5.hpp"
 
 // BMS command memo (draft) (English)
@@ -510,12 +510,12 @@ void BmsLoader::SetSubtitle() {
         //"delim" is omitted from "delimiter"
         typedef std::pair<wchar_t, wchar_t> delim_type;
         static const std::vector<delim_type> delim_list = {
-            {L'-', '-'},
-            {L'〜', '〜'},
-            {L'(', ')'},
-            {L'[', ']'},
-            {L'<', '>'},
-            {L'\"', '\"'}};
+            {L'-', L'-'},
+            {L'〜', L'〜'},
+            {L'(', L')'},
+            {L'[', L']'},
+            {L'<', L'>'},
+            {L'\"', L'\"'}};
         boost::trim_right(out->info.title);
         std::string_view title = out->info.title;
         for (delim_type delim : delim_list) {

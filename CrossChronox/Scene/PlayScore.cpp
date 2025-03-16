@@ -1,4 +1,4 @@
-﻿#include "PlayScore.hpp"
+#include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
 #include "System/InputManager.hpp"
@@ -167,7 +167,7 @@ void PlayScore::Draw(SDL_Renderer* renderer) const {
             SDL_Texture* texture = GetNoteTexture(note->lane);
             if (texture) {
                 if (note->len == 0) { // if note is not LN
-                    SDL_FRect frect = {GetNoteX(note->lane), note_y, texture->w, note_h};
+                    SDL_FRect frect = {GetNoteX(note->lane), note_y, (float)texture->w, (float)note_h};
                     SDL_RenderTexture(renderer, texture, nullptr, &frect);
                 } else { // if note is LN
                     if (note->pulse < now_pulse) {
@@ -175,7 +175,7 @@ void PlayScore::Draw(SDL_Renderer* renderer) const {
                     }
 
                     float lnend_y = note_y;
-                    SDL_FRect frect = {GetNoteX(note->lane), note_y, texture->w, lnstart_y - lnend_y + note_h};
+                    SDL_FRect frect = {GetNoteX(note->lane), note_y, (float)texture->w, lnstart_y - lnend_y + note_h};
                     SDL_RenderTexture(renderer, texture, nullptr, &frect);
                 }
             }
@@ -185,7 +185,7 @@ void PlayScore::Draw(SDL_Renderer* renderer) const {
     SDL_Color text_color = {255, 255, 255, 255};
     SDL_Surface* text_surface = TTF_RenderText_Solid_Wrapped(font_playinfo, ss.str().c_str(), 0, text_color, 0);
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    SDL_FRect text_rect = {900, 220, text_surface->w, text_surface->h};
+    SDL_FRect text_rect = {900, 220, (float)text_surface->w, (float)text_surface->h};
     SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
     SDL_DestroySurface(text_surface);
     SDL_DestroyTexture(text_texture);
@@ -199,7 +199,7 @@ void PlayScore::Draw(SDL_Renderer* renderer) const {
                 SDL_Color text_color = color_judge_combo[info.judge];
                 SDL_Surface* text_surface = TTF_RenderText_Solid(font_judge, (str_judge_combo[info.judge] + std::to_string(info.combo)).c_str(), 0, text_color);
                 SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-                SDL_FRect text_rect = {judge_combo_x, judge_combo_y, text_surface->w, text_surface->h};
+                SDL_FRect text_rect = {judge_combo_x, judge_combo_y, (float)text_surface->w, (float)text_surface->h};
                 SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
                 SDL_DestroySurface(text_surface);
                 SDL_DestroyTexture(text_texture);
