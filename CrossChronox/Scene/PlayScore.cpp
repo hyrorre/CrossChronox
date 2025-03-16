@@ -1,4 +1,4 @@
-#include "PlayScore.hpp"
+﻿#include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
 #include "System/InputManager.hpp"

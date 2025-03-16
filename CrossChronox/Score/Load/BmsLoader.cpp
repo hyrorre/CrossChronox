@@ -1,4 +1,4 @@
-#include "BmsLoader.hpp"
+﻿#include "BmsLoader.hpp"
 #include "Filesystem/MD5.hpp"
 
 // BMS command memo (draft) (English)

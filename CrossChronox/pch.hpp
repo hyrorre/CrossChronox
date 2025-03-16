@@ -44,7 +44,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-// SDL
+// SFML
 #include <SFML/Audio.hpp>
 
 // toml11
