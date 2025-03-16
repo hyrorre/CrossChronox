@@ -3,35 +3,35 @@
 #include "SelectMusic.hpp"
 
 namespace SceneManager {
-Scene* now_scene = scene_select_music_ptr;
+    Scene* now_scene = scene_select_music_ptr;
 
-void Init() {
-    now_scene->Init();
-}
+    void Init(SDL_Renderer* renderer) {
+        now_scene->Init(renderer);
+    }
 
-State Update() {
-    Scene* next_scene = now_scene->Update();
-    if (now_scene != next_scene) {
-        now_scene->Deinit();
-        if (next_scene == nullptr) {
-            return FINISH;
+    State Update(SDL_Renderer* renderer) {
+        Scene* next_scene = now_scene->Update();
+        if (now_scene != next_scene) {
+            now_scene->Deinit();
+            if (next_scene == nullptr) {
+                return FINISH;
+            }
+            now_scene = next_scene;
+            next_scene->Init(renderer);
+            next_scene->Update();
         }
-        now_scene = next_scene;
-        next_scene->Init();
-        next_scene->Update();
+        return CONTINUE;
     }
-    return CONTINUE;
-}
 
-void Draw(sf::RenderTarget& render_target) {
-    if (now_scene)
-        now_scene->Draw(render_target);
-}
-
-void Deinit() {
-    if (now_scene) {
-        now_scene->Deinit();
-        now_scene = nullptr;
+    void Draw(SDL_Renderer* renderer) {
+        if (now_scene)
+            now_scene->Draw(renderer);
     }
-}
+
+    void Deinit() {
+        if (now_scene) {
+            now_scene->Deinit();
+            now_scene = nullptr;
+        }
+    }
 } // namespace SceneManager

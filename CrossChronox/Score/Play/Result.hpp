@@ -84,5 +84,5 @@ class Result {
         else
             return tl.back();
     }
-    std::wstring GetResultStr() const;
+    std::string GetResultStr() const;
 };

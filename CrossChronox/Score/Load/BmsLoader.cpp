@@ -155,21 +155,18 @@ class BmsLoader : private boost::noncopyable {
         return outstr; // std::string(outstr);
     }
 
-    // UTF8文字列からワイド文字列
-    // ロケール依存
-    void Widen(const char* src, std::wstring& dest) {
+    void ToUTF8(const char* src, std::string& dest) {
         try {
-            std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cv;
             if (encode == UNKNOWN) {
                 encode = JudgeTextEncode(src);
             }
             if (encode != SHIFT_JIS) {
-                dest = cv.from_bytes(src);
+                dest = src;
                 return;
             }
-            dest = cv.from_bytes(convert_encoding(src, "Shift_JIS", "UTF-8"));
+            dest = convert_encoding(src, "Shift_JIS", "UTF-8");
         } catch (std::range_error&) {
-            throw ParseError(std::string("could not read string. (") + src + ")");
+            throw std::runtime_error(std::string("could not read string. (") + src + ")");
         }
     }
 
@@ -439,35 +436,33 @@ bool BmsLoader::TryParseHeaderLine() {
             } else if (boost::istarts_with(header, "STOP")) {
                 stop[GetIndex()] = atoi(GetArg());
             } else if (boost::istarts_with(header, "TITLE")) {
-                Widen(GetArg(), out->info.title);
+                ToUTF8(GetArg(), out->info.title);
             } else if (boost::istarts_with(header, "SUBTITLE")) {
-                Widen(GetArg(), out->info.subtitle);
+                ToUTF8(GetArg(), out->info.subtitle);
             } else if (boost::istarts_with(header, "ARTIST")) {
-                Widen(GetArg(), out->info.artist);
+                ToUTF8(GetArg(), out->info.artist);
             } else if (boost::istarts_with(header, "SUBARTIST")) {
-                // out->info.subartists.emplace_back(sf::String(GetArg()).toWideString());
                 out->info.subartists.emplace_back();
-                Widen(GetArg(), out->info.subartists.back());
+                ToUTF8(GetArg(), out->info.subartists.back());
             } else if (boost::istarts_with(header, "GENRE")) {
-                Widen(GetArg(), out->info.genre);
+                ToUTF8(GetArg(), out->info.genre);
             } else if (boost::istarts_with(header, "TOTAL")) {
                 out->info.total.SetValue(atof(GetArg()));
                 if (out->info.total.GetValue() < 20)
-                    throw ParseError("TOTAL is not appropriate.");
+                    throw std::runtime_error("TOTAL is not appropriate.");
             } else if (boost::istarts_with(header, "BACKBMP")) {
-                Widen(GetArg(), out->info.back_image);
+                ToUTF8(GetArg(), out->info.back_image);
             } else if (boost::istarts_with(header, "STAGEFILE")) {
-                Widen(GetArg(), out->info.eyecatch_image);
+                ToUTF8(GetArg(), out->info.eyecatch_image);
             } else if (boost::istarts_with(header, "BANNER")) {
-                Widen(GetArg(), out->info.banner_image);
+                ToUTF8(GetArg(), out->info.banner_image);
             } else if (boost::istarts_with(header, "PREVIEWMUSIC")) {
-                Widen(GetArg(), out->info.preview_music);
+                ToUTF8(GetArg(), out->info.preview_music);
             } else if (boost::istarts_with(header, "PLAYLEVEL")) {
                 out->info.level = atoi(GetArg());
             } else if (boost::istarts_with(header, "DIFFICULTY")) {
                 out->info.difficulty = atoi(GetArg());
-                // out->info.chart_name = sf::String(difficulty_str.at(out->info.difficulty)).toWideString();
-                Widen(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
+                ToUTF8(difficulty_str.at(out->info.difficulty).c_str(), out->info.chart_name);
             } else if (boost::istarts_with(header, "RANK")) {
                 int i = std::clamp(atoi(GetArg()), 0, 3);
                 out->info.judge_rank.SetValue(i);
@@ -486,7 +481,7 @@ bool BmsLoader::TryParseHeaderLine() {
         msg << line_num;
         msg << "\n";
         msg << e.what();
-        throw ParseError(msg.str());
+        throw std::runtime_error(msg.str());
     }
 }
 
@@ -515,20 +510,20 @@ void BmsLoader::SetSubtitle() {
         //"delim" is omitted from "delimiter"
         typedef std::pair<wchar_t, wchar_t> delim_type;
         static const std::vector<delim_type> delim_list = {
-            {L'-', L'-'},
-            {L'〜', L'〜'},
-            {L'(', L')'},
-            {L'[', L']'},
-            {L'<', L'>'},
-            {L'\"', L'\"'}};
+            {L'-', '-'},
+            {L'〜', '〜'},
+            {L'(', ')'},
+            {L'[', ']'},
+            {L'<', '>'},
+            {L'\"', '\"'}};
         boost::trim_right(out->info.title);
-        std::wstring_view title = out->info.title;
+        std::string_view title = out->info.title;
         for (delim_type delim : delim_list) {
             if (title.back() == delim.second) {
                 auto pos_delim1 = title.substr(0, title.length() - 1).find_last_of(delim.first);
                 if (pos_delim1 != std::string::npos && pos_delim1 != 0) {
-                    out->info.subtitle = std::wstring(title.substr(pos_delim1));
-                    out->info.title = std::wstring(title.substr(0, pos_delim1));
+                    out->info.subtitle = std::string(title.substr(pos_delim1));
+                    out->info.title = std::string(title.substr(0, pos_delim1));
                     boost::trim_right(out->info.title);
                     break;
                 }
@@ -587,7 +582,7 @@ void BmsLoader::SetNotesAndEvents() {
     // Set bar_info
     ++max_bar;
     if (max_bar > 1000) {
-        throw ParseError("Too many bars. (max_bar > 1000)");
+        throw std::runtime_error("Too many bars. (max_bar > 1000)");
     }
     pulse_t total_pulse = 0;
     for (int i = 0; i <= max_bar; ++i) {
@@ -639,7 +634,7 @@ void BmsLoader::SetNotesAndEvents() {
             try {
                 out->bpm_events.emplace_back(new StopEvent(tmp_note->global_pulse, 10 * stop.at(tmp_note->index)));
             } catch (std::out_of_range&) {
-                throw ParseError("Some errors are found. (#STOP)");
+                throw std::runtime_error("Some errors are found. (#STOP)");
             }
             break;
 
@@ -773,7 +768,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
     {
         std::ifstream ifs(path);
         if (!ifs) {
-            throw OpenError(std::string("\"") + path + "\" could not be opened.");
+            throw std::runtime_error(std::string("\"") + path + "\" could not be opened.");
         }
 
         // Get MD5 of the file
@@ -784,7 +779,7 @@ void BmsLoader::Load(const std::string& path, ScoreData* out, bool load_header_o
             ifs.clear(); // ここでclearしてEOFフラグを消す // clear EOF flag.
             ifs.seekg(0, ifs.beg);
             if (!StringToMD5(file_str, &out->info.md5)) {
-                throw ParseError("MD5 of the file could not be got.");
+                throw std::runtime_error("MD5 of the file could not be got.");
             }
         }
 

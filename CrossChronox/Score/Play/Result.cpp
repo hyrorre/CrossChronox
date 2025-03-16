@@ -1,16 +1,16 @@
 ﻿#include "Result.hpp"
 
-std::wstring Result::GetResultStr() const {
-    std::wstringstream ss;
-    ss << L"PGREAT: " << GetJudgeCount(Judge::PGREAT) << L'\n';
-    ss << L"GREAT: " << GetJudgeCount(Judge::GREAT) << L'\n';
-    ss << L"GOOD: " << GetJudgeCount(Judge::GOOD) << L'\n';
-    ss << L"BAD: " << GetJudgeCount(Judge::BAD) << L'\n';
-    ss << L"POOR: " << GetJudgeCount(Judge::POOR) << L'\n';
-    ss << L"CB: " << GetComboBreak() << L'\n';
-    ss << L"EXSCORE: " << GetExScore() << L'\n';
-    ss << L"COMBO: " << GetNowCombo() << L'\n';
-    ss << L"MAX COMBO: " << GetMaxCombo() << L'\n';
+std::string Result::GetResultStr() const {
+    std::stringstream ss;
+    ss << "PGREAT: " << GetJudgeCount(Judge::PGREAT) << '\n';
+    ss << "GREAT: " << GetJudgeCount(Judge::GREAT) << '\n';
+    ss << "GOOD: " << GetJudgeCount(Judge::GOOD) << '\n';
+    ss << "BAD: " << GetJudgeCount(Judge::BAD) << '\n';
+    ss << "POOR: " << GetJudgeCount(Judge::POOR) << '\n';
+    ss << "CB: " << GetComboBreak() << '\n';
+    ss << "EXSCORE: " << GetExScore() << '\n';
+    ss << "COMBO: " << GetNowCombo() << '\n';
+    ss << "MAX COMBO: " << GetMaxCombo() << '\n';
     ss << std::endl;
 
     return ss.str();

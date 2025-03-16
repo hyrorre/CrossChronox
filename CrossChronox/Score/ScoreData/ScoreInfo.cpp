@@ -12,16 +12,16 @@ const std::string& GetModeString(Mode mode) {
     return mode_str[static_cast<size_t>(mode)];
 }
 
-std::wstring ScoreInfo::GetInfoStr() const {
-    std::wstringstream ss;
-#define SS(x) ss << #x L": " << x << L'\n'
+std::string ScoreInfo::GetInfoStr() const {
+    std::stringstream ss;
+#define SS(x) ss << #x ": " << x << '\n'
     SS(title);
     SS(subtitle);
     SS(artist);
     SS(genre);
-    ss << L"mode"
-          L": "
-       << GetModeString(mode).c_str() << L'\n';
+    ss << "mode"
+          ": "
+       << GetModeString(mode).c_str() << '\n';
     SS(chart_name);
     SS(difficulty);
     SS(level);

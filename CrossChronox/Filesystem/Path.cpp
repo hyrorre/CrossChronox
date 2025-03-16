@@ -12,7 +12,7 @@ const fs::path& GetAppdataPath() {
             }
             apath = apath.parent_path();
         }
-        throw InitError("\"CrossChronoxData\" folder was not found.");
+        throw std::runtime_error("\"CrossChronoxData\" folder was not found.");
     }
 ReturnPath:
     return apath;

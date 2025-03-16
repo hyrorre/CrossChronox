@@ -3,10 +3,10 @@
     "boost-algorithm",
     "cryptopp",
     "libiconv",
+    "sdl3",
+    "sdl3-image",
+    "sdl3-ttf",
     "sfml",
     "toml11"
-  ],
-  "overrides": [
-    { "name": "sfml", "version": "3.0.0" }
   ]
 }

@@ -1,19 +1,29 @@
-﻿#include "Application.hpp"
-#include "Filesystem/Path.hpp"
+﻿#define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
+#include "Application.hpp"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
-#if !defined(_WIN64) && !defined(_WIN32) // if not Windows
-int main(int argc, char* argv[]) {
-#else // if Windows
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
-    int argc = __argc;
-    char** argv = __argv;
-#endif
-    Application app(argc, argv);
-    try {
-        app.Init();
-        return app.Run();
-    } catch (std::exception& e) {
-        app.HandleException(e);
-        return EXIT_FAILURE;
-    }
+/* We will use this renderer to draw into this window every frame. */
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+
+/* This function runs once at startup. */
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+    app.Init();
+    return SDL_APP_CONTINUE; /* carry on with the program! */
+}
+
+/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+    return app.Event(event);
+}
+
+/* This function runs once per frame, and is the heart of the program. */
+SDL_AppResult SDL_AppIterate(void* appstate) {
+    return app.Run();
+}
+
+/* This function runs once at shutdown. */
+void SDL_AppQuit(void* appstate, SDL_AppResult result) {
+    /* SDL will clean up the window/renderer for us. */
 }

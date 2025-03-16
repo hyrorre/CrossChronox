@@ -1,15 +1,14 @@
 ﻿#include "Application.hpp"
 #include "Filesystem/Path.hpp"
-#include "Platform/MessageBox.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Score/Load/BmsLoader.hpp"
 #include "Score/Play/ScorePlayer.hpp"
-#include "System/DefaultFont.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 #include "System/Setting.hpp"
-#include "System/TimeManager.hpp"
 
+Application app;
 fs::path Application::scorefile_path;
+fs::path Application::executable_path;
 
 void Application::ParseArgs(int argc, char* argv[]) {
     if (argc > 0)
@@ -22,113 +21,56 @@ void Application::ParseArgs(int argc, char* argv[]) {
     }
 }
 
-void Application::Init() {
+SDL_AppResult Application::Init() {
     // set locale
     setlocale(LC_ALL, "");
-    // std::locale::global(std::locale(""));
 
-    setting.TryLoadFile((GetAppdataPath() / "Config/Setting.toml").string());
-
-    unsigned int w = setting.GetResolutionX();
-    unsigned int h = setting.GetResolutionY();
-    int bpp = 32;
-
-    auto style = sf::Style::Close | sf::Style::Titlebar;
-    sf::State state = setting.GetWindowType() == FULLSCREEN ? sf::State::Fullscreen : sf::State::Windowed;
-
-    // set up window
-    window.create(sf::VideoMode({w, h}, bpp), "CrossChronox v0.0.1", style);
-    window.setSize(sf::Vector2u(setting.GetWindowSizeX(), setting.GetWindowSizeY()));
-    window.setKeyRepeatEnabled(false);
-    window.setVerticalSyncEnabled(setting.GetVsync());
-    if (unsigned limit = setting.GetMaxFps()) { // max_fps == 0 のとき無制限
-        window.setFramerateLimit(limit);
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
     }
-    window.setPosition(setting.GetWindowPos());
 
-    // set up rendertexture
-    if (!renderer.resize({w, h}))
-        throw InitError("Could not create RenderTexture.");
-    renderer.setSmooth(true);
+    if (!TTF_Init()) {
+        SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
 
-    // set up SceneManager
-    SceneManager::Init();
+    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, 0, &window, &renderer)) {
+        SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
 
-    // set up InputManager
     InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
+
+    SceneManager::Init(renderer);
+
+    return SDL_APP_CONTINUE;
 }
 
-Application::Application(int argc, char* argv[]) {
-    ParseArgs(argc, argv);
-}
-
-std::atomic<bool> endflag(false);
-
-void Application::Update() {
-    window.setActive(true);
-
-    while (!endflag) {
-        // update time
-        TimeManager::Update();
-
-        // update InputManager
-        InputManager::Update();
-
-        // Scene Update and Draw
-        if (SceneManager::Update() == SceneManager::State::FINISH) {
-            endflag = true;
-        }
-
-        // 描画 drawing
-        SceneManager::Draw(window);
-
-        // 描画終わり
-        renderer.display();                       // バッファ画面をアップデート
-        sf::Sprite sprite(renderer.getTexture()); // バッファ画面用のスプライトを作る
-        // window.draw(sprite);    //バッファ画面テクスチャの入ったスプライトを画面に描画
-        // ちなみにsf::SpriteのPositionの初期値は(0,0)です。
-        window.display(); // 描画アップデート
-        window.clear();
-        renderer.clear(sf::Color::Black); // バッファ画面を黒でクリア
+SDL_AppResult Application::Event(SDL_Event* event) {
+    if (event->type == SDL_EVENT_QUIT) {
+        return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
     }
-
-    // 終了処理 finalize application
-    SceneManager::Deinit();
-    window.close();
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        std::cout << event->key.scancode << std::endl;
+    }
+    return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-int Application::Run() {
-    // start new thread for main game process
-    // メインスレッド以外でレンダリングしないと、ウィンドウのドラッグ中に処理が止まってしまう
-    window.setActive(false);
-    std::thread updateThreadInstance(&Application::Update, this);
+SDL_AppResult Application::Run() {
+    TimeManager::Update();
+    InputManager::Update();
 
-    // only handling close event in main thread
-    while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            // 「クローズが要求された」イベント：ウインドウを閉じる
-            if (event->is<sf::Event::Closed>()) {
-                endflag = true;
-            }
-        }
+    SceneManager::Update(renderer);
+    SceneManager::Draw(renderer);
 
-        sf::sleep(sf::milliseconds(1));
-    }
-    updateThreadInstance.join();
-    return 0;
+    SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
+    return SDL_APP_CONTINUE;
 }
 
 void Application::Quit() {
-    // TODO: なぜかgetPosition()が絶対に(0, 0)を返すため保留
-    // setting.SetWindowPos(window.getPosition());
-    setting.SaveFile((GetAppdataPath() / "Config/Setting.toml").string());
-}
-
-Application::~Application() {
-    Quit();
-}
-
-void Application::HandleException(std::exception& e) {
-    MessageBoxA(window.getNativeHandle(), e.what(), "Error", MB_OK | MB_ICONERROR);
+    TTF_Quit();
+    SDL_Quit();
 }

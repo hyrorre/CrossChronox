@@ -29,10 +29,10 @@ class Total {
         this->value = value;
     }
 
-    //template <class Context>
-    //constexpr static void serde(Context& context, Total& value) {
-    //    serde::serde_struct(context, value)
-    //        .field(&Total::type, "type")
-    //        .field(&Total::value, "value");
-    //}
+    // template <class Context>
+    // constexpr static void serde(Context& context, Total& value) {
+    //     serde::serde_struct(context, value)
+    //         .field(&Total::type, "type")
+    //         .field(&Total::value, "value");
+    // }
 };

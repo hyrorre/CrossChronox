@@ -11,7 +11,7 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     ScoreDirectoryInfo* parent = nullptr;
     std::vector<std::unique_ptr<ScoreInfoBase>> children;
     int cursor = 0;
-    std::wstring title;
+    std::string title;
 
   public:
     void DownMusic() {
@@ -20,7 +20,7 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     void UpMusic() {
         --cursor;
     }
-    std::wstring GetTitleSubtitle() const {
+    std::string GetTitleSubtitle() const {
         return title;
     }
     ScoreDirectoryInfo* GetParent() {
@@ -46,8 +46,8 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
         children.clear();
     }
 
-    std::wstring GetInfoStr() const {
-        return L"";
+    std::string GetInfoStr() const {
+        return "";
     }
 
     void LoadScoreDirectory();
@@ -61,10 +61,10 @@ class ScoreDirectoryInfo : public ScoreInfoBase {
     ScoreDirectoryInfo() {}
     ScoreDirectoryInfo(std::string path) : ScoreInfoBase(path) {}
 
-    //template <class Context>
-    //constexpr static void serde(Context& context, ScoreDirectoryInfo& value) {
-    //    serde::serde_struct(context, value)
-    //        .field(&ScoreDirectoryInfo::title, "title")
-    //        .field(&ScoreDirectoryInfo::children, "children");
-    //}
+    // template <class Context>
+    // constexpr static void serde(Context& context, ScoreDirectoryInfo& value) {
+    //     serde::serde_struct(context, value)
+    //         .field(&ScoreDirectoryInfo::title, "title")
+    //         .field(&ScoreDirectoryInfo::children, "children");
+    // }
 };

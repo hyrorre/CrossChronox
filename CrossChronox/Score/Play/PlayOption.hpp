@@ -18,15 +18,15 @@ enum {
     MAX_PLACE_BATTLE = 8
 };
 
-static const wchar_t* placement_str[] = {
-    L"NORMAL",
-    L"RANDOM",
-    L"R-RANDOM",
-    L"S-RANDOM",
-    L"H-RANDOM",
-    L"MIRROR",
-    L"SYNCHRONIZE RANDOM",
-    L"SYMMETRY RANDOM"};
+static const char* placement_str[] = {
+    "NORMAL",
+    "RANDOM",
+    "R-RANDOM",
+    "S-RANDOM",
+    "H-RANDOM",
+    "MIRROR",
+    "SYNCHRONIZE RANDOM",
+    "SYMMETRY RANDOM"};
 
 enum {
     GAUGE_NORMAL,
@@ -39,13 +39,13 @@ enum {
     MAX_GAUGE
 };
 
-static const wchar_t* gauge_type_str[] = {
-    L"NORMAL",
-    L"ASSISTED EASY",
-    L"EASY",
-    L"HARD",
-    L"EX HARD",
-    L"HAZARD"};
+static const char* gauge_type_str[] = {
+    "NORMAL",
+    "ASSISTED EASY",
+    "EASY",
+    "HARD",
+    "EX HARD",
+    "HAZARD"};
 
 enum {
     LAMP_NOPLAY,
@@ -60,17 +60,17 @@ enum {
     LAMP_MFC, // MAX FULL COMBO
 };
 
-static const wchar_t* lamp_str[] = {
-    L"NOPLAY",
-    L"FAILED",
-    L"ASSIST CLEAR",
-    L"EASY CLEAR",
-    L"CLEAR",
-    L"HARD CLEAR",
-    L"EX HARD CLEAR",
-    L"FULLCOMBO",
-    L"PERFECT FULLCOMBO",
-    L"MAX FULLCOMBO"};
+static const char* lamp_str[] = {
+    "NOPLAY",
+    "FAILED",
+    "ASSIST CLEAR",
+    "EASY CLEAR",
+    "CLEAR",
+    "HARD CLEAR",
+    "EX HARD CLEAR",
+    "FULLCOMBO",
+    "PERFECT FULLCOMBO",
+    "MAX FULLCOMBO"};
 
 enum {
     ASSIST_OFF,
@@ -87,16 +87,16 @@ enum {
     MAX_ASSIST
 };
 
-static const wchar_t* assist_str[] = {
-    L"OFF",
-    L"AUTO SCRATCH",
-    L"5KEYS",
-    L"LEGACY NOTE",
-    L"A-SCR & 5KEYS",
-    L"A-SCR & LEGACY",
-    L"5KEYS & LEGACY",
-    L"FULL ASSIST",
-    L"AUTOPLAY"};
+static const char* assist_str[] = {
+    "OFF",
+    "AUTO SCRATCH",
+    "5KEYS",
+    "LEGACY NOTE",
+    "A-SCR & 5KEYS",
+    "A-SCR & LEGACY",
+    "5KEYS & LEGACY",
+    "FULL ASSIST",
+    "AUTOPLAY"};
 
 // BEAT_10K and BEAT_14K use both sides
 enum Side {
@@ -116,13 +116,13 @@ enum {
     MAX_DISPLAY_AREA
 };
 
-static const wchar_t* display_area_str[] = {
-    L"OFF",
-    L"SUDDEN+",
-    L"HIDDEN+",
-    L"SUD+ & HID+",
-    L"LIFT",
-    L"LIFT & SUD+",
+static const char* display_area_str[] = {
+    "OFF",
+    "SUDDEN+",
+    "HIDDEN+",
+    "SUD+ & HID+",
+    "LIFT",
+    "LIFT & SUD+",
 };
 
 enum {

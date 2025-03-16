@@ -1,8 +1,7 @@
 ﻿#include "PlayScore.hpp"
 #include "Filesystem/Path.hpp"
 #include "SelectMusic.hpp"
-#include "System/DefaultFont.hpp"
-#include "System/Input/InputManager.hpp"
+#include "System/InputManager.hpp"
 
 PlayScore scene_play_score;
 
@@ -47,37 +46,20 @@ float judge_combo_x = scr_x + 50;
 
 float judge_combo_y = judgeline_y - 180;
 
-sf::Texture background((GetAppdataPath() / "play.png").string());
-sf::Sprite background_sprite(background);
+TTF_Font* font_playinfo = nullptr;
+TTF_Font* font_judge = nullptr;
 
-sf::Image white_image({white_w, note_h}, sf::Color::White);
-sf::Texture white_shape(white_image);
-sf::Sprite white_sprite(white_shape);
+SDL_Texture* background = nullptr;
+SDL_Texture* white = nullptr;
+SDL_Texture* black = nullptr;
+SDL_Texture* scr = nullptr;
 
-sf::Image black_image({black_w, note_h}, sf::Color::Cyan);
-sf::Texture black_shape(black_image);
-sf::Sprite black_sprite(black_shape);
-
-sf::Image scr_image({scr_w, note_h}, sf::Color::Magenta);
-sf::Texture scr_shape(scr_image);
-sf::Sprite scr_sprite(scr_shape);
-
-sf::Image judgeline_image({judgeline_w, note_h}, sf::Color::Red);
-sf::Texture judgeline_shape(judgeline_image);
-sf::Sprite judgeline_sprite(judgeline_shape);
-
-sf::Text text_fps(font_default);
-sf::Text text_info_play(font_default);
-
-sf::Clock clock_fps;
-int fps_count = 0;
-
-sf::Color color_judge_combo[] = {
-    sf::Color::Cyan,   // PGREAT
-    sf::Color::Yellow, // GREAT
-    sf::Color::Yellow, // GOOD
-    sf::Color::Red,    // BAD
-    sf::Color::Red,    // POOR
+SDL_Color color_judge_combo[] = {
+    {0, 0, 255, 255}, // PGREAT
+    {0, 0, 255, 255}, // GREAT
+    {0, 0, 255, 255}, // GOOD
+    {0, 0, 255, 255}, // BAD
+    {0, 0, 255, 255}, // POOR
 };
 
 std::string str_judge_combo[] = {
@@ -88,69 +70,31 @@ std::string str_judge_combo[] = {
     "POOR ",  // POOR
 };
 
-class JudgeCombo {
-    const ScorePlayer* player;
-    sf::Text text = sf::Text(font_default);
-    Side side = LEFT;
+void PlayScore::Init(SDL_Renderer* renderer) {
+    if (!font_playinfo) {
+        font_playinfo = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 19);
+        font_judge = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 68);
+        // TTF_SetFontOutline(font_judge, 1);
 
-    ms_type last_ms = 0;
-    size_t last_combo = 0;
+        background = IMG_LoadTexture(renderer, (GetAppdataPath() / "play.bmp").string().c_str());
 
-  public:
-    void Init(const ScorePlayer& player, Side side) {
-        this->side = side;
-        this->player = &player;
-        text.setPosition({judge_combo_x, judge_combo_y});
-        text.setCharacterSize(68);
-        text.setOutlineColor(sf::Color::Black);
-        text.setOutlineThickness(1);
+        const SDL_PixelFormatDetails* format_details = SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA8888);
+
+        SDL_Surface* white_surface = SDL_CreateSurface(white_w, note_h, SDL_PIXELFORMAT_RGBA8888);
+        SDL_FillSurfaceRect(white_surface, nullptr, SDL_MapRGBA(format_details, nullptr, 255, 255, 255, 255));
+        white = SDL_CreateTextureFromSurface(renderer, white_surface);
+        SDL_DestroySurface(white_surface);
+
+        SDL_Surface* black_surface = SDL_CreateSurface(black_w, note_h, SDL_PIXELFORMAT_RGBA8888);
+        SDL_FillSurfaceRect(black_surface, nullptr, SDL_MapRGBA(format_details, nullptr, 0, 0, 255, 255));
+        black = SDL_CreateTextureFromSurface(renderer, black_surface);
+        SDL_DestroySurface(black_surface);
+
+        SDL_Surface* scr_surface = SDL_CreateSurface(scr_w, note_h, SDL_PIXELFORMAT_RGBA8888);
+        SDL_FillSurfaceRect(scr_surface, nullptr, SDL_MapRGBA(format_details, nullptr, 255, 0, 0, 255));
+        scr = SDL_CreateTextureFromSurface(renderer, scr_surface);
+        SDL_DestroySurface(scr_surface);
     }
-    const sf::Text* GetText() {
-        JudgeInfo info = player->GetResult().GetLastJudgeInfo(side);
-        if (info.judge != JUDGE_YET) {
-            ms_type elapsed = player->GetPlayMs() - info.ms;
-            if (elapsed < 2000 && (info.judge == Judge::PGREAT || (elapsed / 10) % 3 == 1)) {
-                text.setString(str_judge_combo[info.judge] + std::to_string(info.combo));
-                text.setFillColor(color_judge_combo[info.judge]);
-                return &text;
-            }
-        }
-        return nullptr;
-    }
-};
-
-std::array<JudgeCombo, MAX_SIDE> judge_combos;
-
-void PlayScore::Init() {
-    background.loadFromFile((GetAppdataPath() / "play.png").string());
-    background_sprite.setTexture(background);
-    sf::Image tmp_image;
-    tmp_image.resize({white_w, note_h}, sf::Color::White);
-    white_shape.loadFromImage(tmp_image);
-    white_sprite.setTexture(white_shape);
-    tmp_image.resize({black_w, note_h}, sf::Color::Cyan);
-    black_shape.loadFromImage(tmp_image);
-    black_sprite.setTexture(black_shape);
-    tmp_image.resize({scr_w, note_h}, sf::Color::Magenta);
-    scr_shape.loadFromImage(tmp_image);
-    scr_sprite.setTexture(scr_shape);
-    tmp_image.resize({judgeline_w, note_h}, sf::Color::Red);
-    judgeline_shape.loadFromImage(tmp_image);
-    judgeline_sprite.setTexture(judgeline_shape);
-    judgeline_sprite.setPosition({scr_x, judgeline_y});
-
-    text_fps.setFont(font_default);
-    text_fps.setFillColor(sf::Color::White);
-
-    text_info_play.setFont(font_default);
-    text_info_play.setCharacterSize(19);
-    text_info_play.setPosition({900, 220});
-
-    for (int i = 0; i < judge_combos.size(); ++i) {
-        judge_combos[i].Init(players[0], static_cast<Side>(i));
-    }
-
-    clock_fps.restart();
 
     for (auto& player : players) {
         player.Init();
@@ -175,19 +119,19 @@ float GetNoteX(lane_t lane) {
     }
 }
 
-sf::Sprite* GetSpritePtr(lane_t lane) {
+SDL_Texture* GetNoteTexture(lane_t lane) {
     switch (lane) {
     case 8:
-        return &scr_sprite;
+        return scr;
     case 1:
     case 3:
     case 5:
     case 7:
-        return &white_sprite;
+        return white;
     case 2:
     case 4:
     case 6:
-        return &black_sprite;
+        return black;
     default:
         return nullptr;
     }
@@ -195,13 +139,12 @@ sf::Sprite* GetSpritePtr(lane_t lane) {
 
 float global_scroll = .7f * 480;
 
-#define SS(x) ss << #x L": " << x << L'\n'
+#define SS(x) ss << #x ": " << x << '\n'
 
-void PlayScore::Draw(sf::RenderTarget& render_target) const {
-    std::wstringstream ss;
+void PlayScore::Draw(SDL_Renderer* renderer) const {
+    std::stringstream ss;
 
-    render_target.draw(background_sprite);
-    // render_target.draw(judgeline_sprite);
+    SDL_RenderTexture(renderer, background, nullptr, nullptr);
     for (auto& player : players) {
         ms_type play_ms = player.GetPlayMs();
         ms_type last_play_ms = play_ms - delta_ms;
@@ -221,44 +164,46 @@ void PlayScore::Draw(sf::RenderTarget& render_target) const {
                 continue;
             if (lnstart_y + note_h < 0)
                 break;
-            sf::Sprite* sprite = GetSpritePtr(note->lane);
-            if (sprite) {
+            SDL_Texture* texture = GetNoteTexture(note->lane);
+            if (texture) {
                 if (note->len == 0) { // if note is not LN
-                    sprite->setPosition({GetNoteX(note->lane), note_y});
-                    render_target.draw(*sprite);
+                    SDL_FRect frect = {GetNoteX(note->lane), note_y, texture->w, note_h};
+                    SDL_RenderTexture(renderer, texture, nullptr, &frect);
                 } else { // if note is LN
-                    sf::Sprite ln_sprite = *sprite;
                     if (note->pulse < now_pulse) {
                         lnstart_y = judgeline_y;
                     }
+
                     float lnend_y = note_y;
-                    float note_x = GetNoteX(note->lane);
-                    sprite->setPosition({note_x, lnstart_y});
-                    render_target.draw(*sprite);
-                    sprite->setPosition({note_x, lnend_y});
-                    render_target.draw(*sprite);
-                    ln_sprite.setPosition({note_x, lnend_y});
-                    ln_sprite.setScale({1.0f, (lnstart_y - lnend_y) / note_h});
-                    render_target.draw(ln_sprite);
+                    SDL_FRect frect = {GetNoteX(note->lane), note_y, texture->w, lnstart_y - lnend_y + note_h};
+                    SDL_RenderTexture(renderer, texture, nullptr, &frect);
                 }
             }
         }
     }
-    ++fps_count;
-    if (sf::seconds(1) < clock_fps.getElapsedTime()) {
-        clock_fps.restart();
-        std::stringstream ss;
-        ss << fps_count << "fps";
-        text_fps.setString(ss.str());
-        fps_count = 0;
-    }
-    render_target.draw(text_fps);
 
-    text_info_play.setString(ss.str());
-    render_target.draw(text_info_play);
+    SDL_Color text_color = {255, 255, 255, 255};
+    SDL_Surface* text_surface = TTF_RenderText_Solid_Wrapped(font_playinfo, ss.str().c_str(), 0, text_color, 0);
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+    SDL_FRect text_rect = {900, 220, text_surface->w, text_surface->h};
+    SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
+    SDL_DestroySurface(text_surface);
+    SDL_DestroyTexture(text_texture);
 
-    const sf::Text* tmp = judge_combos[0].GetText();
-    if (tmp) {
-        render_target.draw(*tmp);
+    for (auto& player : players) {
+        JudgeInfo info = player.GetResult().GetLastJudgeInfo(LEFT);
+        if (info.judge != JUDGE_YET) {
+            ms_type elapsed = player.GetPlayMs() - info.ms;
+            if (elapsed < 2000 && (info.judge == Judge::PGREAT || (elapsed / 10) % 3 == 1)) {
+
+                SDL_Color text_color = color_judge_combo[info.judge];
+                SDL_Surface* text_surface = TTF_RenderText_Solid(font_judge, (str_judge_combo[info.judge] + std::to_string(info.combo)).c_str(), 0, text_color);
+                SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+                SDL_FRect text_rect = {judge_combo_x, judge_combo_y, text_surface->w, text_surface->h};
+                SDL_RenderTexture(renderer, text_texture, nullptr, &text_rect);
+                SDL_DestroySurface(text_surface);
+                SDL_DestroyTexture(text_texture);
+            }
+        }
     }
 }

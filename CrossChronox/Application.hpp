@@ -3,26 +3,19 @@
 #include "pch.hpp"
 
 class Application {
-    // QApplication qapp;
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
 
-    sf::RenderWindow window;
-    sf::RenderTexture renderer;
-
-    fs::path executable_path;
+    static fs::path executable_path;
     static fs::path scorefile_path;
 
     void ParseArgs(int argc, char* argv[]);
 
-    void Quit();
-    Application() = delete;
-
   public:
-    Application(int argc, char* argv[]);
-    ~Application();
-
-    void Init();
-    int Run();
-    void Update();
+    SDL_AppResult Init();
+    SDL_AppResult Event(SDL_Event* event);
+    SDL_AppResult Run();
+    void Quit();
 
     static fs::path& GetScoreFilePath() {
         return scorefile_path;
@@ -31,5 +24,7 @@ class Application {
         scorefile_path = path;
     }
 
-    void HandleException(std::exception& e);
+    // void HandleException(std::exception& e);
 };
+
+extern Application app;

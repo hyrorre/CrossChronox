@@ -11,10 +11,10 @@ class SelectMusic : public Scene {
     ScoreDirectoryInfo* now_directory = &root;
 
   public:
-    void Init();
+    void Init(SDL_Renderer* renderer);
     void Deinit() {}
     Scene* Update();
-    void Draw(sf::RenderTarget& render_target) const;
+    void Draw(SDL_Renderer* renderer) const;
 };
 
 extern SelectMusic* scene_select_music_ptr;

@@ -53,10 +53,10 @@ class JudgeRank {
         this->value = value;
     }
 
-    //template <class Context>
-    //constexpr static void serde(Context& context, JudgeRank& value) {
-    //    serde::serde_struct(context, value)
-    //        .field(&JudgeRank::type, "type")
-    //        .field(&JudgeRank::value, "value");
-    //}
+    // template <class Context>
+    // constexpr static void serde(Context& context, JudgeRank& value) {
+    //     serde::serde_struct(context, value)
+    //         .field(&JudgeRank::type, "type")
+    //         .field(&JudgeRank::value, "value");
+    // }
 };
