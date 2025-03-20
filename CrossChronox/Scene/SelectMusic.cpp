@@ -1,4 +1,4 @@
-﻿#include "SelectMusic.hpp"
+#include "SelectMusic.hpp"
 #include "Application.hpp"
 #include "PlayScore.hpp"
 #include "System/InputManager.hpp"
@@ -81,7 +81,7 @@ void SelectMusic::Init(SDL_Renderer* renderer) {
         }
 
         if (!font)
-            font = TTF_OpenFont((GetAppdataPath() / "Fonts/kazesawa/Kazesawa-Regular.ttf").string().c_str(), 40);
+            font = TTF_OpenFont("/Library/Fonts/Arial Unicode.ttf", 40);
     }
 }
 

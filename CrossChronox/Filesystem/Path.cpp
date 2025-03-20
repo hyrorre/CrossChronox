@@ -1,19 +1,13 @@
-﻿#include "Path.hpp"
+#include "Path.hpp"
 
-const fs::path& GetAppdataPath() {
-    static fs::path apath;
-    if (apath.empty()) {
-        apath = fs::current_path();
-        while (apath.has_parent_path()) {
-            fs::path tmp_path = apath / "CrossChronoxData";
-            if (fs::exists(tmp_path)) {
-                apath = tmp_path;
-                goto ReturnPath;
-            }
-            apath = apath.parent_path();
+const fs::path GetAppdataPath() {
+    // TODO: set resource path (support external DerivedData)
+    fs::path path = fs::current_path();
+    do {
+        if (fs::exists(path / "CrossChronoxData")) {
+            return path / "CrossChronoxData";
         }
-        throw std::runtime_error("\"CrossChronoxData\" folder was not found.");
-    }
-ReturnPath:
-    return apath;
+        path = path.parent_path();
+    } while(path.has_parent_path());
+    throw std::runtime_error("\"CrossChronoxData\" folder was not found.");
 }

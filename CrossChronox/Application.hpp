@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "pch.hpp"
 
@@ -9,10 +9,8 @@ class Application {
     static fs::path executable_path;
     static fs::path scorefile_path;
 
-    void ParseArgs(int argc, char* argv[]);
-
   public:
-    SDL_AppResult Init();
+    SDL_AppResult Init(int argc, char* argv[]);
     SDL_AppResult Event(SDL_Event* event);
     SDL_AppResult Run();
     void Quit();

@@ -10,18 +10,17 @@ Application app;
 fs::path Application::scorefile_path;
 fs::path Application::executable_path;
 
-void Application::ParseArgs(int argc, char* argv[]) {
-    if (argc > 0)
+SDL_AppResult Application::Init(int argc, char* argv[]) {
+    if (argc > 0) {
         executable_path = argv[0];
+fs::current_path(fs::path(executable_path).parent_path());
+    }
     if (argc > 1) {
         scorefile_path = argv[1];
         if (!fs::exists(scorefile_path) || !fs::is_regular_file(scorefile_path)) {
             scorefile_path.clear();
         }
     }
-}
-
-SDL_AppResult Application::Init() {
     // set locale
     setlocale(LC_ALL, "");
 
@@ -34,13 +33,20 @@ SDL_AppResult Application::Init() {
         SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
-
-    if (!SDL_CreateWindowAndRenderer("CrossChronox", 1920, 1080, SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer)) {
-        SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
+    
+    if (!(window = SDL_CreateWindow("CrossChronox", 1920, 1080, SDL_WINDOW_HIGH_PIXEL_DENSITY))) {
+        SDL_Log("Couldn't create window: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
+    
+    if (!(renderer = SDL_CreateRenderer(window, nullptr))) {
+        SDL_Log("Couldn't create renderer: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    
+    fs::path appdata_path = GetAppdataPath();
 
-    InputManager::LoadConfig((GetAppdataPath() / "Config/KeyConfig.toml").string());
+    InputManager::LoadConfig((appdata_path / "Config/KeyConfig.toml").string());
     InputManager::SetMode("Beat");
 
     SceneManager::Init(renderer);

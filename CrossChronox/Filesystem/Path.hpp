@@ -1,5 +1,5 @@
-﻿#pragma once
+#pragma once
 
 #include "pch.hpp"
 
-const fs::path& GetAppdataPath();
+const fs::path GetAppdataPath();
