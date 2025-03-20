@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 extern crate sdl3;
 
 use sdl3::event::Event;
