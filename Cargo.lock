@@ -13,7 +13,6 @@ name = "cross-chronox"
 version = "0.1.0"
 dependencies = [
  "sdl3",
- "vcpkg",
 ]
 
 [[package]]
@@ -56,6 +55,9 @@ name = "sdl3-sys"
 version = "0.4.6+SDL3-3.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13aa26235cbf336f5b273dc18a873142285529e4fef503882e05a6f986466939"
+dependencies = [
+ "vcpkg",
+]
 
 [[package]]
 name = "sdl3-ttf-sys"

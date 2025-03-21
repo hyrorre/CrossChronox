@@ -4,5 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sdl3 = { version = "0.14.17", features = ["image", "ttf"] }
-vcpkg = "0.2.15"
+sdl3 = { version = "0.14.17", features = ["image", "ttf", "use-vcpkg"] }
