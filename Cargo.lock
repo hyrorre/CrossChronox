@@ -37,6 +37,17 @@ dependencies = [
  "bitflags",
  "lazy_static",
  "libc",
+ "sdl3-image-sys",
+ "sdl3-sys",
+ "sdl3-ttf-sys",
+]
+
+[[package]]
+name = "sdl3-image-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0df364a60f4c203e2cfb24e574100ccabb73736d8bf66fcdb40e8064e74537d7"
+dependencies = [
  "sdl3-sys",
 ]
 
@@ -45,6 +56,15 @@ name = "sdl3-sys"
 version = "0.4.6+SDL3-3.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13aa26235cbf336f5b273dc18a873142285529e4fef503882e05a6f986466939"
+
+[[package]]
+name = "sdl3-ttf-sys"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "327fa0306aeaafe1d2edfff3d20c1b6557070790562e604a3f7d2e8215387317"
+dependencies = [
+ "sdl3-sys",
+]
 
 [[package]]
 name = "vcpkg"

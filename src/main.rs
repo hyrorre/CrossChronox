@@ -3,6 +3,7 @@
 extern crate sdl3;
 
 use sdl3::event::Event;
+use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
 use std::time::Duration;
@@ -12,12 +13,14 @@ pub fn main() {
     let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem
-        .window("rust-sdl3 demo", 800, 600)
+        .window("rust-sdl3 demo", 1280, 720)
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas();
+    let texture_creator = canvas.texture_creator();
+    let texture = texture_creator.load_texture("CrossChronoxData/play.png").unwrap();
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -39,8 +42,9 @@ pub fn main() {
             }
         }
         // The rest of the game loop goes here...
+        canvas.copy(&texture, None, None).unwrap();
 
         canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
