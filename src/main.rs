@@ -5,27 +5,74 @@ extern crate sdl3;
 use sdl3::event::Event;
 use sdl3::image::LoadTexture;
 use sdl3::keyboard::Keycode;
+use sdl3::messagebox::{MessageBoxFlag, show_simple_message_box};
 use sdl3::pixels::Color;
 use std::time::Duration;
 
 pub fn main() {
-    let sdl_context = sdl3::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
+    let sdl_context = match sdl3::init() {
+        Ok(ok) => ok,
+        Err(e) => {
+            show_simple_message_box(MessageBoxFlag::ERROR, "Init Error", &e.to_string(), None)
+                .unwrap();
+            panic!("Init Error: {}", e);
+        }
+    };
+    let video_subsystem = match sdl_context.video() {
+        Ok(ok) => ok,
+        Err(e) => {
+            show_simple_message_box(
+                MessageBoxFlag::ERROR,
+                "Video Subsystem Error",
+                &e.to_string(),
+                None,
+            )
+            .unwrap();
+            panic!("Video Subsystem Error: {}", e);
+        }
+    };
 
-    let window = video_subsystem
+    let window = match video_subsystem
         .window("rust-sdl3 demo", 1280, 720)
         .position_centered()
         .build()
-        .unwrap();
+    {
+        Ok(ok) => ok,
+        Err(e) => {
+            show_simple_message_box(
+                MessageBoxFlag::ERROR,
+                "Window Create Error",
+                &e.to_string(),
+                None,
+            )
+            .unwrap();
+            panic!("Window Create Error: {}", e);
+        }
+    };
+
+    let mut event_pump = match sdl_context.event_pump() {
+        Ok(ok) => ok,
+        Err(e) => {
+            show_simple_message_box(
+                MessageBoxFlag::ERROR,
+                "Event Pump Error",
+                &e.to_string(),
+                &window,
+            )
+            .unwrap();
+            panic!("Event Pump Error: {}", e)
+        }
+    };
 
     let mut canvas = window.into_canvas();
     let texture_creator = canvas.texture_creator();
-    let texture = texture_creator.load_texture("CrossChronoxData/play.png").unwrap();
+    let texture_play = texture_creator
+        .load_texture("CrossChronoxData/play.bmp")
+        .ok();
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
     canvas.present();
-    let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
     'running: loop {
         i = (i + 1) % 255;
@@ -42,7 +89,9 @@ pub fn main() {
             }
         }
         // The rest of the game loop goes here...
-        canvas.copy(&texture, None, None).unwrap();
+        if let Some(ref texture) = texture_play {
+            canvas.copy(texture, None, None).ok();
+        }
 
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
