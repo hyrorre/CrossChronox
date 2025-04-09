@@ -223,7 +223,7 @@ impl ChartInfo {
 }
 
 #[derive(Debug)]
-pub struct ChartData {
+pub struct Chart {
     pub version: String,
     pub info: ChartInfo,
     pub lines: Vec<BarLine>,
@@ -233,9 +233,9 @@ pub struct ChartData {
     // pub wavbufs: Vec<WavBuffer>,
 }
 
-impl ChartData {
-    pub fn new() -> ChartData {
-        return ChartData {
+impl Chart {
+    pub fn new() -> Chart {
+        return Chart {
             version: String::new(),
             info: ChartInfo::new(),
             lines: Vec::new(),

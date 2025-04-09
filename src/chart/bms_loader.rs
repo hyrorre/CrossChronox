@@ -140,7 +140,7 @@ fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
     }
 }
 
-pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<ChartData, Box<dyn Error>> {
+pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Box<dyn Error>> {
     let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::new());
     let mut max_bar: usize = 0;
     let mut tmp_notes: Vec<TmpNoteData> = Vec::new();
@@ -152,7 +152,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<ChartData
     let mut random_num: i32 = 0;
     let mut parse_nextline_flag = true;
 
-    let mut chart = ChartData::new();
+    let mut chart = Chart::new();
 
     let extention = PathBuf::from(filename)
         .extension()
