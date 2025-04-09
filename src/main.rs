@@ -1,6 +1,5 @@
 #![windows_subsystem = "windows"]
-
-extern crate sdl3;
+#![allow(dead_code)]
 
 use sdl3::event::Event;
 use sdl3::image::LoadTexture;
@@ -8,6 +7,10 @@ use sdl3::keyboard::Keycode;
 use sdl3::messagebox::{MessageBoxFlag, show_simple_message_box};
 use sdl3::pixels::Color;
 use std::time::Duration;
+
+pub mod chart;
+pub mod scene;
+pub mod system;
 
 pub fn main() {
     let sdl_context = match sdl3::init() {
@@ -95,5 +98,17 @@ pub fn main() {
 
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test() {
+        let filename = "CrossChronoxData/Songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
+        let chart = chart::bms_loader::load_bms(filename, false).unwrap();
+        println!("{:#?}", chart);
     }
 }

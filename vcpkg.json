@@ -1,12 +1,3 @@
 {
-  "dependencies": [
-    "boost-algorithm",
-    "cryptopp",
-    "libiconv",
-    "sdl3",
-    "sdl3-image",
-    "sdl3-ttf",
-    "sfml",
-    "toml11"
-  ]
+  "dependencies": ["sdl3", "sdl3-image", "sdl3-ttf"]
 }
