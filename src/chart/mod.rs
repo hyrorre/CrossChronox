@@ -43,16 +43,16 @@ pub const MAX_LANE: usize = 20;
 
 #[derive(Debug)]
 pub struct Note {
-    lane: i32,
-    lane_origin: i32,
-    pulse: u64,
-    len: u64,
-    num: u64,
-    judge: Judge,
-    empty_poor_count: i32,
-    ms: u64,
-    lnend_ms: u64,
-    // wavbuf_ptr: Option<WavBuffer>,
+    pub lane: i32,
+    pub lane_origin: i32,
+    pub pulse: u64,
+    pub len: u64,
+    pub num: u64,
+    pub judge: Judge,
+    pub empty_poor_count: i32,
+    pub ms: u64,
+    pub lnend_ms: u64,
+    // pub wavbuf_ptr: Option<WavBuffer>,
 }
 
 impl Note {
@@ -89,11 +89,11 @@ impl BarLine {
 
 #[derive(Debug)]
 pub struct BpmEvent {
-    event_type: BpmEventType,
-    pulse: u64,
-    bpm: f64,
-    duration: u64,
-    ms: u64,
+    pub event_type: BpmEventType,
+    pub pulse: u64,
+    pub bpm: f64,
+    pub duration: u64,
+    pub ms: u64,
 }
 
 impl BpmEvent {
@@ -115,8 +115,8 @@ impl BpmEvent {
 
 #[derive(Debug)]
 pub struct BGAHeader {
-    id: i32,
-    name: String,
+    pub id: i32,
+    pub name: String,
 }
 
 impl BGAHeader {
@@ -130,8 +130,8 @@ impl BGAHeader {
 
 #[derive(Debug)]
 pub struct BGAEvent {
-    pulse: u64,
-    id: i32,
+    pub pulse: u64,
+    pub id: i32,
 }
 
 impl BGAEvent {
@@ -161,32 +161,32 @@ impl BGA {
 
 #[derive(Debug)]
 pub struct ChartInfo {
-    title: String,
-    subtitle: String,
-    artist: String,
-    subartist: String,
-    genre: String,
-    mode: Mode,
-    ln_type: LnType,
-    chart_name: String,
-    difficulty: i32,
-    level: i32,
-    init_bpm: f64,
-    rank: Rank,
-    total: f32,
-    back_image: String,
-    eyecatch_image: String,
-    banner_image: String,
-    preview_music: String,
-    resolution: u64,
-    end_pulse: u64,
-    end_ms: u64,
-    max_bpm: f64,
-    min_bpm: f64,
-    base_bpm: f64,
-    note_count: i32,
-    md5: String,
-    random_flag: bool,
+    pub title: String,
+    pub subtitle: String,
+    pub artist: String,
+    pub subartist: String,
+    pub genre: String,
+    pub mode: Mode,
+    pub ln_type: LnType,
+    pub chart_name: String,
+    pub difficulty: i32,
+    pub level: i32,
+    pub init_bpm: f64,
+    pub rank: Rank,
+    pub total: f32,
+    pub back_image: String,
+    pub eyecatch_image: String,
+    pub banner_image: String,
+    pub preview_music: String,
+    pub resolution: u64,
+    pub end_pulse: u64,
+    pub end_ms: u64,
+    pub max_bpm: f64,
+    pub min_bpm: f64,
+    pub base_bpm: f64,
+    pub note_count: i32,
+    pub md5: String,
+    pub random_flag: bool,
 }
 
 impl ChartInfo {
@@ -224,13 +224,13 @@ impl ChartInfo {
 
 #[derive(Debug)]
 pub struct ChartData {
-    version: String,
-    info: ChartInfo,
-    lines: Vec<BarLine>,
-    bpm_events: Vec<BpmEvent>,
-    bga: BGA,
-    notes: Vec<Note>,
-    // wavbufs: Vec<WavBuffer>,
+    pub version: String,
+    pub info: ChartInfo,
+    pub lines: Vec<BarLine>,
+    pub bpm_events: Vec<BpmEvent>,
+    pub bga: BGA,
+    pub notes: Vec<Note>,
+    // pub wavbufs: Vec<WavBuffer>,
 }
 
 impl ChartData {

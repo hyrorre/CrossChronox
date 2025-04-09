@@ -109,6 +109,6 @@ mod tests {
     pub fn test() {
         let filename = "CrossChronoxData/Songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
         let chart = chart::bms_loader::load_bms(filename, false).unwrap();
-        println!("{:#?}", chart);
+        println!("{:#?}", chart.info);
     }
 }

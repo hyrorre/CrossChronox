@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Mode {
-    keys: BTreeMap<String, Vec<i32>>,
-    features: BTreeMap<String, Vec<String>>,
+    pub keys: BTreeMap<String, Vec<i32>>,
+    pub features: BTreeMap<String, Vec<String>>,
 }
 
 impl Mode {

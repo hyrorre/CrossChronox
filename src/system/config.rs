@@ -4,21 +4,20 @@ pub const FULLSCREEN: WindowType = 1;
 pub const BORDERLESS: WindowType = 2;
 
 struct Config {
-    window_type: WindowType,
-    save_resolution: bool,
-    resolution_x: i32,
-    resolution_y: i32,
-    save_window_size: bool,
-    window_size_x: i32,
-    window_size_y: i32,
-    save_window_pos: bool,
-    window_pos_x: i32,
-    window_pos_y: i32,
-    vsync: bool,
-    max_fps: i32, // if max_fps is 0, fps is unlimited
-
-    song_paths: Vec<String>,
-    table_urls: Vec<String>,
+    pub window_type: WindowType,
+    pub save_resolution: bool,
+    pub resolution_x: i32,
+    pub resolution_y: i32,
+    pub save_window_size: bool,
+    pub window_size_x: i32,
+    pub window_size_y: i32,
+    pub save_window_pos: bool,
+    pub window_pos_x: i32,
+    pub window_pos_y: i32,
+    pub vsync: bool,
+    pub max_fps: i32, // if max_fps is 0, fps is unlimited
+    pub song_paths: Vec<String>,
+    pub table_urls: Vec<String>,
 }
 
 impl Config {
