@@ -1,1 +1,0 @@
-Put folders or symbolic links (named "include" and "lib") here.
