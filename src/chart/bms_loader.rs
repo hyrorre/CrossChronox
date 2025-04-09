@@ -93,7 +93,7 @@ fn index(nowline: &String) -> i32 {
 }
 
 fn arg(nowline: &String) -> String {
-    nowline.split_whitespace().nth(1).unwrap_or("0").to_string()
+    nowline.split_whitespace().collect::<Vec<_>>()[1..].join(" ")
 }
 
 fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
@@ -314,8 +314,8 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<ChartData
             RegexBuilder::new("(-[^-]+-|~.+~|<.+>|\\(.+\\)|\\[.+\\]|～.+～|\".+\")$").build()?;
         regex.captures(&chart.info.title.clone()).map(|caps| {
             if let Some(m) = caps.get(0) {
-                chart.info.subtitle = m.as_str().to_string();
-                chart.info.title = chart.info.title[..m.start()].trim_end().to_string();
+                chart.info.subtitle = chart.info.title[m.start()..].trim().to_string();
+                chart.info.title = chart.info.title[..m.start()].trim().to_string();
             }
         });
     }
