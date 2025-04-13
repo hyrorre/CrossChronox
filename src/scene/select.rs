@@ -7,10 +7,13 @@ pub struct Select<'app> {
     pub font_select: Option<Font<'app, 'app>>,
 }
 
-impl<'app> Scene<'app> for Select<'app> {
+impl<'app> Select<'app> {
     fn new(_app: &'app mut App) -> Self {
         Select { font_select: None }
     }
+}
+
+impl<'app> Scene<'app> for Select<'app> {
     fn init(&mut self) {
         // Initialize the select scene
     }

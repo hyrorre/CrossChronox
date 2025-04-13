@@ -256,6 +256,9 @@ impl Chart {
     }
 
     pub fn ms_to_pulse(&self, mut ms: u64) -> u64 {
+        if self.bpm_events.is_empty() {
+            return 0;
+        }
         let mut pulse = 0;
         for i in 1..self.bpm_events.len() {
             let duration = ((self.bpm_events[i].pulse - self.bpm_events[i - 1].pulse) as f64

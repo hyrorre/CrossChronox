@@ -5,12 +5,13 @@ pub mod chart;
 pub mod scene;
 pub mod system;
 
+use chart::bms_loader::load_bms;
+use chart::player::PlayState;
 use scene::play::Play;
-use scene::select::Select;
 use scene::{Scene, State};
 use sdl3::render::{TextureCreator, WindowCanvas};
 use sdl3::ttf::Sdl3TtfContext;
-use sdl3::video::{Window, WindowContext};
+use sdl3::video::WindowContext;
 use sdl3::{Sdl, VideoSubsystem};
 use system::config::Config;
 use system::input::InputManager;
@@ -69,7 +70,8 @@ pub fn main() {
     };
 
     let window = match video_subsystem
-        .window("rust-sdl3 demo", 1280, 720)
+        .window("rust-sdl3 demo", 910, 540)
+        .high_pixel_density()
         .position_centered()
         .build()
     {
@@ -113,7 +115,17 @@ pub fn main() {
         canvas,
         texture_creator,
     };
-    let mut scene = Box::new(Play::new(&mut app)) as Box<dyn Scene>;
+
+    let mut play_states = [PlayState::new(), PlayState::new()];
+    play_states[0].init(
+        load_bms(
+            "CrossChronoxData/Songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml",
+            false,
+        )
+        .unwrap(),
+    );
+
+    let mut scene: Box<dyn Scene> = Box::new(Play::new(&mut app, play_states));
 
     'running: loop {
         for event in event_pump.poll_iter() {
@@ -135,7 +147,7 @@ pub fn main() {
             break 'running;
         }
 
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        std::thread::sleep(Duration::new(0, 1_000u32));
     }
 }
 

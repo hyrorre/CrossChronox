@@ -9,7 +9,6 @@ pub enum State {
 }
 
 pub trait Scene<'app> {
-    fn new(app: &'app mut App) -> Self;
     fn init(&mut self);
     fn update(&mut self) -> State;
     fn render(&mut self);
