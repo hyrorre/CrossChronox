@@ -1,24 +1,30 @@
+use sdl3::ttf::Font;
+
 use crate::scene::*;
 // use crate::chart::*;
 
-#[derive(Debug)]
-pub struct Select {}
+pub struct Select<'app> {
+    pub font_select: Option<Font<'app, 'app>>,
+}
 
-impl Scene for Select {
-    fn init(&self) {
+impl<'app> Scene<'app> for Select<'app> {
+    fn new(_app: &'app mut App) -> Self {
+        Select { font_select: None }
+    }
+    fn init(&mut self) {
         // Initialize the select scene
     }
 
-    fn update(&self) -> State {
+    fn update(&mut self) -> State {
         // Update the select scene
         State::Continue
     }
 
-    fn render(&self) {
+    fn render(&mut self) {
         // Render the select scene
     }
 
-    fn quit(&self) {
+    fn quit(&mut self) {
         // Quit the select scene
     }
 }

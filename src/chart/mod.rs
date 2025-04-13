@@ -1,18 +1,28 @@
 #![allow(dead_code)]
 
 pub mod bms_loader;
+pub mod player;
 
 pub type Judge = i32;
-pub const LN_PUSHING_PGREAT: Judge = -10;
-pub const LN_PUSHING_GREAT: Judge = -9;
-pub const LN_PUSHING_GOOD: Judge = -8;
+pub const LN_PUSHING_PGREAT_EARLY: Judge = -20;
+pub const LN_PUSHING_GREAT_EARLY: Judge = -19;
+pub const LN_PUSHING_GOOD_EARLY: Judge = -18;
+pub const LN_PUSHING_PGREAT_LATE: Judge = -10;
+pub const LN_PUSHING_GREAT_LATE: Judge = -9;
+pub const LN_PUSHING_GOOD_LATE: Judge = -8;
 pub const JUDGE_YET: Judge = -1;
-pub const PGREAT: Judge = 0;
-pub const GREAT: Judge = 1;
-pub const GOOD: Judge = 2;
-pub const BAD: Judge = 3;
-pub const POOR: Judge = 4;
-pub const MAX_JUDGE: Judge = 5;
+pub const PGREAT_EARLY: Judge = 0;
+pub const GREAT_EARLY: Judge = 1;
+pub const GOOD_EARLY: Judge = 2;
+pub const BAD_EARLY: Judge = 3;
+pub const POOR_EARLY: Judge = 4;
+pub const KPOOR_EARLY: Judge = 5;
+pub const PGREAT_LATE: Judge = 6;
+pub const GREAT_LATE: Judge = 7;
+pub const GOOD_LATE: Judge = 8;
+pub const BAD_LATE: Judge = 9;
+pub const POOR_LATE: Judge = 10;
+pub const KPOOR_LATE: Judge = 11;
 
 pub type Rank = i32;
 pub const VHARD: Rank = 0;
@@ -20,7 +30,6 @@ pub const HARD: Rank = 1;
 pub const NORMAL: Rank = 2;
 pub const EASY: Rank = 3;
 pub const VEASY: Rank = 4;
-pub const MAX_RANK: Rank = 5;
 
 pub type Mode = i32;
 pub const BEAT_5K: Mode = 0;
@@ -244,5 +253,25 @@ impl Chart {
             notes: Vec::new(),
             // wavbufs: Vec::new(),
         };
+    }
+
+    pub fn ms_to_pulse(&self, mut ms: u64) -> u64 {
+        let mut pulse = 0;
+        for i in 1..self.bpm_events.len() {
+            let duration = ((self.bpm_events[i].pulse - self.bpm_events[i - 1].pulse) as f64
+                * 60_000.0
+                / (self.info.resolution as f64 * self.bpm_events[i - 1].bpm))
+                as u64;
+            if duration < ms {
+                ms -= duration;
+                pulse +=
+                    (self.bpm_events[i - 1].bpm * self.info.resolution as f64 * duration as f64
+                        / 60_000.0) as u64;
+            }
+        }
+        pulse += (self.bpm_events[self.bpm_events.len() - 1].bpm
+            * (self.info.resolution * ms) as f64
+            / 60_000.0) as u64;
+        return pulse;
     }
 }

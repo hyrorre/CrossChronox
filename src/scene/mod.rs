@@ -1,3 +1,5 @@
+use crate::App;
+
 pub mod play;
 pub mod select;
 
@@ -6,9 +8,10 @@ pub enum State {
     Continue,
 }
 
-pub trait Scene {
-    fn init(&self);
-    fn update(&self) -> State;
-    fn render(&self);
-    fn quit(&self);
+pub trait Scene<'app> {
+    fn new(app: &'app mut App) -> Self;
+    fn init(&mut self);
+    fn update(&mut self) -> State;
+    fn render(&mut self);
+    fn quit(&mut self);
 }

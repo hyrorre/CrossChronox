@@ -3,7 +3,7 @@ pub const WINDOWED: WindowType = 0;
 pub const FULLSCREEN: WindowType = 1;
 pub const BORDERLESS: WindowType = 2;
 
-struct Config {
+pub struct Config {
     pub window_type: WindowType,
     pub save_resolution: bool,
     pub resolution_x: i32,
@@ -21,7 +21,7 @@ struct Config {
 }
 
 impl Config {
-    fn new() -> Config {
+    pub fn new() -> Config {
         Config {
             window_type: WINDOWED,
             save_resolution: true,

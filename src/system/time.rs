@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-struct TimeManager {
+pub struct TimeManager {
     instant: Instant,
 }
 

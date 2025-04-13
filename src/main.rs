@@ -1,16 +1,36 @@
 #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
-use sdl3::event::Event;
-use sdl3::image::LoadTexture;
-use sdl3::keyboard::Keycode;
-use sdl3::messagebox::{MessageBoxFlag, show_simple_message_box};
-use sdl3::pixels::Color;
-use std::time::Duration;
-
 pub mod chart;
 pub mod scene;
 pub mod system;
+
+use scene::play::Play;
+use scene::select::Select;
+use scene::{Scene, State};
+use sdl3::render::{TextureCreator, WindowCanvas};
+use sdl3::ttf::Sdl3TtfContext;
+use sdl3::video::{Window, WindowContext};
+use sdl3::{Sdl, VideoSubsystem};
+use system::config::Config;
+use system::input::InputManager;
+use system::time::TimeManager;
+
+use sdl3::event::Event;
+use sdl3::keyboard::Keycode;
+use sdl3::messagebox::{MessageBoxFlag, show_simple_message_box};
+use std::time::Duration;
+
+pub struct App {
+    pub config: Config,
+    pub input_manager: InputManager,
+    pub time_manager: TimeManager,
+    pub sdl_context: Sdl,
+    pub video_subsystem: VideoSubsystem,
+    pub ttf_context: Sdl3TtfContext,
+    pub canvas: WindowCanvas,
+    pub texture_creator: TextureCreator<WindowContext>,
+}
 
 pub fn main() {
     let sdl_context = match sdl3::init() {
@@ -32,6 +52,19 @@ pub fn main() {
             )
             .unwrap();
             panic!("Video Subsystem Error: {}", e);
+        }
+    };
+    let ttf_context = match sdl3::ttf::init() {
+        Ok(ok) => ok,
+        Err(e) => {
+            show_simple_message_box(
+                MessageBoxFlag::ERROR,
+                "TTF Init Error",
+                &e.to_string(),
+                None,
+            )
+            .unwrap();
+            panic!("TTF Init Error: {}", e);
         }
     };
 
@@ -67,20 +100,22 @@ pub fn main() {
         }
     };
 
-    let mut canvas = window.into_canvas();
+    let canvas = window.into_canvas();
     let texture_creator = canvas.texture_creator();
-    let texture_play = texture_creator
-        .load_texture("CrossChronoxData/play.bmp")
-        .ok();
 
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
-    canvas.clear();
-    canvas.present();
-    let mut i = 0;
+    let mut app = App {
+        config: Config::new(),
+        input_manager: InputManager::new(),
+        time_manager: TimeManager::new(),
+        sdl_context,
+        video_subsystem,
+        ttf_context,
+        canvas,
+        texture_creator,
+    };
+    let mut scene = Box::new(Play::new(&mut app)) as Box<dyn Scene>;
+
     'running: loop {
-        i = (i + 1) % 255;
-        canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
-        canvas.clear();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -92,11 +127,14 @@ pub fn main() {
             }
         }
         // The rest of the game loop goes here...
-        if let Some(ref texture) = texture_play {
-            canvas.copy(texture, None, None).ok();
+        let state = scene.update();
+        scene.render();
+
+        // Handle state changes if necessary
+        if matches!(state, State::Finish) {
+            break 'running;
         }
 
-        canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
