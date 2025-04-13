@@ -165,7 +165,7 @@ impl<'app> Scene<'app> for Play<'app> {
                     - (note.pulse as i128 + note.len as i128 - play_state.now_pulse as i128) as f32
                         * GLOBAL_SCROLL
                         / chart.info.resolution as f32;
-                if JUDGELINE_Y as u32 + NOTE_H < note_y as u32 {
+                if (JUDGELINE_Y as i32 + NOTE_H as i32) < note_y as i32 {
                     continue;
                 } else if (lnstart_y as i32 + NOTE_H as i32) < 0 {
                     break;
@@ -209,7 +209,7 @@ impl<'app> Scene<'app> for Play<'app> {
                                     x,
                                     note_y as i32,
                                     texture.width(),
-                                    lnstart_y as u32 - lnend_y as u32 + NOTE_H as u32,
+                                    (lnstart_y - lnend_y).abs() as u32 + NOTE_H as u32,
                                 ),
                             )
                             .ok();
