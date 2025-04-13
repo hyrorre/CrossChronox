@@ -1,23 +1,22 @@
 #[cfg(target_os = "windows")]
 fn main() {
-    use std::fs;
+    use std::{fs, path::Path};
     println!("cargo::rustc-env=LIB=vcpkg_installed/x64-windows/lib");
 
-    fs::copy(
-        "vcpkg_installed/x64-windows/bin/SDL3.dll",
-        "target/debug/SDL3.dll",
-    )
-    .unwrap();
-    fs::copy(
-        "vcpkg_installed/x64-windows/bin/SDL3_image.dll",
-        "target/debug/SDL3_image.dll",
-    )
-    .unwrap();
-    fs::copy(
-        "vcpkg_installed/x64-windows/bin/SDL3_ttf.dll",
-        "target/debug/SDL3_ttf.dll",
-    )
-    .unwrap();
+    for entry in Path::new("vcpkg_installed/x64-windows/bin")
+        .read_dir()
+        .unwrap()
+    {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.extension().unwrap() == "dll" {
+            let to = format!(
+                "target/debug/{}",
+                path.file_name().unwrap().to_str().unwrap()
+            );
+            fs::copy(path, &to).unwrap();
+        }
+    }
 }
 
 #[cfg(target_os = "macos")]

@@ -70,7 +70,7 @@ pub fn main() {
     };
 
     let window = match video_subsystem
-        .window("rust-sdl3 demo", 910, 540)
+        .window("rust-sdl3 demo", 1920, 1080)
         .high_pixel_density()
         .position_centered()
         .build()
