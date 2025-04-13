@@ -28,6 +28,8 @@ DerivedData/
 scm.plist
 db.xcindexdb*
 
+# Rust
+/target
 
 # Xcodeのプライベート設定（ウィンドウサイズ、ブックマーク、ブレイクポイントなど）
 # http://lists.apple.com/archives/xcode-users/2004/Jan/msg00193.html
