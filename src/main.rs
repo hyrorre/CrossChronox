@@ -1,164 +1,38 @@
 #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
-pub mod chart;
-pub mod scene;
-pub mod system;
+// pub mod chart;
+// pub mod scene;
+// pub mod system;
 
-use chart::bms_loader::load_bms;
-use chart::player::PlayState;
-use scene::play::Play;
-use scene::{Scene, State};
-use sdl3::render::{TextureCreator, WindowCanvas};
-use sdl3::ttf::Sdl3TtfContext;
-use sdl3::video::WindowContext;
-use sdl3::{Sdl, VideoSubsystem};
-use system::config::Config;
-use system::input::InputManager;
-use system::time::TimeManager;
+use bevy::prelude::*;
 
-use sdl3::event::Event;
-use sdl3::keyboard::Keycode;
-use sdl3::messagebox::{MessageBoxFlag, show_simple_message_box};
-use std::time::Duration;
-
-pub struct App {
-    pub config: Config,
-    pub input_manager: InputManager,
-    pub time_manager: TimeManager,
-    pub sdl_context: Sdl,
-    pub video_subsystem: VideoSubsystem,
-    pub ttf_context: Sdl3TtfContext,
-    pub canvas: WindowCanvas,
-    pub texture_creator: TextureCreator<WindowContext>,
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, startup)
+        .add_systems(Update, update)
+        .run();
 }
 
-pub fn main() {
-    let sdl_context = match sdl3::init() {
-        Ok(ok) => ok,
-        Err(e) => {
-            show_simple_message_box(MessageBoxFlag::ERROR, "Init Error", &e.to_string(), None)
-                .unwrap();
-            panic!("Init Error: {}", e);
-        }
-    };
-    let video_subsystem = match sdl_context.video() {
-        Ok(ok) => ok,
-        Err(e) => {
-            show_simple_message_box(
-                MessageBoxFlag::ERROR,
-                "Video Subsystem Error",
-                &e.to_string(),
-                None,
-            )
-            .unwrap();
-            panic!("Video Subsystem Error: {}", e);
-        }
-    };
-    let ttf_context = match sdl3::ttf::init() {
-        Ok(ok) => ok,
-        Err(e) => {
-            show_simple_message_box(
-                MessageBoxFlag::ERROR,
-                "TTF Init Error",
-                &e.to_string(),
-                None,
-            )
-            .unwrap();
-            panic!("TTF Init Error: {}", e);
-        }
-    };
-
-    let window = match video_subsystem
-        .window("rust-sdl3 demo", 1920, 1080)
-        .high_pixel_density()
-        .position_centered()
-        .build()
-    {
-        Ok(ok) => ok,
-        Err(e) => {
-            show_simple_message_box(
-                MessageBoxFlag::ERROR,
-                "Window Create Error",
-                &e.to_string(),
-                None,
-            )
-            .unwrap();
-            panic!("Window Create Error: {}", e);
-        }
-    };
-
-    let mut event_pump = match sdl_context.event_pump() {
-        Ok(ok) => ok,
-        Err(e) => {
-            show_simple_message_box(
-                MessageBoxFlag::ERROR,
-                "Event Pump Error",
-                &e.to_string(),
-                &window,
-            )
-            .unwrap();
-            panic!("Event Pump Error: {}", e)
-        }
-    };
-
-    let canvas = window.into_canvas();
-    let texture_creator = canvas.texture_creator();
-
-    let mut app = App {
-        config: Config::new(),
-        input_manager: InputManager::new(),
-        time_manager: TimeManager::new(),
-        sdl_context,
-        video_subsystem,
-        ttf_context,
-        canvas,
-        texture_creator,
-    };
-
-    let mut play_states = [PlayState::new(), PlayState::new()];
-    play_states[0].init(
-        load_bms(
-            "CrossChronoxData/Songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml",
-            false,
-        )
-        .unwrap(),
-    );
-
-    let mut scene: Box<dyn Scene> = Box::new(Play::new(&mut app, play_states));
-
-    'running: loop {
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
-                _ => {}
-            }
-        }
-        // The rest of the game loop goes here...
-        let state = scene.update();
-        scene.render();
-
-        // Handle state changes if necessary
-        if matches!(state, State::Finish) {
-            break 'running;
-        }
-
-        std::thread::sleep(Duration::new(0, 1_000u32));
-    }
+fn startup(mut commands: Commands) {
+    commands.spawn(Camera2d);
+    commands.spawn((
+        Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::new(100.0, 100.0)),
+            ..default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        Mover,
+    ));
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Component)]
+struct Mover;
 
-    #[test]
-    pub fn test() {
-        let filename = "CrossChronoxData/Songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
-        let chart = chart::bms_loader::load_bms(filename, false).unwrap();
-        println!("{:#?}", chart.info);
+fn update(time: Res<Time>, mut query: Query<&mut Transform, With<Mover>>) {
+    for mut transform in &mut query {
+        transform.translation.x += 100.0 * time.delta_secs();
     }
 }
