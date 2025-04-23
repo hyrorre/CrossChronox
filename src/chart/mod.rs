@@ -3,46 +3,62 @@
 pub mod bms_loader;
 pub mod player;
 
-pub type Judge = i32;
-pub const LN_PUSHING_PGREAT_EARLY: Judge = -20;
-pub const LN_PUSHING_GREAT_EARLY: Judge = -19;
-pub const LN_PUSHING_GOOD_EARLY: Judge = -18;
-pub const LN_PUSHING_PGREAT_LATE: Judge = -10;
-pub const LN_PUSHING_GREAT_LATE: Judge = -9;
-pub const LN_PUSHING_GOOD_LATE: Judge = -8;
-pub const JUDGE_YET: Judge = -1;
-pub const PGREAT_EARLY: Judge = 0;
-pub const GREAT_EARLY: Judge = 1;
-pub const GOOD_EARLY: Judge = 2;
-pub const BAD_EARLY: Judge = 3;
-pub const POOR_EARLY: Judge = 4;
-pub const KPOOR_EARLY: Judge = 5;
-pub const PGREAT_LATE: Judge = 6;
-pub const GREAT_LATE: Judge = 7;
-pub const GOOD_LATE: Judge = 8;
-pub const BAD_LATE: Judge = 9;
-pub const POOR_LATE: Judge = 10;
-pub const KPOOR_LATE: Judge = 11;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
+pub enum Judge {
+    LN_PUSHING_PGREAT_EARLY = -20,
+    LN_PUSHING_GREAT_EARLY = -19,
+    LN_PUSHING_GOOD_EARLY = -18,
+    LN_PUSHING_PGREAT_LATE = -10,
+    LN_PUSHING_GREAT_LATE = -9,
+    LN_PUSHING_GOOD_LATE = -8,
+    #[default]
+    JUDGE_YET = -1,
+    PGREAT_EARLY = 0,
+    GREAT_EARLY = 1,
+    GOOD_EARLY = 2,
+    BAD_EARLY = 3,
+    POOR_EARLY = 4,
+    KPOOR_EARLY = 5,
+    PGREAT_LATE = 6,
+    GREAT_LATE = 7,
+    GOOD_LATE = 8,
+    BAD_LATE = 9,
+    POOR_LATE = 10,
+    KPOOR_LATE = 11,
+}
 
-pub type Rank = i32;
-pub const VHARD: Rank = 0;
-pub const HARD: Rank = 1;
-pub const NORMAL: Rank = 2;
-pub const EASY: Rank = 3;
-pub const VEASY: Rank = 4;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
+pub enum Rank {
+    #[default]
+    VHARD = 0,
+    HARD = 1,
+    NORMAL = 2,
+    EASY = 3,
+    VEASY = 4,
+}
 
-pub type Mode = i32;
-pub const BEAT_5K: Mode = 0;
-pub const BEAT_7K: Mode = 1;
-pub const BEAT_10K: Mode = 2;
-pub const BEAT_14K: Mode = 3;
-pub const POPN_5K: Mode = 4;
-pub const POPN_9K: Mode = 5;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
+pub enum Mode {
+    #[default]
+    BEAT_5K = 0,
+    BEAT_7K = 1,
+    BEAT_10K = 2,
+    BEAT_14K = 3,
+    POPN_5K = 4,
+    POPN_9K = 5,
+}
 
-pub type LnType = i32;
-pub const LN: LnType = 0;
-pub const CN: LnType = 1;
-pub const HCN: LnType = 2;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
+pub enum LnType {
+    #[default]
+    LN = 0,
+    CN = 1,
+    HCN = 2,
+}
 
 pub type BpmEventType = i32;
 pub const BPM_CHANGE: BpmEventType = 0;
@@ -50,7 +66,7 @@ pub const STOP: BpmEventType = 1;
 
 pub const MAX_LANE: usize = 20;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Note {
     pub lane: i32,
     pub lane_origin: i32,
@@ -61,42 +77,20 @@ pub struct Note {
     pub empty_poor_count: i32,
     pub ms: u64,
     pub lnend_ms: u64,
-    // pub wavbuf_ptr: Option<WavBuffer>,
 }
 
-impl Note {
-    pub fn new() -> Note {
-        return Note {
-            lane: 0,
-            lane_origin: 0,
-            pulse: 0,
-            len: 0,
-            num: 0,
-            judge: JUDGE_YET,
-            empty_poor_count: 0,
-            ms: 0,
-            lnend_ms: 0,
-            // wavbuf_ptr: None,
-        };
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BarLine {
     pulse: u64,
 }
 
 impl BarLine {
-    pub fn new() -> BarLine {
-        return BarLine { pulse: 0 };
-    }
-
-    pub fn new_with_pulse(pulse: u64) -> BarLine {
+    pub fn new(pulse: u64) -> BarLine {
         return BarLine { pulse };
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BpmEvent {
     pub event_type: BpmEventType,
     pub pulse: u64,
@@ -106,66 +100,30 @@ pub struct BpmEvent {
 }
 
 impl BpmEvent {
-    pub fn new() -> BpmEvent {
-        return BpmEvent {
-            event_type: BPM_CHANGE,
-            pulse: 0,
-            bpm: 130.0,
-            duration: 0,
-            ms: 0,
-        };
-    }
-
     pub fn next_event_ms(&self, pulse: u64, resolution: u64) -> u64 {
         return ((self.ms + (pulse - self.pulse) * 60 * 1000) as f64
             / (self.bpm * resolution as f64)) as u64;
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BGAHeader {
     pub id: i32,
     pub name: String,
 }
 
-impl BGAHeader {
-    pub fn new() -> BGAHeader {
-        return BGAHeader {
-            id: 0,
-            name: String::new(),
-        };
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BGAEvent {
     pub pulse: u64,
     pub id: i32,
 }
 
-impl BGAEvent {
-    pub fn new() -> BGAEvent {
-        return BGAEvent { pulse: 0, id: 0 };
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BGA {
     bga_header: Vec<BGAHeader>,
     bga_events: Vec<BGAEvent>,
     layer_events: Vec<BGAEvent>,
     poor_events: Vec<BGAEvent>,
-}
-
-impl BGA {
-    pub fn new() -> BGA {
-        return BGA {
-            bga_header: Vec::new(),
-            bga_events: Vec::new(),
-            layer_events: Vec::new(),
-            poor_events: Vec::new(),
-        };
-    }
 }
 
 #[derive(Debug)]
@@ -198,40 +156,41 @@ pub struct ChartInfo {
     pub random_flag: bool,
 }
 
-impl ChartInfo {
-    pub fn new() -> ChartInfo {
+impl Default for ChartInfo {
+    fn default() -> ChartInfo {
         return ChartInfo {
-            title: String::new(),
-            subtitle: String::new(),
-            artist: String::new(),
-            subartist: String::new(),
-            genre: String::new(),
-            mode: BEAT_5K,
-            ln_type: LN,
-            chart_name: String::new(),
-            difficulty: 0,
-            level: 0,
             init_bpm: 130.0,
-            rank: NORMAL,
-            total: 0.0,
-            back_image: String::new(),
-            eyecatch_image: String::new(),
-            banner_image: String::new(),
-            preview_music: String::new(),
             resolution: 240,
-            end_pulse: 0,
-            end_ms: 0,
-            max_bpm: 0.0,
-            min_bpm: 0.0,
             base_bpm: 130.0,
-            note_count: 0,
-            md5: String::new(),
-            random_flag: false,
+
+            title: Default::default(),
+            subtitle: Default::default(),
+            artist: Default::default(),
+            subartist: Default::default(),
+            genre: Default::default(),
+            mode: Default::default(),
+            ln_type: Default::default(),
+            chart_name: Default::default(),
+            difficulty: Default::default(),
+            level: Default::default(),
+            rank: Default::default(),
+            total: Default::default(),
+            back_image: Default::default(),
+            eyecatch_image: Default::default(),
+            banner_image: Default::default(),
+            preview_music: Default::default(),
+            end_pulse: Default::default(),
+            end_ms: Default::default(),
+            max_bpm: Default::default(),
+            min_bpm: Default::default(),
+            note_count: Default::default(),
+            md5: Default::default(),
+            random_flag: Default::default(),
         };
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Chart {
     pub version: String,
     pub info: ChartInfo,
@@ -243,18 +202,6 @@ pub struct Chart {
 }
 
 impl Chart {
-    pub fn new() -> Chart {
-        return Chart {
-            version: String::new(),
-            info: ChartInfo::new(),
-            lines: Vec::new(),
-            bpm_events: Vec::new(),
-            bga: BGA::new(),
-            notes: Vec::new(),
-            // wavbufs: Vec::new(),
-        };
-    }
-
     pub fn ms_to_pulse(&self, mut ms: u64) -> u64 {
         if self.bpm_events.is_empty() {
             return 0;

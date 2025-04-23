@@ -29,14 +29,16 @@ struct BarInfo {
     start_pulse: u64,
 }
 
-impl BarInfo {
-    fn new() -> BarInfo {
+impl Default for BarInfo {
+    fn default() -> BarInfo {
         return BarInfo {
             scale: 1.0,
             start_pulse: 0,
         };
     }
+}
 
+impl BarInfo {
     fn length(&self) -> u64 {
         return (self.scale * BEAT_RESOLUTION as f64 * 4.0) as u64;
     }
@@ -51,8 +53,8 @@ struct TmpNoteData {
     global_pulse: u64,
 }
 
-impl TmpNoteData {
-    fn new() -> TmpNoteData {
+impl Default for TmpNoteData {
+    fn default() -> TmpNoteData {
         return TmpNoteData {
             bar: 0,
             channel: 0,
@@ -141,7 +143,7 @@ fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
 }
 
 pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Box<dyn Error>> {
-    let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::new());
+    let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::default());
     let mut max_bar: usize = 0;
     let mut tmp_notes: Vec<TmpNoteData> = Vec::new();
     let mut exbpm: HashMap<i32, f64> = HashMap::new();
@@ -152,7 +154,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     let mut random_num: i32 = 0;
     let mut parse_nextline_flag = true;
 
-    let mut chart = Chart::new();
+    let mut chart = Chart::default();
 
     let extention = PathBuf::from(filename)
         .extension()
@@ -161,7 +163,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
         .unwrap_or_default()
         .to_string();
 
-    chart.bpm_events.push(BpmEvent::new());
+    chart.bpm_events.push(BpmEvent::default());
 
     // open file
     let buf_u8 = std::fs::read(filename)?;
@@ -243,7 +245,13 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                     }
                     .to_string();
                 } else if nowline.to_uppercase().starts_with("#RANK") {
-                    chart.info.rank = arg(&nowline).parse().unwrap_or(0).clamp(0, 3);
+                    chart.info.rank = match arg(&nowline).parse().unwrap_or(-1) {
+                        0 => Rank::VHARD,
+                        1 => Rank::HARD,
+                        2 => Rank::NORMAL,
+                        3 => Rank::EASY,
+                        _ => Rank::NORMAL,
+                    };
                 } else if nowline.to_uppercase().starts_with("#BASEBPM") {
                     chart.info.base_bpm = arg(&nowline).parse().unwrap_or(0.0);
                 } else {
@@ -338,34 +346,34 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     if extention.to_lowercase().starts_with("bm") {
         channel_type = CHANNEL_TYPE_BMS;
         if 28 <= used_channel_max {
-            chart.info.mode = BEAT_14K;
+            chart.info.mode = Mode::BEAT_14K;
         } else if 21 <= used_channel_max {
             if channel_used_flag[18] || channel_used_flag[19] {
-                chart.info.mode = BEAT_14K;
+                chart.info.mode = Mode::BEAT_14K;
             } else {
-                chart.info.mode = BEAT_10K;
+                chart.info.mode = Mode::BEAT_10K;
             }
         } else if 18 <= used_channel_max {
-            chart.info.mode = BEAT_7K;
+            chart.info.mode = Mode::BEAT_7K;
         } else {
-            chart.info.mode = BEAT_5K;
+            chart.info.mode = Mode::BEAT_5K;
         }
     }
     // pms, pme(pms BME-TYPE)
     else {
         if 24 <= used_channel_max {
-            chart.info.mode = POPN_9K;
+            chart.info.mode = Mode::POPN_9K;
             channel_type = CHANNEL_TYPE_PMS;
         } else if 22 <= used_channel_max {
             if channel_used_flag[11] || channel_used_flag[12] {
-                chart.info.mode = POPN_9K;
+                chart.info.mode = Mode::POPN_9K;
                 channel_type = CHANNEL_TYPE_PMS;
             } else {
-                chart.info.mode = POPN_5K;
+                chart.info.mode = Mode::POPN_5K;
                 channel_type = CHANNEL_TYPE_PMS;
             }
         } else {
-            chart.info.mode = POPN_9K;
+            chart.info.mode = Mode::POPN_9K;
             channel_type = CHANNEL_TYPE_PME;
         }
     }
@@ -379,7 +387,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     for i in 0..=max_bar {
         bar_info[i].start_pulse = total_pulse;
         total_pulse += bar_info[i].length();
-        chart.lines.push(BarLine::new_with_pulse(total_pulse));
+        chart.lines.push(BarLine::new(total_pulse));
     }
 
     // set bar_pulse and global_pulse of tmp_notes
@@ -483,7 +491,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                         pulse: tmp_note.global_pulse,
                         len: 0,
                         num: num as u64,
-                        judge: JUDGE_YET,
+                        judge: Judge::JUDGE_YET,
                         empty_poor_count: 0,
                         ms: 0,
                         lnend_ms: 0,
@@ -524,7 +532,10 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
             .next_event_ms(chart.bpm_events[i].pulse, chart.info.resolution);
     }
     // set end_pulse
-    chart.info.end_pulse = tmp_notes.last().unwrap_or(&TmpNoteData::new()).global_pulse;
+    chart.info.end_pulse = tmp_notes
+        .last()
+        .unwrap_or(&TmpNoteData::default())
+        .global_pulse;
     bpm_length
         .entry((chart.bpm_events[chart.bpm_events.len() - 1].bpm * 1000_000.0) as u64)
         .and_modify(|e| {
@@ -560,7 +571,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     chart.info.end_ms = chart
         .bpm_events
         .last()
-        .unwrap_or(&BpmEvent::new())
+        .unwrap_or(&BpmEvent::default())
         .next_event_ms(chart.info.end_pulse, chart.info.resolution);
 
     if !load_header_only_flag {

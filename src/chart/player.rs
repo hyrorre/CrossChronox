@@ -1,9 +1,11 @@
 use crate::chart::*;
-use crate::scene::State;
 use crate::system::time::*;
+use bevy::prelude::*;
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
 pub enum Placement {
+    #[default]
     NORMAL = 0,
     RANDOM = 1,
     R_RAN = 2,
@@ -15,7 +17,9 @@ pub enum Placement {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
 pub enum Gauge {
+    #[default]
     NORMAL,
     A_EASY,
     EASY,
@@ -25,7 +29,9 @@ pub enum Gauge {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
 pub enum Assist {
+    #[default]
     OFF,
     A_SCRATCH,
     FIVE_KEYS,
@@ -38,7 +44,9 @@ pub enum Assist {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
 pub enum DisplayArea {
+    #[default]
     OFF,
     SUD,
     HID,
@@ -47,6 +55,7 @@ pub enum DisplayArea {
     LIFT_SUD,
 }
 
+#[derive(Debug, Default)]
 pub struct Option {
     pub placement_left: Placement,
     pub placement_right: Placement,
@@ -56,19 +65,7 @@ pub struct Option {
     pub flip: bool,
 }
 
-impl Option {
-    pub fn new() -> Option {
-        return Option {
-            placement_left: Placement::NORMAL,
-            placement_right: Placement::NORMAL,
-            gauge: Gauge::NORMAL,
-            assist: Assist::OFF,
-            display_area: DisplayArea::OFF,
-            flip: false,
-        };
-    }
-}
-
+#[derive(Debug, Default)]
 pub struct NoteJudge {
     pub lane: i32,
     pub num: u64,
@@ -77,20 +74,10 @@ pub struct NoteJudge {
     pub diff: f64,
 }
 
-impl NoteJudge {
-    pub fn new() -> NoteJudge {
-        return NoteJudge {
-            lane: 0,
-            num: 0,
-            ms: 0,
-            judge: JUDGE_YET,
-            diff: 0.0,
-        };
-    }
-}
-
 #[allow(non_camel_case_types)]
+#[derive(Debug, Default)]
 pub enum Lamp {
+    #[default]
     NOPLAY,
     FAILED,
     ASSIST,
@@ -103,6 +90,7 @@ pub enum Lamp {
     MFC,
 }
 
+#[derive(Debug, Default)]
 pub struct Result {
     pub pgreat_early: i32,
     pub great_early: i32,
@@ -124,73 +112,51 @@ pub struct Result {
 }
 
 impl Result {
-    pub fn new() -> Result {
-        return Result {
-            pgreat_early: 0,
-            great_early: 0,
-            good_early: 0,
-            bad_early: 0,
-            poor_early: 0,
-            kpoor_early: 0,
-            pgreat_late: 0,
-            great_late: 0,
-            good_late: 0,
-            bad_late: 0,
-            poor_late: 0,
-            kpoor_late: 0,
-            combo_break: 0,
-            miss_count: -1,
-            max_combo: 0,
-            now_combo: 0,
-            note_judges: Vec::new(),
-        };
-    }
-
     pub fn push(&mut self, note_judge: NoteJudge) {
         match note_judge.judge {
-            PGREAT_EARLY => {
+            Judge::PGREAT_EARLY => {
                 self.pgreat_early += 1;
             }
-            GREAT_EARLY => {
+            Judge::GREAT_EARLY => {
                 self.great_early += 1;
             }
-            GOOD_EARLY => {
+            Judge::GOOD_EARLY => {
                 self.good_early += 1;
             }
-            BAD_EARLY => {
+            Judge::BAD_EARLY => {
                 self.bad_early += 1;
                 self.combo_break += 1;
                 self.miss_count += 1;
             }
-            POOR_EARLY => {
+            Judge::POOR_EARLY => {
                 self.poor_early += 1;
                 self.combo_break += 1;
                 self.miss_count += 1;
             }
-            KPOOR_EARLY => {
+            Judge::KPOOR_EARLY => {
                 self.kpoor_early += 1;
                 self.miss_count += 1;
             }
-            PGREAT_LATE => {
+            Judge::PGREAT_LATE => {
                 self.pgreat_late += 1;
             }
-            GREAT_LATE => {
+            Judge::GREAT_LATE => {
                 self.great_late += 1;
             }
-            GOOD_LATE => {
+            Judge::GOOD_LATE => {
                 self.good_late += 1;
             }
-            BAD_LATE => {
+            Judge::BAD_LATE => {
                 self.bad_late += 1;
                 self.combo_break += 1;
                 self.miss_count += 1;
             }
-            POOR_LATE => {
+            Judge::POOR_LATE => {
                 self.poor_late += 1;
                 self.combo_break += 1;
                 self.miss_count += 1;
             }
-            KPOOR_LATE => {
+            Judge::KPOOR_LATE => {
                 self.kpoor_late += 1;
                 self.miss_count += 1;
             }
@@ -200,7 +166,8 @@ impl Result {
     }
 }
 
-pub struct PlayState {
+#[derive(Resource, Default)]
+pub struct Player {
     pub chart: Chart,
     pub option: Option,
     pub result: Result,
@@ -212,25 +179,10 @@ pub struct PlayState {
     pub lane_timelines: [Vec<usize>; MAX_LANE],
 }
 
-impl PlayState {
-    pub fn new() -> PlayState {
-        return PlayState {
-            chart: Chart::new(),
-            option: Option::new(),
-            result: Result::new(),
-            start_ms: 0,
-            play_ms: 0,
-            last_play_ms: 0,
-            now_pulse: 0,
-            last_pulse: 0,
-            lane_timelines: Default::default(),
-        };
-    }
-
+impl Player {
     pub fn init(&mut self, chart: Chart) {
-        // Initialize the play state
         self.chart = chart;
-        self.result = Result::new();
+        self.result = Default::default();
         self.start_ms = 0;
         self.play_ms = 0;
         self.last_play_ms = 0;
@@ -239,7 +191,7 @@ impl PlayState {
         self.lane_timelines = Default::default();
     }
 
-    pub fn update(&mut self, time_manager: &TimeManager) -> State {
+    pub fn update(&mut self, time_manager: &TimeManager) {
         // Update the play state
         self.last_play_ms = self.play_ms;
         self.play_ms = time_manager.elapsed().as_millis() as u64 - self.start_ms;
@@ -247,7 +199,7 @@ impl PlayState {
         self.now_pulse = self.chart.ms_to_pulse(self.play_ms);
 
         if matches!(self.option.assist, Assist::AUTO_PLAY) || true {
-            let mut note_tmp = Note::new();
+            let mut note_tmp = Note::default();
             note_tmp.pulse = self.last_pulse;
             for note in self
                 .chart
@@ -264,7 +216,7 @@ impl PlayState {
                         lane: note.lane,
                         num: note.num,
                         ms: self.play_ms,
-                        judge: PGREAT_EARLY,
+                        judge: Judge::PGREAT_EARLY,
                         diff: 0.0,
                     });
                 }
@@ -272,7 +224,6 @@ impl PlayState {
         } else {
             // normal play
         }
-        State::Continue
     }
 
     pub fn set_lane_timelines(&mut self) {
@@ -282,8 +233,8 @@ impl PlayState {
         }
 
         let placements = match self.chart.info.mode {
-            BEAT_5K => vec![1, 2, 3, 4, 5],
-            BEAT_7K => vec![1, 2, 3, 4, 5, 6, 7],
+            Mode::BEAT_5K => vec![1, 2, 3, 4, 5],
+            Mode::BEAT_7K => vec![1, 2, 3, 4, 5, 6, 7],
             _ => vec![],
         };
 
