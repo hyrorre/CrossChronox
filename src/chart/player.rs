@@ -1,5 +1,4 @@
 use crate::chart::*;
-use crate::system::time::*;
 use bevy::prelude::*;
 
 #[allow(non_camel_case_types)]
@@ -112,6 +111,30 @@ pub struct Result {
 }
 
 impl Result {
+    pub fn pgreat(&self) -> i32 {
+        self.pgreat_early + self.pgreat_late
+    }
+
+    pub fn great(&self) -> i32 {
+        self.great_early + self.great_late
+    }
+
+    pub fn good(&self) -> i32 {
+        self.good_early + self.good_late
+    }
+
+    pub fn bad(&self) -> i32 {
+        self.bad_early + self.bad_late
+    }
+
+    pub fn poor(&self) -> i32 {
+        self.poor_early + self.poor_late
+    }
+
+    pub fn kpoor(&self) -> i32 {
+        self.kpoor_early + self.kpoor_late
+    }
+
     pub fn push(&mut self, note_judge: NoteJudge) {
         match note_judge.judge {
             Judge::PGREAT_EARLY => {
@@ -180,21 +203,21 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn init(&mut self, chart: Chart) {
+    pub fn init(&mut self, chart: Chart, time: &Res<Time>) {
         self.chart = chart;
         self.result = Default::default();
-        self.start_ms = 0;
-        self.play_ms = 0;
+        self.start_ms = time.elapsed().as_millis() as u64;
+        self.play_ms = time.elapsed().as_millis() as u64;
         self.last_play_ms = 0;
         self.now_pulse = 0;
         self.last_pulse = 0;
         self.lane_timelines = Default::default();
     }
 
-    pub fn update(&mut self, time_manager: &TimeManager) {
+    pub fn update(&mut self, time: &Res<Time>) {
         // Update the play state
         self.last_play_ms = self.play_ms;
-        self.play_ms = time_manager.elapsed().as_millis() as u64 - self.start_ms;
+        self.play_ms = time.elapsed().as_millis() as u64 - self.start_ms;
         self.last_pulse = self.now_pulse;
         self.now_pulse = self.chart.ms_to_pulse(self.play_ms);
 
@@ -205,7 +228,7 @@ impl Player {
                 .chart
                 .notes
                 .iter_mut()
-                .filter(|note| note.pulse < note_tmp.pulse)
+                .filter(|note| note_tmp.pulse < note.pulse)
             {
                 if self.now_pulse < note.pulse {
                     break;
