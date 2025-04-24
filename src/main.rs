@@ -15,8 +15,8 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "CrossChronox".to_string(),
-                resolution: (1280., 720.).into(),
-                present_mode: bevy::window::PresentMode::Immediate,
+                resolution: (1920., 1080.).into(),
+                // present_mode: bevy::window::PresentMode::Immediate,
                 ..default()
             }),
             ..default()

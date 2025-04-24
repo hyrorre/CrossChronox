@@ -37,7 +37,7 @@ const fn convert_y_h(y: f32, h: f32) -> f32 {
 // }
 
 const SCALE: f32 = 1.0; // 1280.0 / 1920.0;
-const UI_SCALE: f32 = 1280.0 / 1920.0;
+const UI_SCALE: f32 = 1.0; // 1280.0 / 1920.0;
 
 #[derive(Component)]
 pub struct InfoText;
@@ -104,6 +104,7 @@ pub fn on_enter(
             },
             _ => continue,
         };
+
         let x = SCR_1P_X as i32
             + (SCR_W as i32
                 + (note.lane / 2 * WHITE_W as i32
@@ -118,7 +119,7 @@ pub fn on_enter(
                 0.0,
             )),
             sprite,
-            Visibility::Visible,
+            Visibility::Hidden,
             NoteSprite {
                 pulse: note.pulse,
                 len: note.len,
@@ -187,18 +188,24 @@ max_combo : {}
         let mut lnstart_y = JUDGELINE_Y
             - (note.pulse as i128 - player.now_pulse as i128) as f32 * GLOBAL_SCROLL
                 / player.chart.info.resolution as f32;
+
         let note_y = JUDGELINE_Y
             - (note.pulse as i128 + note.len as i128 - player.now_pulse as i128) as f32
                 * GLOBAL_SCROLL
                 / player.chart.info.resolution as f32;
-        // if (JUDGELINE_Y + NOTE_H) < note_y {
-        //     *visibility = Visibility::Visible;
-        //     continue;
-        // } else if (lnstart_y as i32 + NOTE_H as i32) < 0 {
-        //     break;
-        // } else {
-        //     *visibility = Visibility::Visible;
-        // }
+
+        if (JUDGELINE_Y + NOTE_H) < convert_y_h(note_y, sprite.custom_size.unwrap().y) {
+            // 判定線を下回ったとき
+            *visibility = Visibility::Hidden;
+            continue;
+        } else if convert_y_h(lnstart_y + NOTE_H, NOTE_H) < 0.0 {
+            // まだ画面内に入っていない場合
+            *visibility = Visibility::Hidden;
+            continue;
+        } else {
+            // 画面内のノーツ
+            *visibility = Visibility::Visible;
+        }
 
         if note.len == 0 {
             transform.translation.y = convert_y_h(note_y, sprite.custom_size.unwrap().y);
