@@ -1,5 +1,5 @@
 use crate::chart::*;
-use bevy::prelude::*;
+use macroquad::prelude::*;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Default)]
@@ -55,7 +55,7 @@ pub enum DisplayArea {
 }
 
 #[derive(Debug, Default)]
-pub struct Option {
+pub struct PlayOption {
     pub placement_left: Placement,
     pub placement_right: Placement,
     pub gauge: Gauge,
@@ -189,10 +189,10 @@ impl Result {
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Default)]
 pub struct Player {
     pub chart: Chart,
-    pub option: Option,
+    pub option: PlayOption,
     pub result: Result,
     pub start_ms: u64,
     pub play_ms: u64,
@@ -203,21 +203,21 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn init(&mut self, chart: Chart, time: &Res<Time>) {
+    pub fn init(&mut self, chart: Chart) {
         self.chart = chart;
         self.result = Default::default();
-        self.start_ms = time.elapsed().as_millis() as u64;
-        self.play_ms = time.elapsed().as_millis() as u64;
+        self.start_ms = (get_time() * 1000.0) as u64;
+        self.play_ms = (get_time() * 1000.0) as u64;
         self.last_play_ms = 0;
         self.now_pulse = 0;
         self.last_pulse = 0;
         self.lane_timelines = Default::default();
     }
 
-    pub fn update(&mut self, time: &Res<Time>) {
+    pub fn update(&mut self) {
         // Update the play state
         self.last_play_ms = self.play_ms;
-        self.play_ms = time.elapsed().as_millis() as u64 - self.start_ms;
+        self.play_ms = (get_time() * 1000.0) as u64 - self.start_ms;
         self.last_pulse = self.now_pulse;
         self.now_pulse = self.chart.ms_to_pulse(self.play_ms);
 

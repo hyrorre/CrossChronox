@@ -1,44 +1,43 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
 pub mod chart;
-pub mod state;
+pub mod scene;
 pub mod system;
 
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::*;
-use chart::player::*;
-use state::*;
+// use chart::player::*;
+// use state::*;
 
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "CrossChronox".to_string(),
-                resolution: (1920., 1080.).into(),
-                // present_mode: bevy::window::PresentMode::Immediate,
-                ..default()
-            }),
-            ..default()
-        }))
-        .add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_systems(Startup, startup)
-        .insert_state(AppState::Play)
-        .init_resource::<Player>()
-        .add_systems(OnEnter(AppState::Play), play::on_enter)
-        .add_systems(Update, play::update.run_if(in_state(AppState::Play)))
-        .run();
+use chart::{bms_loader::load_bms, player::Player};
+use macroquad::prelude::*;
+use scene::{Scene, play::Play};
+
+#[macroquad::main(window_conf)]
+async fn main() {
+    let filename = "assets/songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
+    let chart = load_bms(filename, false).unwrap();
+
+    let mut player = Player::default();
+    player.init(chart);
+    let mut scene = Play::new(player).await;
+    scene.init();
+
+    loop {
+        scene.update();
+
+        scene.render();
+
+        next_frame().await;
+        clear_background(BLACK);
+    }
 }
 
-fn startup(mut commands: Commands) {
-    commands.spawn((
-        Camera2d::default(),
-        OrthographicProjection {
-            scaling_mode: bevy::render::camera::ScalingMode::Fixed {
-                width: 1920.0,
-                height: 1080.0,
-            },
-            ..OrthographicProjection::default_2d()
-        },
-    ));
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "CrossChronox".to_string(),
+        window_width: 1920,
+        window_height: 1080,
+        fullscreen: false,
+        ..Default::default()
+    }
 }
