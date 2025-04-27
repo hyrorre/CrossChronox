@@ -64,39 +64,34 @@ impl Scene for Play {
     fn render(&mut self) {
         draw_texture(&self.background, 0., 0., WHITE);
 
-        let infostr = [
-            format!("fps : {}", get_fps()),
-            format!("play_ms : {}", self.player.play_ms),
-            format!("play_pulse : {}", self.player.now_pulse),
-            format!("genre : {}", self.player.chart.info.genre),
-            format!("title : {}", self.player.chart.info.title),
-            format!("subtitle : {}", self.player.chart.info.subtitle),
-            format!("artist : {}", self.player.chart.info.artist),
-            format!("subartist : {}", self.player.chart.info.subartist),
-            format!("level : {}", self.player.chart.info.level),
-            format!("pgreat : {}", self.player.result.pgreat()),
-            format!("great : {}", self.player.result.great()),
-            format!("good : {}", self.player.result.good()),
-            format!("bad : {}", self.player.result.bad()),
-            format!("poor : {}", self.player.result.poor()),
-            format!("kpoor : {}", self.player.result.kpoor()),
-        ];
+        let infostr = format!("fps : {}\n", get_fps())
+            + format!("play_ms : {}\n", self.player.play_ms).as_str()
+            + format!("play_pulse : {}\n", self.player.now_pulse).as_str()
+            + format!("genre : {}\n", self.player.chart.info.genre).as_str()
+            + format!("title : {}\n", self.player.chart.info.title).as_str()
+            + format!("subtitle : {}\n", self.player.chart.info.subtitle).as_str()
+            + format!("artist : {}\n", self.player.chart.info.artist).as_str()
+            + format!("subartist : {}\n", self.player.chart.info.subartist).as_str()
+            + format!("level : {}\n", self.player.chart.info.level).as_str()
+            + format!("pgreat : {}\n", self.player.result.pgreat()).as_str()
+            + format!("great : {}\n", self.player.result.great()).as_str()
+            + format!("good : {}\n", self.player.result.good()).as_str()
+            + format!("bad : {}\n", self.player.result.bad()).as_str()
+            + format!("poor : {}\n", self.player.result.poor()).as_str()
+            + format!("kpoor : {}\n", self.player.result.kpoor()).as_str();
 
-        let mut y = 220.0;
-        for line in infostr {
-            draw_text_ex(
-                line.as_str(),
-                900.0,
-                y,
-                TextParams {
-                    font: Some(&self.font),
-                    font_size: 19,
-                    color: WHITE,
-                    ..Default::default()
-                },
-            );
-            y += 19.0 + 5.0;
-        }
+        draw_multiline_text_ex(
+            infostr.as_str(),
+            900.0,
+            240.0,
+            None,
+            TextParams {
+                font: Some(&self.font),
+                font_size: 19,
+                color: WHITE,
+                ..Default::default()
+            },
+        );
 
         for note in self.player.chart.notes.iter() {
             let mut lnstart_y = JUDGELINE_Y
