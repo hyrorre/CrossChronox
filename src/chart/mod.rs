@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use macroquad::audio::Sound;
+
 pub mod bms_loader;
 pub mod player;
 
@@ -77,6 +79,7 @@ pub struct Note {
     pub empty_poor_count: i32,
     pub ms: u64,
     pub lnend_ms: u64,
+    pub index: usize,
 }
 
 #[derive(Debug, Default)]
@@ -198,7 +201,7 @@ pub struct Chart {
     pub bpm_events: Vec<BpmEvent>,
     pub bga: BGA,
     pub notes: Vec<Note>,
-    // pub wavbufs: Vec<WavBuffer>,
+    pub sounds: Vec<Option<Sound>>,
 }
 
 impl Chart {

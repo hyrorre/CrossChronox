@@ -1,4 +1,5 @@
 use crate::chart::*;
+use macroquad::audio::*;
 use macroquad::prelude::*;
 
 #[allow(non_camel_case_types)]
@@ -233,7 +234,9 @@ impl Player {
                 if self.now_pulse < note.pulse {
                     break;
                 }
-                // wav_manager.play(&note);
+                if let Some(sound) = &self.chart.sounds[note.index] {
+                    play_sound_once(sound);
+                }
                 if note.num != 0 {
                     self.result.push(NoteJudge {
                         lane: note.lane,

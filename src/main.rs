@@ -15,7 +15,7 @@ use scene::{Scene, play::Play};
 #[macroquad::main(window_conf)]
 async fn main() {
     let filename = "assets/songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
-    let chart = load_bms(filename, false).unwrap();
+    let chart = load_bms(filename, false).await.unwrap();
 
     let mut player = Player::default();
     player.init(chart);

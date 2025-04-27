@@ -1,14 +1,19 @@
 #![allow(dead_code)]
+use ::rand::Rng;
+use ::rand::rng;
+use macroquad::audio::*;
+use macroquad::prelude::*;
 use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::*;
 
 use crate::chart::*;
 
 const BEAT_RESOLUTION: u64 = 240;
 const MAX_BAR_INFO: usize = 1001;
 const MAX_NOTE_CHANNEL: usize = 30;
+const MAX_SOUND: usize = 36 * 36; // ZZ
 
 const CHANNEL_BGM: usize = 1;
 const CHANNEL_METER: usize = 2;
@@ -88,10 +93,12 @@ impl Eq for TmpNoteData {}
 
 fn index(nowline: &String) -> i32 {
     // #BPM01
-    let mut bytes = nowline.bytes();
-    let index_str = String::from_utf8(vec![bytes.nth(4).unwrap_or(0), bytes.nth(5).unwrap_or(0)])
-        .unwrap_or("00".to_string());
-    index_str.parse().unwrap_or(0)
+    let index_str = &nowline.get(4..6).unwrap_or("00");
+    if nowline.chars().nth(1).unwrap_or('0') == 'W' {
+        return i32::from_str_radix(index_str, 36).unwrap_or(0);
+    } else {
+        return index_str.parse().unwrap_or(0);
+    }
 }
 
 fn arg(nowline: &String) -> String {
@@ -142,7 +149,10 @@ fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
     }
 }
 
-pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Box<dyn Error>> {
+pub async fn load_bms(
+    filename: &str,
+    load_header_only_flag: bool,
+) -> Result<Chart, Box<dyn Error>> {
     let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::default());
     let mut max_bar: usize = 0;
     let mut tmp_notes: Vec<TmpNoteData> = Vec::new();
@@ -155,21 +165,25 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     let mut parse_nextline_flag = true;
 
     let mut chart = Chart::default();
+    if !load_header_only_flag {
+        chart.sounds.resize(MAX_SOUND, None);
+    }
 
-    let extention = PathBuf::from(filename)
+    let extension = Path::new(filename)
         .extension()
         .unwrap_or_default()
         .to_str()
         .unwrap_or_default()
         .to_string();
 
+    let chart_path = Path::new(filename).parent().ok_or("Chart path error")?;
     chart.bpm_events.push(BpmEvent::default());
 
     // open file
     let buf_u8 = std::fs::read(filename)?;
     let buf_string = encoding_rs::SHIFT_JIS.decode(&buf_u8).0.into_owned();
 
-    for (_line_num, line) in buf_string.lines().enumerate() {
+    for (line_num, line) in buf_string.lines().enumerate() {
         let mut nowline = line.to_string();
         if nowline.starts_with("＃") {
             nowline = nowline.replacen("＃", "#", 1);
@@ -183,12 +197,29 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                 parse_nextline_flag = true;
             } else if nowline.to_uppercase().starts_with("#RANDOM") {
                 let random_max: i32 = arg(&nowline).parse().unwrap_or(1);
-                let mut rng = rand::rng();
-                random_num = rand::Rng::random_range(&mut rng, 1..=random_max);
+                let mut rng = rng();
+                random_num = Rng::random_range(&mut rng, 1..=random_max);
                 chart.info.random_flag = true;
             } else if parse_nextline_flag {
                 if !load_header_only_flag && nowline.to_uppercase().starts_with("#WAV") {
-                    // Load WAV
+                    let mut pathbuf = chart_path.to_path_buf();
+                    pathbuf.push(arg(&nowline));
+                    let extensions = ["wav", "ogg", "WAV", "OGG"];
+                    for extension in extensions {
+                        pathbuf.set_extension(extension);
+                        if pathbuf.exists() {
+                            let sound_path = pathbuf.as_os_str().to_str();
+                            if let Some(sound_path) = sound_path {
+                                println!("{sound_path}");
+                                let sound = load_sound(sound_path).await.ok();
+                                let index = index(&nowline) as usize;
+                                if sound.is_some() && index < chart.sounds.len() {
+                                    chart.sounds[index] = sound;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 } else if nowline.to_uppercase().starts_with("#BPM") {
                     if let Some(c) = nowline.bytes().nth(4) {
                         if '0' <= c as char && c as char <= '9' {
@@ -343,7 +374,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
     let channel_type: ChannelType;
 
     // bms, bme, bml
-    if extention.to_lowercase().starts_with("bm") {
+    if extension.to_lowercase().starts_with("bm") {
         channel_type = CHANNEL_TYPE_BMS;
         if 28 <= used_channel_max {
             chart.info.mode = Mode::BEAT_14K;
@@ -495,6 +526,7 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                         empty_poor_count: 0,
                         ms: 0,
                         lnend_ms: 0,
+                        index: tmp_note.index as usize,
                     });
                     last_note_index[lane] = Some(chart.notes.len() - 1);
                 }
