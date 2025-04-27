@@ -183,7 +183,7 @@ pub async fn load_bms(
     let buf_u8 = std::fs::read(filename)?;
     let buf_string = encoding_rs::SHIFT_JIS.decode(&buf_u8).0.into_owned();
 
-    for (line_num, line) in buf_string.lines().enumerate() {
+    for (_line_num, line) in buf_string.lines().enumerate() {
         let mut nowline = line.to_string();
         if nowline.starts_with("＃") {
             nowline = nowline.replacen("＃", "#", 1);
@@ -210,7 +210,6 @@ pub async fn load_bms(
                         if pathbuf.exists() {
                             let sound_path = pathbuf.as_os_str().to_str();
                             if let Some(sound_path) = sound_path {
-                                println!("{sound_path}");
                                 let sound = load_sound(sound_path).await.ok();
                                 let index = index(&nowline) as usize;
                                 if sound.is_some() && index < chart.sounds.len() {
