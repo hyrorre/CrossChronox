@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use macroquad::audio::Sound;
+use kira::sound::static_sound::StaticSoundData;
 
 pub mod bms_loader;
 pub mod player;
@@ -202,7 +202,7 @@ pub struct Chart {
     pub bpm_events: Vec<BpmEvent>,
     pub bga: BGA,
     pub notes: Vec<Note>,
-    pub sounds: Vec<Option<Sound>>,
+    pub sounds: Vec<Option<StaticSoundData>>,
 }
 
 impl Chart {

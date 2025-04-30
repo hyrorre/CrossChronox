@@ -57,8 +57,8 @@ impl Scene for Play {
         // Initialize the play scene
     }
 
-    fn update(&mut self) {
-        self.player.update();
+    fn update(&mut self, audio_manager: &mut AudioManager) {
+        self.player.update(audio_manager);
     }
 
     fn render(&mut self) {

@@ -1,5 +1,5 @@
 use crate::chart::*;
-use macroquad::audio::*;
+use kira::AudioManager;
 use macroquad::prelude::*;
 
 #[allow(non_camel_case_types)]
@@ -215,7 +215,7 @@ impl Player {
         self.lane_timelines = Default::default();
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, audio_manager: &mut AudioManager) {
         // Update the play state
         self.last_play_ms = self.play_ms;
         self.play_ms = (get_time() * 1000.0) as u64 - self.start_ms;
@@ -234,8 +234,8 @@ impl Player {
                 if self.now_pulse < note.pulse {
                     break;
                 }
-                if let Some(sound) = &self.chart.sounds[note.index] {
-                    play_sound_once(sound);
+                if let Some(sound) = self.chart.sounds[note.index].clone() {
+                    audio_manager.play(sound).ok();
                 }
                 if note.num != 0 {
                     self.result.push(NoteJudge {

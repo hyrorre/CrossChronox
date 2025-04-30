@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use ::rand::Rng;
 use ::rand::rng;
-use macroquad::audio::*;
+use kira::sound::static_sound::StaticSoundData;
 use macroquad::prelude::*;
 use regex::RegexBuilder;
 use std::collections::HashMap;
@@ -149,10 +149,7 @@ fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
     }
 }
 
-pub async fn load_bms(
-    filename: &str,
-    load_header_only_flag: bool,
-) -> Result<Chart, Box<dyn Error>> {
+pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Box<dyn Error>> {
     let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::default());
     let mut max_bar: usize = 0;
     let mut tmp_notes: Vec<TmpNoteData> = Vec::new();
@@ -207,16 +204,17 @@ pub async fn load_bms(
                     let extensions = ["wav", "ogg", "WAV", "OGG"];
                     for extension in extensions {
                         pathbuf.set_extension(extension);
-                        if pathbuf.exists() {
-                            let sound_path = pathbuf.as_os_str().to_str();
-                            if let Some(sound_path) = sound_path {
-                                let sound = load_sound(sound_path).await.ok();
-                                let index = index(&nowline) as usize;
-                                if sound.is_some() && index < chart.sounds.len() {
-                                    chart.sounds[index] = sound;
-                                    break;
-                                }
-                            }
+                        if !pathbuf.exists() {
+                            continue;
+                        }
+                        let Ok(sound) = StaticSoundData::from_file(pathbuf.as_path()) else {
+                            continue;
+                        };
+
+                        let index = index(&nowline) as usize;
+                        if index < chart.sounds.len() {
+                            chart.sounds[index] = Some(sound);
+                            break;
                         }
                     }
                 } else if nowline.to_uppercase().starts_with("#BPM") {

@@ -9,13 +9,17 @@ pub mod system;
 // use state::*;
 
 use chart::{bms_loader::load_bms, player::Player};
+use kira::{backend::cpal::CpalBackend, *};
 use macroquad::prelude::*;
 use scene::{Scene, play::Play};
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut audio_manager =
+        AudioManager::new(AudioManagerSettings::<CpalBackend>::default()).unwrap();
+
     let filename = "assets/songs/BOFU2017/Cagliostro_1011/_Cagliostro_7A.bml";
-    let chart = load_bms(filename, false).await.unwrap();
+    let chart = load_bms(filename, false).unwrap();
 
     let mut player = Player::default();
     player.init(chart);
@@ -23,7 +27,7 @@ async fn main() {
     scene.init();
 
     loop {
-        scene.update();
+        scene.update(&mut audio_manager);
 
         scene.render();
 
