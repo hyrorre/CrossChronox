@@ -4,6 +4,7 @@ use macroquad::audio::Sound;
 
 pub mod bms_loader;
 pub mod player;
+pub mod tree;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Default)]
