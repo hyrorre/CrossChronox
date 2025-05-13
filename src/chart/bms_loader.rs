@@ -586,9 +586,11 @@ pub fn load_bms<P: AsRef<Path>>(
                 * chart.bpm_events[chart.bpm_events.len() - 1].bpm) as u64
         });
 
-    // TODO: fix base_bpm
     let (base_bpm_x_1000_000, _) = bpm_length.iter().max().unwrap_or((&0, &0));
     chart.info.base_bpm = *base_bpm_x_1000_000 as f64 / 1000_000.0;
+    if chart.info.base_bpm == 0.0 {
+        chart.info.base_bpm = chart.info.init_bpm;
+    }
 
     // set note time
     let mut j = 0;
