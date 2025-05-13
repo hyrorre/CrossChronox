@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 
+use std::path::PathBuf;
+
 use kira::sound::static_sound::StaticSoundData;
 
 pub mod bms_loader;
+pub mod db;
 pub mod player;
-pub mod tree;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Default)]
@@ -62,6 +64,15 @@ pub enum LnType {
     CN = 1,
     HCN = 2,
 }
+
+pub const FEATURE_UNDEFINEDLN: i32 = 1;
+pub const FEATURE_MINENOTE: i32 = 2;
+pub const FEATURE_RANDOM: i32 = 4;
+pub const FEATURE_LONGNOTE: i32 = 8;
+pub const FEATURE_CHARGENOTE: i32 = 16;
+pub const FEATURE_HELLCHARGENOTE: i32 = 32;
+pub const FEATURE_STOPSEQUENCE: i32 = 64;
+pub const FEATURE_SCROLL: i32 = 128;
 
 pub type BpmEventType = i32;
 pub const BPM_CHANGE: BpmEventType = 0;
@@ -132,6 +143,9 @@ pub struct BGA {
 
 #[derive(Debug)]
 pub struct ChartInfo {
+    pub path: PathBuf,
+    pub folder: PathBuf,
+    pub parent: PathBuf,
     pub title: String,
     pub subtitle: String,
     pub artist: String,
@@ -139,10 +153,8 @@ pub struct ChartInfo {
     pub genre: String,
     pub mode: Mode,
     pub ln_type: LnType,
-    pub chart_name: String,
     pub difficulty: i32,
     pub level: i32,
-    pub init_bpm: f64,
     pub rank: Rank,
     pub total: f32,
     pub back_image: String,
@@ -152,21 +164,28 @@ pub struct ChartInfo {
     pub resolution: u64,
     pub end_pulse: u64,
     pub end_ms: u64,
+    pub init_bpm: f64,
     pub max_bpm: f64,
     pub min_bpm: f64,
     pub base_bpm: f64,
     pub note_count: i32,
+    pub feature: i32,
     pub md5: String,
-    pub random_flag: bool,
+    pub sha256: String,
 }
 
 impl Default for ChartInfo {
     fn default() -> ChartInfo {
         return ChartInfo {
-            init_bpm: 130.0,
             resolution: 240,
+            init_bpm: 130.0,
             base_bpm: 130.0,
+            max_bpm: 130.0,
+            min_bpm: 130.0,
 
+            path: Default::default(),
+            folder: Default::default(),
+            parent: Default::default(),
             title: Default::default(),
             subtitle: Default::default(),
             artist: Default::default(),
@@ -174,7 +193,6 @@ impl Default for ChartInfo {
             genre: Default::default(),
             mode: Default::default(),
             ln_type: Default::default(),
-            chart_name: Default::default(),
             difficulty: Default::default(),
             level: Default::default(),
             rank: Default::default(),
@@ -185,12 +203,21 @@ impl Default for ChartInfo {
             preview_music: Default::default(),
             end_pulse: Default::default(),
             end_ms: Default::default(),
-            max_bpm: Default::default(),
-            min_bpm: Default::default(),
             note_count: Default::default(),
+            feature: Default::default(),
             md5: Default::default(),
-            random_flag: Default::default(),
+            sha256: Default::default(),
         };
+    }
+}
+
+impl ChartInfo {
+    pub fn get_feature(&self, feature: i32) -> bool {
+        (self.feature & feature) != 0
+    }
+
+    pub fn add_feature(&mut self, feature: i32) {
+        self.feature |= feature;
     }
 }
 

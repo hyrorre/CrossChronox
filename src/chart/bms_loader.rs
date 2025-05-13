@@ -149,7 +149,10 @@ fn channel_to_lane(channel_type: ChannelType, mut channel: i32) -> i32 {
     }
 }
 
-pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Box<dyn Error>> {
+pub fn load_bms<P: AsRef<Path>>(
+    path: P,
+    load_header_only_flag: bool,
+) -> Result<Chart, Box<dyn Error>> {
     let mut bar_info: [BarInfo; MAX_BAR_INFO] = core::array::from_fn(|_| BarInfo::default());
     let mut max_bar: usize = 0;
     let mut tmp_notes: Vec<TmpNoteData> = Vec::new();
@@ -166,18 +169,30 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
         chart.sounds.resize(MAX_SOUND, None);
     }
 
-    let extension = Path::new(filename)
+    chart.info.path = path.as_ref().to_path_buf();
+    chart.info.folder = path
+        .as_ref()
+        .parent()
+        .ok_or("Chart path error")?
+        .to_path_buf();
+    chart.info.parent = chart
+        .info
+        .folder
+        .parent()
+        .unwrap_or(Path::new(""))
+        .to_path_buf();
+
+    let extension = path
+        .as_ref()
         .extension()
         .unwrap_or_default()
         .to_str()
-        .unwrap_or_default()
-        .to_string();
+        .unwrap_or_default();
 
-    let chart_path = Path::new(filename).parent().ok_or("Chart path error")?;
     chart.bpm_events.push(BpmEvent::default());
 
     // open file
-    let buf_u8 = std::fs::read(filename)?;
+    let buf_u8 = std::fs::read(path.as_ref())?;
     let buf_string = encoding_rs::SHIFT_JIS.decode(&buf_u8).0.into_owned();
 
     for (_line_num, line) in buf_string.lines().enumerate() {
@@ -196,10 +211,10 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                 let random_max: i32 = arg(&nowline).parse().unwrap_or(1);
                 let mut rng = rng();
                 random_num = Rng::random_range(&mut rng, 1..=random_max);
-                chart.info.random_flag = true;
+                chart.info.add_feature(FEATURE_RANDOM);
             } else if parse_nextline_flag {
                 if !load_header_only_flag && nowline.to_uppercase().starts_with("#WAV") {
-                    let mut pathbuf = chart_path.to_path_buf();
+                    let mut pathbuf = chart.info.folder.clone();
                     pathbuf.push(arg(&nowline));
                     let extensions = ["wav", "ogg", "WAV", "OGG"];
                     for extension in extensions {
@@ -262,22 +277,13 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
                     chart.info.level = arg(&nowline).parse().unwrap_or(0);
                 } else if nowline.to_uppercase().starts_with("#DIFFICULTY") {
                     chart.info.difficulty = arg(&nowline).parse().unwrap_or(0);
-                    chart.info.chart_name = match chart.info.difficulty {
-                        0 => "UNDEFINED",
-                        1 => "BEGINNER",
-                        2 => "NORMAL",
-                        3 => "HYPER",
-                        4 => "ANOTHER",
-                        5 => "INSANE",
-                        _ => "UNDEFINED",
-                    }
-                    .to_string();
                 } else if nowline.to_uppercase().starts_with("#RANK") {
                     chart.info.rank = match arg(&nowline).parse().unwrap_or(-1) {
                         0 => Rank::VHARD,
                         1 => Rank::HARD,
                         2 => Rank::NORMAL,
                         3 => Rank::EASY,
+                        4 => Rank::VEASY,
                         _ => Rank::NORMAL,
                     };
                 } else if nowline.to_uppercase().starts_with("#BASEBPM") {
@@ -602,10 +608,6 @@ pub fn load_bms(filename: &str, load_header_only_flag: bool) -> Result<Chart, Bo
         .last()
         .unwrap_or(&BpmEvent::default())
         .next_event_ms(chart.info.end_pulse, chart.info.resolution);
-
-    if !load_header_only_flag {
-        // load wavs
-    }
 
     Ok(chart)
 }

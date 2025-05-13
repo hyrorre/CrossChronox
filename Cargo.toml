@@ -4,11 +4,11 @@ version = "0.0.1"
 edition = "2024"
 
 [dependencies]
-async-recursion = "1.1.1"
 encoding_rs = "0.8.35"
 kira = "0.10.6"
 macroquad = { version = "0.4.14", features = ["log", "log-rs"] }
 rand = "0.9.0"
 regex = "1.11.1"
+rusqlite = "0.35.0"
 serde = { version = "1.0.219", features = ["derive"] }
 toml = "0.8.20"

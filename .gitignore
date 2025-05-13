@@ -2,6 +2,7 @@
 # score info cache file
 Song.xml
 Song.toml
+songs.db
 
 # backup files
 *.bak
