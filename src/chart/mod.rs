@@ -6,6 +6,7 @@ use kira::sound::static_sound::StaticSoundData;
 
 pub mod bms_loader;
 pub mod db;
+pub mod hasher;
 pub mod player;
 
 #[allow(non_camel_case_types)]

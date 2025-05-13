@@ -10,6 +10,8 @@ use std::path::*;
 
 use crate::chart::*;
 
+use super::hasher::*;
+
 const BEAT_RESOLUTION: u64 = 240;
 const MAX_BAR_INFO: usize = 1001;
 const MAX_NOTE_CHANNEL: usize = 30;
@@ -194,6 +196,9 @@ pub fn load_bms<P: AsRef<Path>>(
     // open file
     let buf_u8 = std::fs::read(path.as_ref())?;
     let buf_string = encoding_rs::SHIFT_JIS.decode(&buf_u8).0.into_owned();
+
+    chart.info.md5 = md5(&buf_u8);
+    chart.info.sha256 = sha256(&buf_u8);
 
     for (_line_num, line) in buf_string.lines().enumerate() {
         let mut nowline = line.to_string();
@@ -447,7 +452,8 @@ pub fn load_bms<P: AsRef<Path>>(
                 // assert(false);
             }
             CHANNEL_BGABASE | CHANNEL_BGAPOOR | CHANNEL_BGALAYER => {
-                // ignore //TODO: implement
+                // ignore
+                // TODO: implement
             }
             CHANNEL_BPM => {
                 chart.bpm_events.push(BpmEvent {
@@ -517,6 +523,7 @@ pub fn load_bms<P: AsRef<Path>>(
                 }
 
                 if lane < MAX_LANE {
+                    // TODO: fix note_count
                     note_count += 1;
                     let num = if lane > 0 { note_count } else { 0 };
                     chart.notes.push(Note {
@@ -579,6 +586,7 @@ pub fn load_bms<P: AsRef<Path>>(
                 * chart.bpm_events[chart.bpm_events.len() - 1].bpm) as u64
         });
 
+    // TODO: fix base_bpm
     let (base_bpm_x_1000_000, _) = bpm_length.iter().max().unwrap_or((&0, &0));
     chart.info.base_bpm = *base_bpm_x_1000_000 as f64 / 1000_000.0;
 
