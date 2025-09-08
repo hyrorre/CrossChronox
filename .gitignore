@@ -2,6 +2,7 @@
 # score info cache file
 Song.xml
 Song.toml
+songs.db
 
 # backup files
 *.bak
@@ -460,3 +461,8 @@ __pycache__/
 # Ignore all local history of files
 .history
 .ionide
+
+
+# Added by cargo
+
+/target

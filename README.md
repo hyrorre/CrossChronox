@@ -1,23 +1,22 @@
 # CrossChronox
-CrossChronox is a Cross-platform rhythm game based on C++ and OpenGL (SFML2)  
-It works on Windows, macOS, and Linux.  
-We can play bms, bme, bml, pms, and bmson.  
-Read Wiki for more information.
 
-LICENSE : LGPL v3
+CrossChronox is a Cross-platform rhythm game based on Rust.
+It works on Windows, macOS, and Linux.
+We can play bms, bme, bml, pms, and bmson.
 
 (WIP)
 
-# Dependencies
-* boost
-* SFML2
-* Crypto++
-* libiconv (only Windows)
+## Build
 
-# Building on macOS(Xcode)
-1. Install boost, Crypto++, SFML2 and libiconv with vcpkg
-1. Open CrossChronox.xcodeproj and build!
+```
+cargo build
+cargo run
+```
 
-# Building on Windows(Visual Studio 2022)
-1. Install boost, Crypto++, SFML2 and libiconv with vcpkg
-1. Open CrossChronox.sln and build!
+## Todo
+
+-   [ ] load score db
+-   [ ] load json/lua skin
+-   [ ] load difficulty table
+-   [ ] load bmson
+-   [ ] support asio/wasapi exclusive
