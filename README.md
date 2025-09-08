@@ -15,8 +15,8 @@ cargo run
 
 ## Todo
 
--   [ ] load score db
--   [ ] load json/lua skin
 -   [ ] load difficulty table
 -   [ ] load bmson
+-   [ ] support game controller
 -   [ ] support asio/wasapi exclusive
+-   [ ] load 4k/6k/8k bms

@@ -7,7 +7,7 @@ const GLOBAL_SCROLL: f32 = 0.7 * 480.0;
 const SCR_W: f32 = 89.0;
 const WHITE_W: f32 = 51.0;
 const BLACK_W: f32 = 39.0;
-const NOTE_H: f32 = 10.0;
+const NOTE_H: f32 = 12.0;
 const SPACE: f32 = 3.0;
 const SCR_1P_X: f32 = 76.0;
 const JUDGELINE_Y: f32 = 715.0;
@@ -32,14 +32,15 @@ impl Play {
 
         let background = load_texture("assets/play.png").await.unwrap();
 
-        let image = Image::gen_image_color(SCR_W as u16, NOTE_H as u16, RED);
-        let scr = Texture2D::from_image(&image);
-
-        let image = Image::gen_image_color(WHITE_W as u16, NOTE_H as u16, WHITE);
-        let white = Texture2D::from_image(&image);
-
-        let image = Image::gen_image_color(BLACK_W as u16, NOTE_H as u16, BLUE);
-        let black = Texture2D::from_image(&image);
+        let notes = load_image("assets/skins/ADFX02/ECFN/play/notes/light.png")
+            .await
+            .unwrap();
+        let white = notes.sub_image(Rect::new(181., 13., WHITE_W, NOTE_H));
+        let white = Texture2D::from_image(&white);
+        let black = notes.sub_image(Rect::new(233., 13., BLACK_W, NOTE_H));
+        let black = Texture2D::from_image(&black);
+        let scr = notes.sub_image(Rect::new(91., 13., SCR_W, NOTE_H));
+        let scr = Texture2D::from_image(&scr);
 
         Play {
             player,
