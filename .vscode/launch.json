@@ -23,12 +23,7 @@
       "request": "launch",
       "name": "Debug unit tests in executable 'cross-chronox'",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=cross-chronox",
-          "--package=cross-chronox"
-        ],
+        "args": ["test", "--no-run", "--bin=cross-chronox", "--package=cross-chronox"],
         "filter": {
           "name": "cross-chronox",
           "kind": "bin"
