@@ -25,17 +25,6 @@ pub(super) struct ScrollContext<'a> {
 }
 
 impl<'a> ScrollContext<'a> {
-    pub(super) fn new(session: &'a GameSession, cache: &'a PlayRenderSnapshotCache) -> Self {
-        Self {
-            timing_map: &session.timing_map,
-            hispeed: session.hispeed,
-            visible_lane_fraction: crate::config::play::visible_lane_fraction(0.0, session.lift),
-            lookahead_ticks: TICKS_PER_MEASURE as f64,
-            scroll_integral: &cache.scroll_integral,
-            speed_segments: &cache.speed_segments,
-        }
-    }
-
     pub(super) fn cursor_tick(&self, render_now: TimeUs) -> f64 {
         self.timing_map.time_to_tick_f64(render_now)
     }

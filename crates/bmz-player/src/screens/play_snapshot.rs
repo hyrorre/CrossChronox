@@ -39,12 +39,15 @@ mod bga;
 mod build;
 mod cache;
 mod display;
+mod projection;
 mod scroll;
 mod state;
 mod visuals;
+pub(crate) use projection::{PlayfieldProjection, ProjectionClock};
 
 pub use bga::{bga_texture_id, display_bga_frame, display_video_bga_frame};
 pub(crate) use bga::{display_duration_ms_for_bpm_hispeed, hispeed_for_green_number_values};
+pub(crate) use build::build_render_state_with_target_and_bga_frames_cached;
 pub use build::{
     apply_prepared_chart_to_render_snapshot, build_render_snapshot,
     build_render_snapshot_with_bga_frames, build_render_snapshot_with_target_and_bga_frames,

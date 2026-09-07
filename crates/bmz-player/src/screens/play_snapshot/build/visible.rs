@@ -1,8 +1,9 @@
+use super::super::projection::PlayfieldView;
 use super::*;
 
-pub(super) fn populate_visible_playfield(
+pub(in crate::screens::play_snapshot) fn populate_visible_playfield(
     snapshot: &mut RenderSnapshot,
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     chart_now: TimeUs,
     cache: &PlayRenderSnapshotCache,
     lane_render_now: TimeUs,
@@ -12,7 +13,14 @@ pub(super) fn populate_visible_playfield(
         return;
     }
     let scroll_time = scroll_render_time(lane_render_now);
-    let scroll = ScrollContext::new(session, cache);
+    let scroll = ScrollContext {
+        timing_map: session.timing_map,
+        hispeed: session.hispeed,
+        visible_lane_fraction: crate::config::play::visible_lane_fraction(0.0, session.lift),
+        lookahead_ticks: TICKS_PER_MEASURE as f64,
+        scroll_integral: &cache.scroll_integral,
+        speed_segments: &cache.speed_segments,
+    };
     let cursor_tick = scroll.cursor_tick(scroll_time);
     let tick_upper_bound = scroll.simple_tick_upper_bound(cursor_tick);
 
@@ -57,7 +65,7 @@ pub(super) fn populate_visible_playfield(
 
 fn populate_visible_notes(
     snapshot: &mut RenderSnapshot,
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     lane_render_now: TimeUs,
     scroll: &ScrollContext<'_>,
     cursor_tick: f64,
@@ -128,7 +136,7 @@ fn populate_visible_notes(
 }
 
 fn visible_tap_y(
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     scroll: &ScrollContext<'_>,
     cursor_tick: f64,
     note: &NoteEvent,
@@ -140,7 +148,7 @@ fn visible_tap_y(
         Some(0.0)
     } else if falling_pms_poor {
         Some(-pms_missed_note_fall_progress(
-            &session.timing_map,
+            session.timing_map,
             note.tick,
             note.time,
             session.judge.window_set.note.bad_slow_us.max(0),
@@ -154,7 +162,7 @@ fn visible_tap_y(
 
 fn populate_visible_guide_lines(
     snapshot: &mut RenderSnapshot,
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     scroll_time: TimeUs,
     scroll: &ScrollContext<'_>,
     cursor_tick: f64,
@@ -194,7 +202,7 @@ fn populate_visible_guide_lines(
 
     let end_second = (session.chart.end_time.0.max(0) / 1_000_000).min(21_600);
     for second in
-        visible_time_line_seconds(&session.timing_map, end_second, scroll_time, tick_upper_bound)
+        visible_time_line_seconds(session.timing_map, end_second, scroll_time, tick_upper_bound)
     {
         let time = TimeUs(second.saturating_mul(1_000_000));
         let Some(alpha) = constant_object_alpha(session, scroll_time, time) else {
@@ -234,7 +242,7 @@ fn judge_area_edges(
 
 fn populate_visible_long_notes(
     snapshot: &mut RenderSnapshot,
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     chart_now: TimeUs,
     cache: &PlayRenderSnapshotCache,
     scroll_time: TimeUs,
@@ -270,7 +278,7 @@ fn populate_visible_long_notes(
 }
 
 pub(super) fn constant_object_alpha(
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     render_now: TimeUs,
     object_time: TimeUs,
 ) -> Option<f32> {
@@ -300,7 +308,7 @@ pub(super) fn constant_object_alpha(
 }
 
 fn long_body_state(
-    session: &GameSession,
+    session: &PlayfieldView<'_>,
     chart_now: TimeUs,
     pair_index: usize,
     long: &bmz_chart::model::LongNotePair,
@@ -345,13 +353,15 @@ mod constant_tests {
         session.target_green_number = 300;
 
         session.constant_fade_ms = 100;
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(499_000)), Some(1.0));
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(550_000)), Some(0.5));
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(600_000)), None);
+        let view = PlayfieldView::from(&session);
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(499_000)), Some(1.0));
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(550_000)), Some(0.5));
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(600_000)), None);
 
         session.constant_fade_ms = -100;
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(399_000)), Some(1.0));
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(450_000)), Some(0.5));
-        assert_eq!(constant_object_alpha(&session, TimeUs(0), TimeUs(500_000)), None);
+        let view = PlayfieldView::from(&session);
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(399_000)), Some(1.0));
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(450_000)), Some(0.5));
+        assert_eq!(constant_object_alpha(&view, TimeUs(0), TimeUs(500_000)), None);
     }
 }

@@ -12,7 +12,9 @@ use std::time::{Duration, Instant};
 use crate::screens::{
     play_finish::FinishSessionSnapshot,
     play_session::AppliedArrange,
-    play_snapshot::{BgaFrameCatalog, PlayRenderSnapshotCache},
+    play_snapshot::{
+        BgaFrameCatalog, PlayRenderSnapshotCache, PlayfieldProjection, ProjectionClock,
+    },
     result_model::ResultGraphCollector,
 };
 use anyhow::{Result, anyhow};
@@ -60,6 +62,7 @@ struct Publication {
     generation: u64,
     session: PlaySessionObservation,
     frame: Arc<FrameOutput<RenderSnapshot>>,
+    projection: Arc<PlayfieldProjection>,
     result: Option<Arc<RuntimeResult>>,
 }
 
@@ -81,6 +84,8 @@ pub struct GameplayClient {
     worker: Option<Worker>,
     generation: u64,
     latest_frame: Option<Arc<FrameOutput<RenderSnapshot>>>,
+    projection: Option<Arc<PlayfieldProjection>>,
+    projection_clock: ProjectionClock,
     snapshot_diagnostics: Box<SnapshotDiagnostics>,
     pub result: Option<Arc<RuntimeResult>>,
 }
@@ -93,6 +98,8 @@ impl GameplayClient {
             worker: None,
             generation: NEXT_GENERATION.fetch_add(1, Ordering::Relaxed),
             latest_frame: None,
+            projection: None,
+            projection_clock: ProjectionClock::default(),
             snapshot_diagnostics: Box::default(),
             result: None,
         }
@@ -137,6 +144,8 @@ impl GameplayClient {
         }
         let runtime = self.local.take().ok_or_else(|| anyhow!("gameplay is not prepared"))?;
         let times = bmz_gameplay::session::compute_frame_times(&runtime.session);
+        let projection_pool = PlayfieldProjection::pool(&runtime.session, &config.cache);
+        self.projection = Some(projection_pool[0].clone());
         self.latest_frame =
             Some(Arc::new(crate::screens::play_loop::frame_output_from_session_frame_cached(
                 &runtime.session,
@@ -153,6 +162,7 @@ impl GameplayClient {
                 config.target_ex_score,
                 &config.bga_frames,
                 &config.cache,
+                false,
             )));
         let latest = Arc::new(Mutex::new(None));
         let stop = Arc::new(AtomicBool::new(false));
@@ -176,6 +186,7 @@ impl GameplayClient {
                     generation,
                     request,
                     worker_ack,
+                    projection_pool,
                 )
             })?;
         self.worker =
@@ -203,15 +214,23 @@ impl GameplayClient {
             self.session = publication.session;
             self.result = publication.result;
             self.latest_frame = Some(publication.frame);
+            self.projection = Some(publication.projection);
         }
-        if let Some(frame) = self.latest_frame.as_deref() {
-            self.snapshot_diagnostics.record(
-                self.generation,
-                self.session.audio_clock.now(),
-                frame.render_snapshot.time,
-            );
-        }
-        self.latest_frame.as_deref().cloned()
+        let mut frame = self.latest_frame.as_deref()?.clone();
+        let published_time = frame.render_snapshot.time;
+        let now = self.session.audio_clock.now();
+        self.projection.as_ref()?.project(
+            &mut frame.render_snapshot,
+            now,
+            &mut self.projection_clock,
+        );
+        self.snapshot_diagnostics.record(
+            self.generation,
+            now,
+            frame.render_snapshot.time,
+            published_time,
+        );
+        Some(frame)
     }
 
     pub fn is_running(&self) -> bool {
@@ -236,12 +255,19 @@ struct SnapshotDiagnostics {
     started: Option<Instant>,
     previous: Option<TimeUs>,
     age: bmz_core::latency::LatencyHistogram,
+    publication_age: bmz_core::latency::LatencyHistogram,
     step: bmz_core::latency::LatencyHistogram,
     repeats: u64,
 }
 
 impl SnapshotDiagnostics {
-    fn record(&mut self, generation: u64, audio_now: TimeUs, snapshot_time: TimeUs) {
+    fn record(
+        &mut self,
+        generation: u64,
+        audio_now: TimeUs,
+        snapshot_time: TimeUs,
+        published_time: TimeUs,
+    ) {
         if !tracing::enabled!(target: "bmz_player::frame_pacing", tracing::Level::DEBUG) {
             return;
         }
@@ -249,15 +275,18 @@ impl SnapshotDiagnostics {
         let started = *self.started.get_or_insert(now);
         let age_us = audio_now.0.saturating_sub(snapshot_time.0).max(0) as u64;
         self.age.record(age_us);
+        let publication_age_us = audio_now.0.saturating_sub(published_time.0).max(0) as u64;
+        self.publication_age.record(publication_age_us);
         if let Some(previous) = self.previous.replace(snapshot_time) {
             let step_us = snapshot_time.0.saturating_sub(previous.0);
             self.repeats += u64::from(step_us == 0);
             self.step.record(step_us.max(0) as u64);
-            tracing::trace!(target: "bmz_player::frame_pacing", generation, age_us, step_us, "snapshot cadence sample");
+            tracing::trace!(target: "bmz_player::frame_pacing", generation, age_us, step_us, publication_age_us, "snapshot cadence sample");
         }
         if now.duration_since(started) >= Duration::from_secs(5) {
-            tracing::debug!(target: "bmz_player::frame_pacing", generation, age_us = ?self.age.summary(), step_us = ?self.step.summary(), repeats = self.repeats, "snapshot cadence");
+            tracing::debug!(target: "bmz_player::frame_pacing", generation, age_us = ?self.age.summary(), step_us = ?self.step.summary(), publication_age_us = ?self.publication_age.summary(), repeats = self.repeats, "snapshot cadence");
             self.age = Default::default();
+            self.publication_age = Default::default();
             self.step = Default::default();
             self.repeats = 0;
             self.started = Some(now);
@@ -281,6 +310,7 @@ fn run(
     generation: u64,
     snapshot_requested: Arc<AtomicBool>,
     event_ack: Arc<AtomicU64>,
+    mut projection_pool: [Arc<PlayfieldProjection>; 3],
 ) {
     let audio = audio.for_play(stop.clone());
     if let Some(effects) = &mut config.effects {
@@ -291,7 +321,6 @@ fn run(
     let mut result = None;
     let mut terminal_result = false;
     let mut last_time = TimeUs(i64::MIN);
-    let mut last_visual_time = i64::MIN;
     let mut last_publication = Instant::now() - Duration::from_secs(1);
     runtime.session.input_system.backend.set_waker(Some(thread::current()));
     while !stop.load(Ordering::Acquire) {
@@ -380,11 +409,16 @@ fn run(
             continue;
         }
         last_publication = Instant::now();
-        // Auto timing adjustment changes the offset by small steps. Clamp only
-        // the visual projection; judgement, saved offsets and replay stay exact.
-        let original_visual_offset = runtime.session.offsets.visual_offset_us;
-        last_visual_time = last_visual_time.max(last_time.0.saturating_add(original_visual_offset));
-        runtime.session.offsets.visual_offset_us = last_visual_time.saturating_sub(last_time.0);
+        // The consumer and exchange slot can each hold one buffer. Never modify
+        // an observed buffer and never wait for the rendering thread to release it.
+        let Some(projection) = projection_pool.iter_mut().find(|slot| Arc::strong_count(slot) == 1)
+        else {
+            thread::park_timeout(SAFETY_WAKE.saturating_sub(iteration_started.elapsed()));
+            continue;
+        };
+        Arc::get_mut(projection)
+            .expect("unobserved projection")
+            .update(&runtime.session, last_time);
         let mut frame = crate::screens::play_loop::frame_output_from_session_frame_cached(
             &runtime.session,
             frame,
@@ -393,8 +427,8 @@ fn run(
             config.target_ex_score,
             &config.bga_frames,
             &config.cache,
+            false,
         );
-        runtime.session.offsets.visual_offset_us = original_visual_offset;
         let snapshot = &mut frame.render_snapshot;
         crate::screens::play_loop::apply_play_arrange_to_snapshot(
             snapshot,
@@ -418,6 +452,7 @@ fn run(
             generation,
             session: PlaySessionObservation::from_session(&runtime.session),
             frame: Arc::new(frame),
+            projection: projection.clone(),
             result: result.clone(),
         };
         // The lock protects only the pointer exchange, never computation or GPU

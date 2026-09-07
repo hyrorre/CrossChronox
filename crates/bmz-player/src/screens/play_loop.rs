@@ -201,6 +201,7 @@ fn frame_output_from_session_frame(
         target_ex_score,
         bga_frames,
         &cache,
+        true,
     )
 }
 
@@ -212,8 +213,14 @@ pub(crate) fn frame_output_from_session_frame_cached(
     target_ex_score: Option<u32>,
     bga_frames: &BgaFrameCatalog,
     cache: &PlayRenderSnapshotCache,
+    project_playfield: bool,
 ) -> FrameOutput<RenderSnapshot> {
-    let mut render_snapshot = build_render_snapshot_with_target_and_bga_frames_cached(
+    let build = if project_playfield {
+        build_render_snapshot_with_target_and_bga_frames_cached
+    } else {
+        crate::screens::play_snapshot::build_render_state_with_target_and_bga_frames_cached
+    };
+    let mut render_snapshot = build(
         session,
         frame.times.audio_now,
         &session.recent_judgements,

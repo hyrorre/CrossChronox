@@ -1,6 +1,6 @@
 use super::*;
 
-mod visible;
+pub(super) mod visible;
 
 use visible::populate_visible_playfield;
 
@@ -154,6 +154,36 @@ pub fn build_render_snapshot_with_target_and_bga_frames_cached(
     bga_frames: &BgaFrameCatalog,
     cache: &PlayRenderSnapshotCache,
 ) -> RenderSnapshot {
+    let mut snapshot = build_render_state_with_target_and_bga_frames_cached(
+        session,
+        chart_now,
+        recent_judgements,
+        best_ex_score,
+        best_ghost,
+        target_ex_score,
+        bga_frames,
+        cache,
+    );
+    populate_visible_playfield(
+        &mut snapshot,
+        &super::projection::PlayfieldView::from(session),
+        chart_now,
+        cache,
+        lane_render_time(session, chart_now),
+    );
+    snapshot
+}
+
+pub(crate) fn build_render_state_with_target_and_bga_frames_cached(
+    session: &GameSession,
+    chart_now: TimeUs,
+    recent_judgements: &[JudgementEvent],
+    best_ex_score: Option<u32>,
+    best_ghost: Option<&[u8]>,
+    target_ex_score: Option<u32>,
+    bga_frames: &BgaFrameCatalog,
+    cache: &PlayRenderSnapshotCache,
+) -> RenderSnapshot {
     let projected_best_ex_score =
         best_ghost.map(|ghost| ghost_ex_score_at_progress(ghost, session.score.past_notes));
     let lane_render_now = lane_render_time(session, chart_now);
@@ -261,7 +291,7 @@ pub fn build_render_snapshot_with_target_and_bga_frames_cached(
         },
     );
     let opponent = independent_opponent.or(legacy_opponent);
-    let mut snapshot = RenderSnapshot {
+    RenderSnapshot {
         time: chart_now,
         player_name: String::new(),
         current_fps: 0,
@@ -521,11 +551,7 @@ pub fn build_render_snapshot_with_target_and_bga_frames_cached(
         backbmp_background: false,
         chart_text: bmz_chart::text::chart_text_at_time(&session.chart.text_events, chart_now)
             .to_string(),
-    };
-
-    populate_visible_playfield(&mut snapshot, session, chart_now, cache, lane_render_now);
-
-    snapshot
+    }
 }
 
 pub fn update_render_snapshot_play_options(
