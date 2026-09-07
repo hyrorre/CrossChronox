@@ -211,6 +211,8 @@ impl RunningPlaySession {
         effects: Option<crate::system_sound_manager::GameplaySoundOutput>,
     ) -> Result<()> {
         let config = RuntimeRenderConfig {
+            #[cfg(test)]
+            probe: None,
             effects,
             best_ex_score: self.best_ex_score,
             best_ghost: self.best_ghost.clone(),

@@ -252,6 +252,38 @@ fn append_bounded<T>(destination: &mut Vec<T>, source: &mut Vec<T>, capacity: us
     destination.extend(source.drain(..accepted));
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bmz_gameplay::input::backend::*;
+    #[test]
+    fn changing_capture_route_releases_old_sink_without_leaking_into_retry() {
+        let mut delivery = ButtonDelivery::default();
+        let mut old = SharedInputBackend::default();
+        let mut new = SharedInputBackend::default();
+        let route = |input| InputRoute {
+            input,
+            binding: LaneBinding { entries: Vec::new() },
+            focused: true,
+            keyboard_enabled: true,
+        };
+        delivery.set_route(Some(&route(old.clone())));
+        delivery.push(DeviceInputEvent {
+            device: DeviceId(1),
+            control: PhysicalControl::HidButton(1),
+            kind: bmz_core::input::InputKind::Press,
+            timestamp: DeviceTimestamp::MonotonicNs(123),
+            bounce_policy: Default::default(),
+        });
+        delivery.set_route(Some(&route(new.clone())));
+        let events = old.drain_events();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].timestamp, DeviceTimestamp::MonotonicNs(123));
+        assert_eq!(events[1].kind, bmz_core::input::InputKind::Release);
+        assert!(new.drain_events().is_empty());
+    }
+}
+
 pub(super) fn foreground_matches(owner: usize) -> bool {
     #[cfg(windows)]
     {

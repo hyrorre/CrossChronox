@@ -67,6 +67,25 @@ mod tests {
     use super::*;
 
     #[test]
+    fn input_generations_have_independent_bounded_queues() {
+        let old = SharedInputBackend::default();
+        let mut current = SharedInputBackend::default();
+        assert!(!old.same_source(&current));
+        for _ in 0..=SharedInputBackend::CAPACITY {
+            old.push_shared_event(DeviceInputEvent {
+                device: DeviceId(0),
+                control: PhysicalControl::HidButton(1),
+                kind: InputKind::Press,
+                timestamp: DeviceTimestamp::MonotonicNs(123),
+                bounce_policy: Default::default(),
+            });
+        }
+        assert_eq!(old.overflow_count(), 1);
+        assert!(current.drain_events().is_empty());
+        assert_eq!(old.clone().drain_events().len(), SharedInputBackend::CAPACITY);
+    }
+
+    #[test]
     fn cloned_shared_input_backend_drains_events_once() {
         let event_source = SharedInputBackend::default();
         let mut game_backend = event_source.clone();

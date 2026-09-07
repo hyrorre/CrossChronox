@@ -31,6 +31,8 @@ const PRESENTATION_HISTORY_CAPACITY: usize = 8192;
 const SAFETY_WAKE: Duration = Duration::from_millis(2);
 
 pub struct RuntimeRenderConfig {
+    #[cfg(test)]
+    pub probe: Option<Arc<tests::RuntimeProbe>>,
     pub effects: Option<crate::system_sound_manager::GameplaySoundOutput>,
     pub best_ex_score: Option<u32>,
     pub best_ghost: Option<Vec<u8>>,
@@ -250,6 +252,7 @@ fn run(
     runtime.session.input_system.backend.set_waker(Some(thread::current()));
     while !stop.load(Ordering::Acquire) {
         let iteration_started = Instant::now();
+        let previous_state = runtime.session.state;
         for edit in commands.try_iter() {
             edit(&mut runtime.session);
         }
@@ -261,7 +264,6 @@ fn run(
         if stop.load(Ordering::Acquire) {
             break;
         }
-        let previous_state = runtime.session.state;
         let mut frame = runtime.advance(&audio);
         if let Some(effects) = &config.effects {
             if runtime.session.guide_se_enabled {
@@ -286,6 +288,10 @@ fn run(
         );
         last_time = frame.times.audio_now;
         graph.record_runtime_frame(&runtime.session, &frame);
+        #[cfg(test)]
+        if let Some(probe) = &config.probe {
+            probe.record(&runtime.session, &audio);
+        }
         let terminal = matches!(runtime.session.state, PlayState::Finished | PlayState::Failed);
         if (result.is_none()
             && bmz_gameplay::session::result_is_settled(&runtime.session, last_time))
@@ -382,3 +388,6 @@ fn run(
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

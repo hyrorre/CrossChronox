@@ -477,6 +477,9 @@ impl AudioEngineHandle {
         match self.inner.queue.lock() {
             Ok(mut queue) => {
                 let coalescible = usize::from(is_pending_command_coalescible(&queue, &command));
+                if self.cancelled.as_ref().is_some_and(|cancelled| cancelled.load(Ordering::Acquire)) {
+                    return Err(command);
+                }
                 if queue.len().saturating_sub(coalescible).saturating_add(1) > self.inner.capacity {
                     self.inner.note_dropped(1, "queue full");
                     return Err(command);
@@ -665,6 +668,28 @@ fn update_atomic_max(atomic: &AtomicU64, value: u64) {
 mod tests {
     use super::*;
     use crate::sample::DecodedSample;
+
+    #[test]
+    fn retired_play_rejects_queued_and_concurrent_audio_commands() {
+        let mut engine = AudioEngine::new(48_000);
+        engine.insert_sample(
+            SoundId(1),
+            DecodedSample { channels: 1, sample_rate: 48_000, frames: vec![1.0; 8] },
+        );
+        let handle = AudioEngineHandle::new(engine);
+        let retired = Arc::new(AtomicBool::new(false));
+        let old = handle.for_play(retired.clone());
+        assert!(old.schedule_sound(ScheduledSound::one_shot(0, SoundId(1), 0.25, 0.0)));
+        retired.store(true, Ordering::Release);
+        assert!(!old.schedule_sound(ScheduledSound::one_shot(0, SoundId(1), 0.25, 0.0)));
+        let current = handle.for_play(Arc::new(AtomicBool::new(false)));
+        assert!(current.schedule_sound(ScheduledSound::one_shot(0, SoundId(1), 0.75, 0.0)));
+        let mut processor = handle.processor();
+        let mut output = [0.0; 2];
+        assert!(processor.render_stereo(0, &mut output));
+        assert_eq!(output, [0.75; 2]);
+        assert_eq!(handle.diagnostics().scheduled_sound_count, 1);
+    }
 
     #[test]
     fn command_queue_applies_commands_before_rendering() {
