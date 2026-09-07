@@ -421,3 +421,5 @@ fn score_for_chart(chart_sha256: [u8; 32]) -> ScoreRecord {
 mod cases_01;
 #[path = "tests/cases_02.rs"]
 mod cases_02;
+#[path = "tests/random_select.rs"]
+mod random_select;

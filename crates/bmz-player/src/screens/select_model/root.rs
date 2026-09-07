@@ -50,22 +50,75 @@ pub fn favorite_root_items(collection_db: &CollectionDatabase) -> Result<Vec<Sel
     Ok(items)
 }
 
-pub fn random_select_item_from_items(items: &[SelectItem]) -> Option<SelectItem> {
-    let mut chart_ids = Vec::new();
-    for item in items {
-        if let SelectItem::Chart(row) = item
-            && let Some(chart) = &row.chart
-        {
-            chart_ids.push(chart.chart_id);
+#[derive(Clone, Copy)]
+enum RandomSelectFilter {
+    All,
+    NoPlay,
+    Failed,
+    Below(bmz_core::clear::ClearType),
+}
+
+impl RandomSelectFilter {
+    fn matches(self, score: Option<&BestScoreSummary>) -> bool {
+        use bmz_core::clear::ClearType;
+        match self {
+            Self::All => true,
+            Self::NoPlay => score.is_none_or(|score| score.play_count == 0),
+            Self::Failed => score.is_some_and(|score| {
+                ClearType::from_label(&score.clear_type) == Some(ClearType::Failed)
+            }),
+            Self::Below(threshold) => score.is_none_or(|score| {
+                ClearType::from_label(&score.clear_type)
+                    .is_some_and(|clear| (clear as u8) < threshold as u8)
+            }),
         }
     }
-    (!chart_ids.is_empty()).then(|| {
-        SelectItem::Executable(SelectExecutableRow {
-            title: "RANDOM SELECT".to_string(),
-            kind: SelectExecutableKind::RandomSelect,
-            chart_ids,
+}
+
+/// Builds enabled random bars from the already filtered, score-enriched list.
+pub fn random_select_items_from_items(
+    items: &[SelectItem],
+    config: &crate::config::profile_config::SelectStateConfig,
+) -> Vec<SelectItem> {
+    use RandomSelectFilter::*;
+    use bmz_core::clear::ClearType;
+    let definitions = [
+        ("RANDOM SELECT", All),
+        ("NO PLAY RANDOM SELECT", NoPlay),
+        ("FAILED RANDOM SELECT", Failed),
+        ("NOT EASY RANDOM SELECT", Below(ClearType::Easy)),
+        ("NOT CLEAR RANDOM SELECT", Below(ClearType::Normal)),
+        ("NOT HARD RANDOM SELECT", Below(ClearType::Hard)),
+        ("NOT EX-HARD RANDOM SELECT", Below(ClearType::ExHard)),
+        ("NOT FULL COMBO RANDOM SELECT", Below(ClearType::FullCombo)),
+    ];
+    definitions
+        .into_iter()
+        .zip(config.random_select_flags())
+        .filter_map(|((title, filter), enabled)| {
+            if !enabled {
+                return None;
+            }
+            let chart_ids: Vec<_> = items
+                .iter()
+                .filter_map(|item| {
+                    let SelectItem::Chart(row) = item else {
+                        return None;
+                    };
+                    let chart = row.chart.as_ref()?;
+                    filter.matches(row.best_score.as_ref()).then_some(chart.chart_id)
+                })
+                .collect();
+            let minimum = if matches!(filter, All) { 2 } else { 1 };
+            (chart_ids.len() >= minimum).then(|| {
+                SelectItem::Executable(SelectExecutableRow {
+                    title: title.to_string(),
+                    kind: SelectExecutableKind::RandomSelect,
+                    chart_ids,
+                })
+            })
         })
-    })
+        .collect()
 }
 
 pub fn random_mix_item() -> SelectItem {

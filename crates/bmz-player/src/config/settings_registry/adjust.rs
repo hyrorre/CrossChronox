@@ -406,6 +406,64 @@ pub fn adjust_settings_value(profile: &mut ProfileConfig, id: SettingsEntryId, d
                 true
             }
         }
+        SettingsEntryId::SelectRandomNoPlay => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_no_play = !profile.select.random_select_no_play;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomFailed => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_failed = !profile.select.random_select_failed;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomNotEasy => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_not_easy = !profile.select.random_select_not_easy;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomNotClear => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_not_clear = !profile.select.random_select_not_clear;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomNotHard => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_not_hard = !profile.select.random_select_not_hard;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomNotExHard => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_not_ex_hard =
+                    !profile.select.random_select_not_ex_hard;
+                true
+            }
+        }
+        SettingsEntryId::SelectRandomNotFullCombo => {
+            if delta == 0 {
+                false
+            } else {
+                profile.select.random_select_not_full_combo =
+                    !profile.select.random_select_not_full_combo;
+                true
+            }
+        }
         SettingsEntryId::RandomMixTargetLevel => {
             adjust_u32(&mut profile.select.random_mix.target_level, delta, 0, 99)
         }

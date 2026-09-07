@@ -47,11 +47,8 @@ pub(in crate::app) fn load_items_for_stack(
     if let Err(error) = apply_collection_flags(&boot.library_db, &boot.collection_db, &mut items) {
         tracing::error!(%error, "failed to apply collection flags to select items");
     }
-    if boot.profile_config.select.random_select
-        && let Some(random_item) = random_select_item_from_items(&items)
-    {
-        items.insert(0, random_item);
-    }
+    let random_items = random_select_items_from_items(&items, &boot.profile_config.select);
+    items.splice(0..0, random_items);
     (items, resolved)
 }
 

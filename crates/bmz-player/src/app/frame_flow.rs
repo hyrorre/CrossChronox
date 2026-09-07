@@ -6,7 +6,7 @@ mod render;
 struct EguiProfileBefore {
     app_input: GlobalInputConfig,
     locale: crate::i18n::AppLocale,
-    random_select: bool,
+    random_select: [bool; 8],
     play: PlayDefaultsConfig,
     lane: LaneViewConfig,
     input: ProfileInputConfig,
@@ -184,7 +184,7 @@ impl WinitApp {
         let profile_before = EguiProfileBefore {
             app_input: self.boot.app_config.input.clone(),
             locale: self.boot.profile_config.ui.locale(),
-            random_select: self.boot.profile_config.select.random_select,
+            random_select: self.boot.profile_config.select.random_select_flags(),
             play: self.boot.profile_config.play.clone(),
             lane: self.boot.profile_config.lane.clone(),
             input: self.boot.profile_config.input.clone(),
@@ -629,7 +629,9 @@ impl WinitApp {
         if locale_changed {
             self.select.search.clear_message();
         }
-        if locale_changed || before.random_select != self.boot.profile_config.select.random_select {
+        if locale_changed
+            || before.random_select != self.boot.profile_config.select.random_select_flags()
+        {
             self.reload_select_items();
         }
         self.sync_changed_select_play_options_from_profile(&before.play);

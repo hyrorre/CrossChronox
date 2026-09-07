@@ -242,6 +242,27 @@ pub fn format_settings_value(profile: &ProfileConfig, id: SettingsEntryId) -> St
             .to_string()
         }
         SettingsEntryId::SelectRandomSelect => format_bool_on_off(profile.select.random_select),
+        SettingsEntryId::SelectRandomNoPlay => {
+            format_bool_on_off(profile.select.random_select_no_play)
+        }
+        SettingsEntryId::SelectRandomFailed => {
+            format_bool_on_off(profile.select.random_select_failed)
+        }
+        SettingsEntryId::SelectRandomNotEasy => {
+            format_bool_on_off(profile.select.random_select_not_easy)
+        }
+        SettingsEntryId::SelectRandomNotClear => {
+            format_bool_on_off(profile.select.random_select_not_clear)
+        }
+        SettingsEntryId::SelectRandomNotHard => {
+            format_bool_on_off(profile.select.random_select_not_hard)
+        }
+        SettingsEntryId::SelectRandomNotExHard => {
+            format_bool_on_off(profile.select.random_select_not_ex_hard)
+        }
+        SettingsEntryId::SelectRandomNotFullCombo => {
+            format_bool_on_off(profile.select.random_select_not_full_combo)
+        }
         SettingsEntryId::RandomMixTargetLevel => {
             format_random_mix_level(profile.select.random_mix.target_level, "OFF")
         }

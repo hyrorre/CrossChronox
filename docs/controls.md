@@ -3,6 +3,28 @@
 このドキュメントは現在の BMZ Player 実装に基づく操作一覧です。
 キーコンフィグで変更できる操作は、デフォルト割り当てを前提に書いています。
 
+## ランダム選曲
+
+F1のプロファイル設定 → 選曲、またはゲーム内の選曲設定で、次の項目を個別にON/OFFできます。
+新しい条件付き項目は既定OFFです。
+
+| 項目 | 抽選対象 |
+| --- | --- |
+| RANDOM SELECT | 条件なし |
+| NO PLAY RANDOM SELECT | 保存スコアなし、またはプレイ回数0 |
+| FAILED RANDOM SELECT | ベストランプがFAILED |
+| NOT EASY RANDOM SELECT | EASY未満 |
+| NOT CLEAR RANDOM SELECT | NORMAL未満 |
+| NOT HARD RANDOM SELECT | HARD未満 |
+| NOT EX-HARD RANDOM SELECT | EX-HARD未満 |
+| NOT FULL COMBO RANDOM SELECT | FULL COMBO未満 |
+
+「NOT ～」には未プレイも含まれます。判定には現在のプロファイル・LN設定・ルールモードの
+選曲表示と同じ保存スコアを使います。現在の一覧でモード・難易度フィルターに残った所持譜面から
+抽選し、決定するとプレイを開始します。サブフォルダ内は探索しません。
+通常RANDOMは候補2曲以上、条件付き項目は1曲以上で表示します。
+連続して同じ曲が選ばれる場合があります。
+
 ## 共通
 
 | Key | 操作 |

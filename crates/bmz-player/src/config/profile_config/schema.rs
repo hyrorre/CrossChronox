@@ -61,6 +61,20 @@ pub struct SelectStateConfig {
     #[serde(default)]
     pub random_select: bool,
     #[serde(default)]
+    pub random_select_no_play: bool,
+    #[serde(default)]
+    pub random_select_failed: bool,
+    #[serde(default)]
+    pub random_select_not_easy: bool,
+    #[serde(default)]
+    pub random_select_not_clear: bool,
+    #[serde(default)]
+    pub random_select_not_hard: bool,
+    #[serde(default)]
+    pub random_select_not_ex_hard: bool,
+    #[serde(default)]
+    pub random_select_not_full_combo: bool,
+    #[serde(default)]
     pub random_mix: RandomMixConfig,
 }
 
@@ -127,6 +141,21 @@ pub fn default_select_difficulty_filter() -> String {
     "ALL".to_string()
 }
 
+impl SelectStateConfig {
+    pub fn random_select_flags(&self) -> [bool; 8] {
+        [
+            self.random_select,
+            self.random_select_no_play,
+            self.random_select_failed,
+            self.random_select_not_easy,
+            self.random_select_not_clear,
+            self.random_select_not_hard,
+            self.random_select_not_ex_hard,
+            self.random_select_not_full_combo,
+        ]
+    }
+}
+
 impl Default for SelectStateConfig {
     fn default() -> Self {
         Self {
@@ -135,6 +164,13 @@ impl Default for SelectStateConfig {
             sort: default_select_sort(),
             difficulty_table_level_display: DifficultyTableLevelDisplay::default(),
             random_select: false,
+            random_select_no_play: false,
+            random_select_failed: false,
+            random_select_not_easy: false,
+            random_select_not_clear: false,
+            random_select_not_hard: false,
+            random_select_not_ex_hard: false,
+            random_select_not_full_combo: false,
             random_mix: RandomMixConfig::default(),
         }
     }

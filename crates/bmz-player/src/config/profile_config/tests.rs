@@ -273,6 +273,13 @@ fn select_state_roundtrips_through_toml() {
         sort: "LEVEL".to_string(),
         difficulty_table_level_display: DifficultyTableLevelDisplay::Chart,
         random_select: true,
+        random_select_no_play: true,
+        random_select_failed: true,
+        random_select_not_easy: true,
+        random_select_not_clear: true,
+        random_select_not_hard: true,
+        random_select_not_ex_hard: true,
+        random_select_not_full_combo: true,
         random_mix: RandomMixConfig {
             target_level: 12,
             max_level: 15,
@@ -292,6 +299,7 @@ fn select_state_roundtrips_through_toml() {
     assert_eq!(parsed.sort, "LEVEL");
     assert_eq!(parsed.difficulty_table_level_display, DifficultyTableLevelDisplay::Chart);
     assert!(parsed.random_select);
+    assert_eq!(parsed.random_select_flags(), [true; 8]);
     assert_eq!(parsed.random_mix.target_level, 12);
     assert_eq!(parsed.random_mix.stages, 4);
 }

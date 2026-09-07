@@ -53,7 +53,7 @@ pub use paths::{
     song_scan_path_from_context, table_source_url_from_context,
 };
 pub use root::{
-    favorite_root_item, favorite_root_items, random_mix_item, random_select_item_from_items,
+    favorite_root_item, favorite_root_items, random_mix_item, random_select_items_from_items,
     root_folder_items,
 };
 pub use search::{

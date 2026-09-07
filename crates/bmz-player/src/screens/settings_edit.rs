@@ -464,6 +464,27 @@ impl SettingsEditSession {
                     profile.select.difficulty_table_level_display,
                 )
             }
+            SettingsEntryId::SelectRandomNoPlay => {
+                SettingsBaseline::Bool(profile.select.random_select_no_play)
+            }
+            SettingsEntryId::SelectRandomFailed => {
+                SettingsBaseline::Bool(profile.select.random_select_failed)
+            }
+            SettingsEntryId::SelectRandomNotEasy => {
+                SettingsBaseline::Bool(profile.select.random_select_not_easy)
+            }
+            SettingsEntryId::SelectRandomNotClear => {
+                SettingsBaseline::Bool(profile.select.random_select_not_clear)
+            }
+            SettingsEntryId::SelectRandomNotHard => {
+                SettingsBaseline::Bool(profile.select.random_select_not_hard)
+            }
+            SettingsEntryId::SelectRandomNotExHard => {
+                SettingsBaseline::Bool(profile.select.random_select_not_ex_hard)
+            }
+            SettingsEntryId::SelectRandomNotFullCombo => {
+                SettingsBaseline::Bool(profile.select.random_select_not_full_combo)
+            }
             SettingsEntryId::SelectRandomSelect => {
                 SettingsBaseline::Bool(profile.select.random_select)
             }
@@ -762,6 +783,27 @@ impl SettingsEditSession {
             ) => {
                 profile.select.difficulty_table_level_display = *value;
             }
+            (SettingsEntryId::SelectRandomNoPlay, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_no_play = *value;
+            }
+            (SettingsEntryId::SelectRandomFailed, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_failed = *value;
+            }
+            (SettingsEntryId::SelectRandomNotEasy, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_not_easy = *value;
+            }
+            (SettingsEntryId::SelectRandomNotClear, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_not_clear = *value;
+            }
+            (SettingsEntryId::SelectRandomNotHard, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_not_hard = *value;
+            }
+            (SettingsEntryId::SelectRandomNotExHard, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_not_ex_hard = *value;
+            }
+            (SettingsEntryId::SelectRandomNotFullCombo, SettingsBaseline::Bool(value)) => {
+                profile.select.random_select_not_full_combo = *value;
+            }
             (SettingsEntryId::SelectRandomSelect, SettingsBaseline::Bool(value)) => {
                 profile.select.random_select = *value;
             }
@@ -1057,5 +1099,31 @@ mod tests {
         assert!(adjust_settings_draft(&mut profile, &language, 1));
         language.restore(&mut profile);
         assert_eq!(profile.ui.language, "ja");
+    }
+
+    #[test]
+    fn random_select_settings_toggle_independently_and_cancel() {
+        let mut profile = ProfileConfig::new_default("default", "Default", 0);
+        let entries = [
+            SettingsEntryId::SelectRandomSelect,
+            SettingsEntryId::SelectRandomNoPlay,
+            SettingsEntryId::SelectRandomFailed,
+            SettingsEntryId::SelectRandomNotEasy,
+            SettingsEntryId::SelectRandomNotClear,
+            SettingsEntryId::SelectRandomNotHard,
+            SettingsEntryId::SelectRandomNotExHard,
+            SettingsEntryId::SelectRandomNotFullCombo,
+        ];
+        for (index, entry) in entries.into_iter().enumerate() {
+            assert!(SettingsEntryId::SELECT_ENTRIES.contains(&entry));
+            let session = SettingsEditSession::capture(&profile, entry);
+            assert!(!adjust_settings_draft(&mut profile, &session, 0));
+            assert!(adjust_settings_draft(&mut profile, &session, 1));
+            let mut expected = [false; 8];
+            expected[index] = true;
+            assert_eq!(profile.select.random_select_flags(), expected);
+            session.restore(&mut profile);
+            assert_eq!(profile.select.random_select_flags(), [false; 8]);
+        }
     }
 }
