@@ -1,6 +1,28 @@
 use super::*;
 
 impl WinitApp {
+    pub(super) fn sync_input_capture_target(&self) {
+        let route = if self.raw_input_gameplay_blocked() {
+            None
+        } else {
+            self.play_input_backend().map(|input| crate::input::capture::InputRoute {
+                input,
+                binding: self
+                    .play
+                    .play_option_input
+                    .as_ref()
+                    .map(|input| input.binding.clone())
+                    .unwrap_or_else(|| bmz_gameplay::input::binding::LaneBinding {
+                        entries: Vec::new(),
+                    }),
+                focused: self.ui.focused,
+                keyboard_enabled: self.boot.app_config.input.keyboard_enabled,
+            })
+        };
+        if let Some(capture) = &self.gamepad {
+            capture.set_route(route);
+        }
+    }
     pub(super) fn refresh_player_stats_snapshot(&mut self) {
         self.select.player_stats = player_stats_snapshot(
             &self.boot.score_db,
@@ -21,14 +43,22 @@ impl WinitApp {
 
     pub(super) fn raw_input_keyboard_enabled(&self) -> bool {
         self.keyboard_input_backend() == Some(KeyboardInputBackend::RawInput)
+            && !self
+                .gamepad
+                .as_ref()
+                .is_some_and(crate::input::capture::InputCapture::native_keyboard_enabled)
     }
 
     pub(super) fn window_keyboard_gameplay_enabled(&self) -> bool {
         self.keyboard_input_backend() == Some(KeyboardInputBackend::Window)
+            && !self
+                .gamepad
+                .as_ref()
+                .is_some_and(crate::input::capture::InputCapture::native_keyboard_enabled)
     }
 
     pub(super) fn configure_device_events(&self, event_loop: &ActiveEventLoop) {
-        let device_events = if self.raw_input_keyboard_enabled() {
+        let device_events = if !cfg!(windows) && self.raw_input_keyboard_enabled() {
             DeviceEvents::WhenFocused
         } else {
             DeviceEvents::Never
@@ -82,7 +112,15 @@ impl WinitApp {
         // RawInputBackend の Drop で usage 登録を解除してから新 backend を作る。
         self.gamepad = None;
         if !enabled {
-            tracing::info!("gamepad input disabled immediately");
+            self.gamepad = crate::input::capture::InputCapture::new(
+                None,
+                configs,
+                self.raw_input_bridge.clone(),
+            )
+            .ok();
+            if let Some(capture) = &mut self.gamepad {
+                let _ = capture.attach_window(window);
+            }
             return;
         }
 
@@ -102,7 +140,7 @@ impl WinitApp {
         }
         tracing::info!(
             ?requested,
-            active = gamepad.as_ref().map(crate::input::gamepad::GamepadBackend::name),
+            active = gamepad.as_ref().map(crate::input::capture::InputCapture::name),
             "gamepad input backend configuration applied immediately"
         );
         self.gamepad = gamepad;

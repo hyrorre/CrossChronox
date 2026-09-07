@@ -294,6 +294,7 @@ impl ApplicationHandler<AppUserEvent> for WinitApp {
                 let skin_drain_stats = self.drain_pending_skins();
                 let drain_us = instant_elapsed_us_u64(drain_start);
                 let input_start = Instant::now();
+                self.sync_input_capture_target();
                 self.poll_gamepad_events();
                 if !self.viewer_waiting {
                     self.advance_select_hold_move();

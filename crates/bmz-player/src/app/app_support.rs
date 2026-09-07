@@ -322,56 +322,12 @@ pub(super) fn daily_player_stats_snapshot_from_stats(
 pub(super) fn initialize_gamepad_backend(
     kind: GamepadBackendKind,
     configs: [crate::input::gamepad::GamepadScratchConfig; 2],
-    raw_input_bridge: Option<crate::input::rawinput::RawInputBridge>,
-) -> Option<crate::input::gamepad::GamepadBackend> {
-    #[cfg(not(windows))]
-    let _ = raw_input_bridge;
-
-    match kind {
-        GamepadBackendKind::Auto => initialize_gilrs_backend(configs),
-        GamepadBackendKind::Gilrs => initialize_gilrs_backend(configs),
-        GamepadBackendKind::RawInput => {
-            #[cfg(windows)]
-            if let Some(bridge) = raw_input_bridge {
-                tracing::info!("Raw Input gamepad backend initialized; awaiting window attachment");
-                return Some(crate::input::gamepad::GamepadBackend::RawInput(Box::new(
-                    crate::input::rawinput::RawInputBackend::new(bridge, configs),
-                )));
-            }
-            #[cfg(windows)]
-            tracing::warn!("Raw Input message bridge is unavailable; falling back to gilrs");
-            #[cfg(not(windows))]
-            tracing::warn!(
-                "Raw Input gamepad backend is only available on Windows; falling back to gilrs"
-            );
-            initialize_gilrs_backend(configs)
-        }
-        GamepadBackendKind::GameInput => {
-            #[cfg(all(windows, feature = "experimental-gameinput"))]
-            {
-                if let Some(backend) = initialize_gameinput_backend(configs) {
-                    return Some(backend);
-                }
-                tracing::warn!("GameInput initialization failed; falling back to gilrs");
-            }
-            #[cfg(not(all(windows, feature = "experimental-gameinput")))]
-            tracing::warn!("GameInput backend is disabled; falling back to gilrs");
-            initialize_gilrs_backend(configs)
-        }
-    }
-}
-
-#[cfg(all(windows, feature = "experimental-gameinput"))]
-pub(super) fn initialize_gameinput_backend(
-    configs: [crate::input::gamepad::GamepadScratchConfig; 2],
-) -> Option<crate::input::gamepad::GamepadBackend> {
-    match crate::input::gameinput::GameInputBackend::new(configs) {
-        Ok(backend) => {
-            tracing::info!("GameInput initialized on main thread");
-            Some(crate::input::gamepad::GamepadBackend::GameInput(Box::new(backend)))
-        }
+    bridge: Option<crate::input::rawinput::RawInputBridge>,
+) -> Option<crate::input::capture::InputCapture> {
+    match crate::input::capture::InputCapture::new(Some(kind), configs, bridge) {
+        Ok(capture) => Some(capture),
         Err(error) => {
-            tracing::warn!(%error, "GameInput init failed");
+            tracing::error!(%error, "failed to start input capture");
             None
         }
     }
@@ -379,17 +335,8 @@ pub(super) fn initialize_gameinput_backend(
 
 pub(super) fn initialize_gilrs_backend(
     configs: [crate::input::gamepad::GamepadScratchConfig; 2],
-) -> Option<crate::input::gamepad::GamepadBackend> {
-    match crate::input::gilrs::GilrsBackend::new(configs) {
-        Ok(backend) => {
-            tracing::info!("gilrs initialized");
-            Some(crate::input::gamepad::GamepadBackend::Gilrs(Box::new(backend)))
-        }
-        Err(error) => {
-            tracing::warn!(%error, "gilrs init failed");
-            None
-        }
-    }
+) -> Option<crate::input::capture::InputCapture> {
+    initialize_gamepad_backend(GamepadBackendKind::Gilrs, configs, None)
 }
 
 pub(super) fn gamepad_scratch_configs(
@@ -404,13 +351,13 @@ pub(super) fn gamepad_scratch_configs(
 
 pub(super) fn resolve_gamepad_runtime_slots(
     config: &GlobalInputConfig,
-    backend: Option<&crate::input::gamepad::GamepadBackend>,
+    backend: Option<&crate::input::capture::InputCapture>,
 ) -> [Option<DeviceId>; 2] {
     let connected = backend
         .into_iter()
-        .flat_map(crate::input::gamepad::GamepadBackend::connected_gamepads)
+        .flat_map(crate::input::capture::InputCapture::connected_gamepads)
         .collect::<Vec<_>>();
-    let using_gilrs = backend.is_some_and(crate::input::gamepad::GamepadBackend::is_gilrs);
+    let using_gilrs = backend.is_some_and(crate::input::capture::InputCapture::is_gilrs);
     crate::input::gamepad::resolve_gamepad_slot_assignments(
         config.gamepad_slot_device_ids.each_ref().map(Option::as_deref),
         config.gamepad_slot_gilrs_ids,

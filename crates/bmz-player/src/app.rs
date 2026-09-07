@@ -693,7 +693,7 @@ struct WinitApp {
     input: AppInputRuntime,
     /// 実行中に Raw Input backend を生成し直すための常設 message bridge。
     raw_input_bridge: Option<crate::input::rawinput::RawInputBridge>,
-    gamepad: Option<crate::input::gamepad::GamepadBackend>,
+    gamepad: Option<crate::input::capture::InputCapture>,
     /// worker 完了時に main thread の redraw を起こすための winit user event proxy。
     event_proxy: EventLoopProxy<AppUserEvent>,
     /// frame pacing、確定FPS、scene別profile集計をまとめた描画runtime。

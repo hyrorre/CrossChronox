@@ -129,7 +129,12 @@ impl WinitApp {
                 raw_input_bridge.clone(),
             )
         } else {
-            None
+            crate::input::capture::InputCapture::new(
+                None,
+                gamepad_scratch_configs(&boot.profile_config.input),
+                raw_input_bridge.clone(),
+            )
+            .ok()
         };
         let gamepad_slots = resolve_gamepad_runtime_slots(&boot.app_config.input, gamepad.as_ref());
         if let Some(backend) = &mut gamepad {

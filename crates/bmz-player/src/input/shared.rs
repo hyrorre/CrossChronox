@@ -1,19 +1,38 @@
-use std::sync::{Arc, Mutex};
-
-use bmz_gameplay::input::backend::{
-    BufferedInputBackend, DeviceInputEvent, InputBackend, InputEventSink,
+use std::collections::VecDeque;
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicU64, Ordering},
 };
+
+use bmz_gameplay::input::backend::{DeviceInputEvent, InputBackend, InputEventSink};
 
 #[derive(Debug, Clone, Default)]
 pub struct SharedInputBackend {
-    buffer: Arc<Mutex<BufferedInputBackend>>,
+    buffer: Arc<Mutex<VecDeque<DeviceInputEvent>>>,
     waker: Arc<Mutex<Option<std::thread::Thread>>>,
+    overflow: Arc<AtomicU64>,
 }
 
 impl SharedInputBackend {
+    pub const CAPACITY: usize = 16_384;
+    pub fn same_source(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.buffer, &other.buffer)
+    }
+    pub fn overflow_count(&self) -> u64 {
+        self.overflow.load(Ordering::Relaxed)
+    }
     pub fn push_shared_event(&self, event: DeviceInputEvent) {
         if let Ok(mut buffer) = self.buffer.lock() {
-            buffer.push_event(event);
+            if buffer.len() == Self::CAPACITY {
+                if self.overflow.fetch_add(1, Ordering::Relaxed) == 0 {
+                    tracing::error!(
+                        capacity = Self::CAPACITY,
+                        "timestamped gameplay input queue overflow"
+                    );
+                }
+            } else {
+                buffer.push_back(event);
+            }
         }
         if let Ok(waker) = self.waker.lock()
             && let Some(waker) = &*waker
@@ -30,7 +49,7 @@ impl InputBackend for SharedInputBackend {
         }
     }
     fn drain_events(&mut self) -> Vec<DeviceInputEvent> {
-        self.buffer.lock().map(|mut buffer| buffer.drain_events()).unwrap_or_default()
+        self.buffer.lock().map(|mut buffer| buffer.drain(..).collect()).unwrap_or_default()
     }
 }
 

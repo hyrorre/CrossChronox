@@ -1,0 +1,252 @@
+//! OS input is acquired here, before any window/render work. The UI consumes a
+//! bounded copy for menus; gameplay receives timestamped events directly.
+use super::{gamepad::*, rawinput::RawInputBridge, shared::SharedInputBackend};
+use crate::config::app_config::GamepadBackendKind;
+use bmz_gameplay::input::{backend::InputBouncePolicy, binding::LaneBinding};
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
+    mpsc,
+};
+use std::thread::{self, JoinHandle};
+use std::time::{Duration, Instant};
+
+#[derive(Clone)]
+pub struct InputRoute {
+    pub input: SharedInputBackend,
+    pub binding: LaneBinding,
+    pub focused: bool,
+    pub keyboard_enabled: bool,
+}
+
+struct State {
+    configs: [GamepadScratchConfig; 2],
+    slots: GamepadSlotMap,
+    route: Option<Arc<InputRoute>>,
+    owner_window: usize,
+    output: GamepadPollOutput,
+    connected: Vec<ConnectedGamepad>,
+}
+
+pub struct InputCapture {
+    state: Arc<Mutex<State>>,
+    stop: Arc<AtomicBool>,
+    thread: Option<JoinHandle<()>>,
+    name: &'static str,
+    native_keyboard: Arc<AtomicBool>,
+}
+
+impl InputCapture {
+    pub fn new(
+        kind: Option<GamepadBackendKind>,
+        configs: [GamepadScratchConfig; 2],
+        bridge: Option<RawInputBridge>,
+    ) -> anyhow::Result<Self> {
+        let state = Arc::new(Mutex::new(State {
+            configs,
+            slots: GamepadSlotMap::default(),
+            route: None,
+            owner_window: 0,
+            output: GamepadPollOutput::default(),
+            connected: Vec::new(),
+        }));
+        let stop = Arc::new(AtomicBool::new(false));
+        let native_keyboard = Arc::new(AtomicBool::new(false));
+        let (ready_tx, ready_rx) = mpsc::sync_channel(1);
+        let (worker_state, worker_stop, native_status) =
+            (state.clone(), stop.clone(), native_keyboard.clone());
+        let thread = thread::Builder::new().name("bmz-input-capture".into()).spawn(move || {
+            // Construct and destroy GameInput on its owner thread, including its COM pointers.
+            let mut backend = create_backend(kind, configs, bridge.clone());
+            let name = backend.as_ref().map_or("keyboard only", GamepadBackend::name);
+            let _ = ready_tx.send(name);
+            #[cfg(windows)]
+            let mut native = super::native_capture::NativeCapture::new(
+                bridge,
+                matches!(kind, Some(GamepadBackendKind::RawInput)),
+            )
+            .map_err(|error| tracing::error!(%error, "independent keyboard capture unavailable"))
+            .ok();
+            #[cfg(not(windows))]
+            let _ = (bridge, native_status);
+            let mut last_devices = Instant::now() - Duration::from_secs(1);
+            while !worker_stop.load(Ordering::Acquire) {
+                let (configs, slots, route, owner) = {
+                    let state = worker_state.lock().unwrap_or_else(|e| e.into_inner());
+                    (state.configs, state.slots, state.route.clone(), state.owner_window)
+                };
+                #[cfg(windows)]
+                if let Some(native) = &mut native {
+                    native_status.store(native.attach(owner).is_ok(), Ordering::Release);
+                    native.poll(route.as_deref());
+                }
+                #[cfg(not(windows))]
+                let _ = owner;
+                let mut output = if let Some(backend) = &mut backend {
+                    backend.set_analog_config(configs, slots);
+                    backend.poll()
+                } else {
+                    GamepadPollOutput::default()
+                };
+                if let Some(route) = &route
+                    && route.focused
+                    && foreground_matches(owner)
+                {
+                    for button in &output.buttons {
+                        let mut event = to_device_input_event(button);
+                        if button.synthesized_analog_axis
+                            && route
+                                .binding
+                                .resolve_entry(event.device, &event.control)
+                                .is_some_and(|entry| {
+                                    matches!(
+                                        entry.lane,
+                                        bmz_core::lane::Lane::Scratch
+                                            | bmz_core::lane::Lane::Scratch2
+                                    )
+                                })
+                        {
+                            event.bounce_policy = InputBouncePolicy::Bypass;
+                        }
+                        route.input.push_shared_event(event);
+                    }
+                }
+                let connected = if last_devices.elapsed() >= Duration::from_millis(250) {
+                    last_devices = Instant::now();
+                    Some(backend.as_ref().map_or_else(Vec::new, GamepadBackend::connected_gamepads))
+                } else {
+                    None
+                };
+                {
+                    let mut state = worker_state.lock().unwrap_or_else(|e| e.into_inner());
+                    // This queue is UI-only. Gameplay has already consumed its
+                    // independent copy, so UI stalls cannot lose judged inputs.
+                    const LIMIT: usize = 4096;
+                    append_bounded(&mut state.output.buttons, &mut output.buttons, LIMIT);
+                    append_bounded(&mut state.output.axis_ticks, &mut output.axis_ticks, LIMIT);
+                    append_bounded(&mut state.output.raw_events, &mut output.raw_events, LIMIT);
+                    if output.pressed_buttons.is_some() {
+                        state.output.pressed_buttons = output.pressed_buttons;
+                    }
+                    if let Some(connected) = connected {
+                        state.connected = connected;
+                    }
+                }
+                #[cfg(windows)]
+                super::native_capture::wait_for_input();
+                #[cfg(not(windows))]
+                thread::park_timeout(Duration::from_millis(1));
+            }
+        })?;
+        let name = ready_rx.recv_timeout(Duration::from_secs(5))?;
+        tracing::info!(backend = name, "input backend: dedicated capture thread");
+        Ok(Self { state, stop, thread: Some(thread), name, native_keyboard })
+    }
+
+    pub fn set_route(&self, route: Option<InputRoute>) {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).route = route.map(Arc::new);
+        if let Some(thread) = &self.thread {
+            thread.thread().unpark();
+        }
+    }
+    pub fn native_keyboard_enabled(&self) -> bool {
+        self.native_keyboard.load(Ordering::Acquire)
+    }
+    pub fn set_analog_config(&mut self, configs: [GamepadScratchConfig; 2], slots: GamepadSlotMap) {
+        let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        state.configs = configs;
+        state.slots = slots;
+    }
+    pub fn poll(&mut self) -> GamepadPollOutput {
+        self.state.try_lock().map(|mut state| std::mem::take(&mut state.output)).unwrap_or_default()
+    }
+    pub fn connected_gamepads(&self) -> Vec<ConnectedGamepad> {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).connected.clone()
+    }
+    pub fn name(&self) -> &'static str {
+        self.name
+    }
+    pub fn is_gilrs(&self) -> bool {
+        self.name == "gilrs"
+    }
+    pub fn attach_window(&mut self, window: &winit::window::Window) -> anyhow::Result<()> {
+        #[cfg(windows)]
+        {
+            use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+            if let RawWindowHandle::Win32(handle) = window.window_handle()?.as_raw() {
+                self.state.lock().unwrap_or_else(|e| e.into_inner()).owner_window =
+                    handle.hwnd.get() as usize;
+            }
+        }
+        #[cfg(not(windows))]
+        let _ = window;
+        Ok(())
+    }
+    #[cfg(all(windows, feature = "experimental-gameinput"))]
+    pub fn gameinput_diagnostics(&self) -> Option<super::gameinput::GameInputPollDiagnostics> {
+        None
+    }
+}
+
+impl Drop for InputCapture {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::Release);
+        if let Some(thread) = self.thread.take() {
+            thread.thread().unpark();
+            // Input backend replacement happens outside active play. Complete
+            // unregister on its owner thread before registering a replacement.
+            let _ = thread.join();
+        }
+    }
+}
+
+fn append_bounded<T>(destination: &mut Vec<T>, source: &mut Vec<T>, capacity: usize) {
+    let accepted = source.len().min(capacity.saturating_sub(destination.len()));
+    destination.extend(source.drain(..accepted));
+}
+
+pub(super) fn foreground_matches(owner: usize) -> bool {
+    #[cfg(windows)]
+    {
+        owner != 0
+            && unsafe {
+                windows_sys::Win32::UI::WindowsAndMessaging::GetForegroundWindow() as usize == owner
+            }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = owner;
+        true
+    }
+}
+
+fn create_backend(
+    kind: Option<GamepadBackendKind>,
+    configs: [GamepadScratchConfig; 2],
+    bridge: Option<RawInputBridge>,
+) -> Option<GamepadBackend> {
+    let kind = kind?;
+    #[cfg(windows)]
+    if kind == GamepadBackendKind::RawInput
+        && let Some(bridge) = bridge
+    {
+        return Some(GamepadBackend::RawInput(Box::new(super::rawinput::RawInputBackend::new(
+            bridge, configs,
+        ))));
+    }
+    #[cfg(not(windows))]
+    let _ = (kind, bridge);
+    #[cfg(all(windows, feature = "experimental-gameinput"))]
+    if kind == GamepadBackendKind::GameInput
+        && let Ok(backend) = super::gameinput::GameInputBackend::new(configs)
+    {
+        return Some(GamepadBackend::GameInput(Box::new(backend)));
+    }
+    match super::gilrs::GilrsBackend::new(configs) {
+        Ok(backend) => Some(GamepadBackend::Gilrs(Box::new(backend))),
+        Err(error) => {
+            tracing::warn!(%error, "gamepad capture initialization failed");
+            None
+        }
+    }
+}

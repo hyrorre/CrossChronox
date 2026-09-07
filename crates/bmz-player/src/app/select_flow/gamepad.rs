@@ -100,9 +100,8 @@ impl WinitApp {
             .practice_session
             .as_ref()
             .is_some_and(|practice| practice.phase == PracticePhase::Config);
-        if !practice_config && self.play.play_ending.is_none() {
-            self.route_play_device_input(device_event);
-        }
+        let _ = (practice_config, device_event); // Gameplay input was delivered by InputCapture.
+
         if self.viewer_waiting {
             return;
         }

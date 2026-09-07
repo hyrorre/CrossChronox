@@ -59,6 +59,10 @@ mod windows {
     }
 
     impl RawInputBridge {
+        pub(crate) fn register_capture_window(&self, hwnd: HWND) -> Result<()> {
+            self.register_window(hwnd)?;
+            register_usages(hwnd, RIDEV_DEVNOTIFY | windows_sys::Win32::UI::Input::RIDEV_INPUTSINK)
+        }
         pub fn new() -> Self {
             Self { shared: Arc::new(Mutex::new(RawInputState::default())) }
         }
