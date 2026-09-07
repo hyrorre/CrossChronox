@@ -30,6 +30,7 @@ pub mod course;
 pub mod course_cmd;
 pub mod difficulty_table;
 pub mod discord_presence;
+pub mod gameplay_runtime;
 pub mod generated_preview;
 pub mod i18n;
 pub mod input;

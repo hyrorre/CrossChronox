@@ -466,7 +466,7 @@ impl WinitApp {
             self.play.play_ready_sound_started_at.is_some(),
             self.play.play_ending.is_some(),
             active_play.running.session.state,
-            active_play.running.session.judge.is_exhausted(&active_play.running.session.chart),
+            active_play.running.session.exhausted,
         );
         let practice_playing = self
             .play
@@ -477,7 +477,10 @@ impl WinitApp {
             Some(FinalNotesControlAction::ReturnToPractice) => {
                 let now = Instant::now();
                 if let Some(active_play) = &mut self.play.active_play {
-                    active_play.running.session.state = bmz_gameplay::session::PlayState::Finished;
+                    active_play
+                        .running
+                        .gameplay
+                        .edit(|session| session.state = bmz_gameplay::session::PlayState::Finished);
                     if let Err(error) = active_play.running.pause_audio() {
                         tracing::warn!(%error, "failed to stop practice audio on requested finish");
                     }
@@ -509,7 +512,10 @@ impl WinitApp {
             let Some(active_play) = &mut self.play.active_play else {
                 return false;
             };
-            active_play.running.session.state = bmz_gameplay::session::PlayState::Finished;
+            active_play
+                .running
+                .gameplay
+                .edit(|session| session.state = bmz_gameplay::session::PlayState::Finished);
             let chart_length_ms = active_play.running.chart_length_ms;
             let play_duration_ms = active_play.running.finish_play_duration_ms();
             if active_play.running.pending_finished.is_some() {
@@ -525,7 +531,7 @@ impl WinitApp {
                         profile_paths: &self.boot.profile_paths,
                         replay_config: &self.boot.profile_config.replay,
                         ir_config: &self.boot.profile_config.ir,
-                        session: &active_play.running.gameplay.session,
+                        session: &active_play.running.gameplay,
                         played_at: now_unix_seconds(),
                         applied_arrange: &active_play.running.applied_arrange,
                         source_ln_profile: active_play.running.source_ln_profile,
@@ -545,7 +551,7 @@ impl WinitApp {
                             active_play
                                 .running
                                 .result_graph
-                                .snapshot_for_session(&active_play.running.session),
+                                .snapshot_for_source(&active_play.running.gameplay),
                         );
                         Some(finished)
                     }

@@ -19,7 +19,7 @@ pub struct InputTimestampAnchor {
     pub audio_time: TimeUs,
 }
 
-pub trait InputTranslator {
+pub trait InputTranslator: Send {
     fn translate(
         &mut self,
         event: DeviceInputEvent,

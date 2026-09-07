@@ -309,10 +309,8 @@ impl WinitApp {
 
         let (carryover_count, feedback) = {
             let active = self.play.active_play.as_mut().context("viewer play ended during seek")?;
-            active.running.session = session;
+            active.running.gameplay = crate::gameplay_runtime::GameplayClient::new(session);
             active.running.play_duration_ms = None;
-            active.running.pending_audio.clear();
-            active.running.pending_keysound_volumes.clear();
             active.running.finished = None;
             active.running.pending_finished = None;
             active.running.finish_error = None;
@@ -323,6 +321,7 @@ impl WinitApp {
                 &mut active.running.video_bga_decoders,
             );
             let carryover_count = active.running.start_viewer_seek(target, self.viewer_paused)?;
+            active.running.start_gameplay_runtime()?;
             let feedback = viewer_seek_feedback(&active.running.session.chart, target);
             (carryover_count, feedback)
         };

@@ -1,3 +1,4 @@
+use crate::gameplay_runtime::{GameplayClient, RuntimeRenderConfig};
 use anyhow::{Context, Result, bail};
 use bmz_audio::backend::cpal::{
     CpalBackend, CpalCommandedOutputSource, CpalHostId, CpalOutputConfig, CpalOutputDiagnostics,
@@ -10,7 +11,6 @@ use bmz_audio::loader::LoadedSampleReport;
 use bmz_chart::model::BgaAssetId;
 use bmz_core::ids::SoundId;
 use bmz_core::time::TimeUs;
-use bmz_gameplay::runtime::GameplayRuntime;
 use std::collections::{HashMap, HashSet};
 
 use crate::config::app_config::{
@@ -101,7 +101,7 @@ pub struct AudioRuntime {
 }
 
 pub struct RunningPlaySession {
-    pub gameplay: GameplayRuntime,
+    pub gameplay: GameplayClient,
     pub skin_attempt: bmz_render::snapshot::SkinAttemptState,
     pub source_ln_profile: ChartLnProfile,
     /// Duration recorded in `library.db` when this play was preloaded.
@@ -140,7 +140,7 @@ pub struct RunningPlaySession {
 }
 
 impl std::ops::Deref for RunningPlaySession {
-    type Target = GameplayRuntime;
+    type Target = GameplayClient;
     fn deref(&self) -> &Self::Target {
         &self.gameplay
     }
@@ -206,15 +206,37 @@ impl AppAudioOutput {
 }
 
 impl RunningPlaySession {
+    pub fn start_gameplay_runtime(&mut self) -> Result<()> {
+        let config = RuntimeRenderConfig {
+            best_ex_score: self.best_ex_score,
+            best_ghost: self.best_ghost.clone(),
+            target_ex_score: self.target_ex_score,
+            target: self.target.clone(),
+            applied_arrange: self.applied_arrange.clone(),
+            source_ln_profile: self.source_ln_profile,
+            skin_attempt: self.skin_attempt,
+            score_key: self.score_key,
+            practice_mode: self.practice_mode,
+            score_save_disabled: self.score_save_disabled,
+            bga_frames: self.bga_frames.clone(),
+            cache: self.render_snapshot_cache.clone(),
+        };
+        self.gameplay.start(self.audio.engine.clone(), config)
+    }
+
+    fn sync_gameplay_clock(&mut self) {
+        let clock = self.audio.clock();
+        self.gameplay.edit(move |session| session.audio_clock = clock);
+    }
     pub fn set_playback_rate_percent(&mut self, rate: u16) {
         self.audio.set_playback_rate_percent(rate);
-        self.session.audio_clock = self.audio.clock();
+        self.sync_gameplay_clock();
         self.playback_rate_percent = self.session.audio_clock.playback_rate_percent();
     }
 
     pub fn start(&mut self, chart_zero_time: TimeUs) -> Result<()> {
         self.audio.play(chart_zero_time)?;
-        self.session.audio_clock = self.audio.clock();
+        self.sync_gameplay_clock();
         Ok(())
     }
 
@@ -223,11 +245,13 @@ impl RunningPlaySession {
         chart_zero_time: TimeUs,
         remain_paused: bool,
     ) -> Result<usize> {
-        bmz_gameplay::session::prepare_viewer_seek(&mut self.session, chart_zero_time);
+        self.gameplay.edit(move |session| {
+            bmz_gameplay::session::prepare_viewer_seek(session, chart_zero_time)
+        });
         self.start(chart_zero_time)?;
         if remain_paused {
             self.audio.source.pause_at(chart_zero_time);
-            self.session.audio_clock = self.audio.clock();
+            self.sync_gameplay_clock();
         }
         let bgm_volume = self.session.audio_mix.master_volume
             * self.session.audio_mix.effective_normalization_gain()
@@ -240,7 +264,7 @@ impl RunningPlaySession {
                 bgm_volume,
                 |sound_id| self.bgm_sample_duration_us.get(&sound_id).copied(),
             );
-        self.session.bgm_scheduler = scheduler;
+        self.gameplay.edit(move |session| session.bgm_scheduler = scheduler);
         let carryover_count = carryover.len();
         let replaced = if remain_paused {
             self.audio.engine.replace_playback_paused(carryover)
@@ -257,20 +281,20 @@ impl RunningPlaySession {
 
     pub fn pause_viewer_playback(&mut self, chart_time: TimeUs) -> Result<()> {
         self.audio.pause_playback_at(chart_time)?;
-        self.session.audio_clock = self.audio.clock();
+        self.sync_gameplay_clock();
         Ok(())
     }
 
     pub fn resume_viewer_playback(&mut self) -> Result<()> {
         let chart_time = self.session.audio_clock.now();
         self.audio.resume_playback(chart_time)?;
-        self.session.audio_clock = self.audio.clock();
+        self.sync_gameplay_clock();
         Ok(())
     }
 
     pub fn pause_audio(&mut self) -> Result<()> {
         self.audio.pause()?;
-        self.session.audio_clock = self.audio.clock();
+        self.sync_gameplay_clock();
         Ok(())
     }
 
@@ -411,7 +435,7 @@ pub fn open_prepared_play_audio(
 
     RunningPlaySession {
         render_snapshot_cache: prepared.render_snapshot_cache,
-        gameplay: GameplayRuntime::new(session),
+        gameplay: GameplayClient::new(session),
         skin_attempt: prepared.skin_attempt,
         source_ln_profile: prepared.source_ln_profile,
         chart_length_ms: prepared.chart_length_ms,

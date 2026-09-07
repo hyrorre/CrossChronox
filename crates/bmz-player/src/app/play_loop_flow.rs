@@ -64,11 +64,7 @@ impl WinitApp {
                 ) =>
             {
                 let result_settled_at = frame.render_snapshot.time;
-                let result_settled = bmz_gameplay::session::result_is_settled(
-                    &active_play.running.session,
-                    result_settled_at,
-                );
-                active_play.running.result_graph.record_frame(&frame);
+                let result_settled = active_play.running.gameplay.result.is_some();
                 let guide_se_enabled = active_play.running.session.guide_se_enabled;
                 let guide_judgements = frame.judgements.clone();
                 let mine_hits = frame.mine_hits.clone();
@@ -91,12 +87,6 @@ impl WinitApp {
                 snapshot.course_stage = course_stage;
                 snapshot.course_titles = course_titles.clone();
                 self.apply_play_table_text(&mut snapshot);
-                if let Some(active_play) = &self.play.active_play {
-                    crate::screens::play_snapshot::refresh_play_skin_visuals(
-                        &mut snapshot,
-                        &active_play.running.session,
-                    );
-                }
                 self.play.last_play_snapshot = Some(snapshot);
                 self.play_guide_se_for_judgements(guide_se_enabled, &guide_judgements);
                 self.play_landmine_se(&mine_hits, audio_mix);
@@ -109,7 +99,6 @@ impl WinitApp {
                     state_before_advance,
                     frame.state,
                 );
-                active_play.running.result_graph.record_frame(&frame);
                 let guide_se_enabled = active_play.running.session.guide_se_enabled;
                 let guide_judgements = frame.judgements.clone();
                 if self
@@ -130,10 +119,6 @@ impl WinitApp {
                     snapshot.backbmp_background = backbmp_background;
                     snapshot.course_stage = course_stage;
                     snapshot.course_titles = course_titles.clone();
-                    crate::screens::play_snapshot::refresh_play_skin_visuals(
-                        &mut snapshot,
-                        &active_play.running.session,
-                    );
                     if let Err(error) = active_play.running.pause_audio() {
                         tracing::warn!(%error, "failed to stop practice audio at round end");
                     }
@@ -177,7 +162,7 @@ impl WinitApp {
                             profile_paths: &self.boot.profile_paths,
                             replay_config: &self.boot.profile_config.replay,
                             ir_config: &self.boot.profile_config.ir,
-                            session: &active_play.running.gameplay.session,
+                            session: &active_play.running.gameplay,
                             played_at: now_unix_seconds(),
                             applied_arrange: &active_play.running.applied_arrange,
                             source_ln_profile: active_play.running.source_ln_profile,
@@ -197,7 +182,7 @@ impl WinitApp {
                                 active_play
                                     .running
                                     .result_graph
-                                    .snapshot_for_session(&active_play.running.session),
+                                    .snapshot_for_source(&active_play.running.gameplay),
                             );
                             Some(finished)
                         }
@@ -220,10 +205,6 @@ impl WinitApp {
                 snapshot.course_stage = course_stage;
                 snapshot.course_titles = course_titles.clone();
                 let full_combo_elapsed_at_finish_ms = snapshot.full_combo_elapsed_ms;
-                crate::screens::play_snapshot::refresh_play_skin_visuals(
-                    &mut snapshot,
-                    &active_play.running.session,
-                );
                 self.apply_profile_fast_slow_filter(&mut snapshot);
                 self.apply_play_table_text(&mut snapshot);
                 self.play.last_play_snapshot = Some(snapshot);
@@ -296,7 +277,7 @@ impl WinitApp {
                 profile_paths: &self.boot.profile_paths,
                 replay_config: &self.boot.profile_config.replay,
                 ir_config: &self.boot.profile_config.ir,
-                session: &active_play.running.gameplay.session,
+                session: &active_play.running.gameplay,
                 played_at: now_unix_seconds(),
                 applied_arrange: &active_play.running.applied_arrange,
                 source_ln_profile: active_play.running.source_ln_profile,
@@ -416,10 +397,9 @@ impl WinitApp {
         let Some(active_play) = &mut self.play.active_play else {
             return;
         };
-        bmz_gameplay::session::drain_pre_ready_visual_inputs(
-            &mut active_play.running.gameplay.session,
-            play_elapsed_time,
-        );
+        active_play.running.gameplay.configure_prepared(|session| {
+            bmz_gameplay::session::drain_pre_ready_visual_inputs(session, play_elapsed_time);
+        });
         let start_result = if self.viewer_mode {
             active_play.running.start_viewer_seek(chart_zero_time, self.viewer_paused).map(
                 |carryover_count| {
@@ -458,10 +438,16 @@ impl WinitApp {
             if let Some(active_play) = &self.play.active_play {
                 crate::screens::play_snapshot::refresh_play_skin_visuals_with_input_elapsed(
                     snapshot,
-                    &active_play.running.session,
+                    active_play.running.gameplay.prepared_session().expect("READY is prepared"),
                     play_elapsed_time,
                 );
             }
+        }
+        if let Some(active_play) = &mut self.play.active_play
+            && let Err(error) = active_play.running.start_gameplay_runtime()
+        {
+            tracing::error!(%error, "failed to start gameplay runtime");
+            self.abort_pending_play_start();
         }
     }
 
@@ -472,7 +458,7 @@ impl WinitApp {
         let Some(active_play) = &self.play.active_play else {
             return;
         };
-        if !chart_play_has_started(&active_play.running.session) {
+        if !active_play.running.session.chart_started() {
             return;
         }
         self.stop_system_sound(crate::system_sound::SoundType::Decide);
@@ -570,17 +556,16 @@ impl WinitApp {
         let Some(active_play) = &mut self.play.active_play else {
             return;
         };
-        bmz_gameplay::session::drain_pre_ready_visual_inputs(
-            &mut active_play.running.gameplay.session,
-            play_elapsed_time,
-        );
+        active_play.running.gameplay.configure_prepared(|session| {
+            bmz_gameplay::session::drain_pre_ready_visual_inputs(session, play_elapsed_time);
+        });
         let Some(snapshot) = &mut self.play.last_play_snapshot else {
             return;
         };
         snapshot.play_elapsed_time = play_elapsed_time;
         crate::screens::play_snapshot::refresh_play_skin_visuals_with_input_elapsed(
             snapshot,
-            &active_play.running.session,
+            active_play.running.gameplay.prepared_session().expect("pre-READY session"),
             play_elapsed_time,
         );
     }
@@ -598,14 +583,39 @@ impl WinitApp {
             &self.boot.profile_config,
             active_play.running.session.hispeed_mode,
         );
-        if !apply_play_lane_action_to_session(
-            &mut active_play.running.gameplay.session,
-            lane_target,
-            action,
-            speed_locked,
-            hispeed_step,
-        ) {
+        if speed_locked {
             tracing::debug!("play lane change ignored: course NoSpeed constraint");
+            return false;
+        }
+        if active_play.running.gameplay.is_running() {
+            if matches!(action, PlayLaneAction::ToggleHispeedMode)
+                && active_play.running.session.lift_enabled
+                && active_play.running.session.hidden_enabled
+            {
+                *lane_target = lane_target.toggled_lift_hidden();
+            } else {
+                let mut target = *lane_target;
+                if !active_play.running.gameplay.edit(move |session| {
+                    apply_play_lane_action_to_session(
+                        session,
+                        &mut target,
+                        action,
+                        speed_locked,
+                        hispeed_step,
+                    );
+                }) {
+                    return false;
+                }
+            }
+        } else if !active_play.running.gameplay.configure_prepared(|session| {
+            apply_play_lane_action_to_session(
+                session,
+                lane_target,
+                action,
+                speed_locked,
+                hispeed_step,
+            )
+        }) {
             return false;
         }
         tracing::info!(
@@ -619,10 +629,10 @@ impl WinitApp {
             lane_cover_visible = active_play.running.session.lane_cover_visible,
             "adjusted play lane settings"
         );
-        update_pre_ready_play_snapshot_options_for_session(
+        update_pre_ready_play_snapshot_options_for_runtime(
             self.play.play_ready_sound_started_at,
             &mut self.play.last_play_snapshot,
-            &active_play.running.session,
+            &active_play.running.gameplay,
             &active_play.running.applied_arrange,
         );
         true
@@ -680,7 +690,7 @@ impl WinitApp {
             .play
             .active_play
             .as_ref()
-            .is_some_and(|active_play| chart_play_has_started(&active_play.running.session));
+            .is_some_and(|active_play| active_play.running.session.chart_started());
         if !chart_started {
             if practice_phase == Some(PracticePhase::Playing) {
                 self.begin_practice_leave_transition(reason);
@@ -705,8 +715,8 @@ impl WinitApp {
             let Some(active_play) = &mut self.play.active_play else {
                 return false;
             };
-            let session = &mut active_play.running.session;
-            if session.judge.is_exhausted(&session.chart)
+            let session = &active_play.running.session;
+            if session.exhausted
                 || matches!(
                     session.state,
                     bmz_gameplay::session::PlayState::Failed
@@ -716,7 +726,10 @@ impl WinitApp {
                 return false;
             }
             tracing::info!(reason, "stopping active play");
-            session.state = bmz_gameplay::session::PlayState::Failed;
+            active_play
+                .running
+                .gameplay
+                .edit(|session| session.state = bmz_gameplay::session::PlayState::Failed);
             true
         };
         self.clear_play_control_holds();
@@ -820,11 +833,14 @@ impl WinitApp {
     pub(super) fn refresh_play_lane_value_changing(&mut self) {
         let changing = self.play_lane_value_changing();
         if let Some(active_play) = &mut self.play.active_play {
-            active_play.running.session.lane_cover_changing = changing;
-            update_pre_ready_play_snapshot_options_for_session(
+            active_play
+                .running
+                .gameplay
+                .edit(move |session| session.lane_cover_changing = changing);
+            update_pre_ready_play_snapshot_options_for_runtime(
                 self.play.play_ready_sound_started_at,
                 &mut self.play.last_play_snapshot,
-                &active_play.running.session,
+                &active_play.running.gameplay,
                 &active_play.running.applied_arrange,
             );
         } else if self.play.play_ready_sound_started_at.is_none()
@@ -988,7 +1004,7 @@ impl WinitApp {
             return;
         };
 
-        let video_update_time = compute_frame_times(&active_play.running.session).audio_now;
+        let video_update_time = active_play.running.session.audio_clock.now();
         crate::video_bga::update_video_bga_frames(
             &mut self.renderer,
             &mut active_play.running,

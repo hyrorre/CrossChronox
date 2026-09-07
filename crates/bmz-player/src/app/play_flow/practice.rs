@@ -479,7 +479,7 @@ impl WinitApp {
         }
         self.commit_active_play_lane_state_to_profile();
         if let Some(mut started) = self.play.active_play.take() {
-            let graph = started.running.result_graph.snapshot_for_session(&started.running.session);
+            let graph = started.running.result_graph.snapshot_for_source(&started.running.gameplay);
             if let Some(practice) = &mut self.play.practice_session {
                 practice.last_graph = std::sync::Arc::new(graph);
                 practice.graph_start_time_ms = property.start_time_ms;

@@ -222,6 +222,12 @@ impl ResultSummary {
 }
 
 impl ResultGraphCollector {
+    pub fn snapshot_for_source(
+        &self,
+        source: &dyn crate::screens::play_finish::FinishSessionSource,
+    ) -> ResultGraphSnapshot {
+        source.result_graph(self)
+    }
     pub fn record_frame(&mut self, frame: &FrameOutput<RenderSnapshot>) {
         let snapshot = &frame.render_snapshot;
         self.record_gauge(snapshot);

@@ -185,7 +185,7 @@ fn frame_output_from_session_frame(
     )
 }
 
-fn frame_output_from_session_frame_cached(
+pub(crate) fn frame_output_from_session_frame_cached(
     session: &GameSession,
     frame: SessionFrame,
     best_ex_score: Option<u32>,
@@ -352,81 +352,7 @@ pub fn advance_running_play_session(
     running: &mut RunningPlaySession,
 ) -> Result<FrameOutput<RenderSnapshot>> {
     log_audio_scheduling_latency(&running.audio.engine);
-    let frame = running.gameplay.advance(&running.audio.engine);
-    let mut output = frame_output_from_session_frame_cached(
-        &running.session,
-        frame,
-        running.best_ex_score,
-        running.best_ghost.as_deref(),
-        running.target_ex_score,
-        &running.bga_frames,
-        &running.render_snapshot_cache,
-    );
-    apply_play_arrange_to_snapshot(&mut output.render_snapshot, &running.applied_arrange);
-    apply_running_play_target_to_snapshot(&mut output.render_snapshot, running);
-    apply_running_play_mode_to_snapshot(&mut output.render_snapshot, running);
-    Ok(output)
-}
-
-pub fn advance_running_play_session_until_result(
-    running: &mut RunningPlaySession,
-    score_db: &mut ScoreDatabase,
-    network_db: &mut NetworkDatabase,
-    profile_paths: &ProfilePaths,
-    replay_config: &ReplayConfig,
-    ir_config: &IrConfig,
-    played_at: i64,
-) -> Result<PlayAdvanceOutcome> {
-    log_audio_scheduling_latency(&running.audio.engine);
-    let session_frame = running.gameplay.advance(&running.audio.engine);
-    let mut frame = frame_output_from_session_frame_cached(
-        &running.session,
-        session_frame,
-        running.best_ex_score,
-        running.best_ghost.as_deref(),
-        running.target_ex_score,
-        &running.bga_frames,
-        &running.render_snapshot_cache,
-    );
-    apply_play_arrange_to_snapshot(&mut frame.render_snapshot, &running.applied_arrange);
-    apply_running_play_target_to_snapshot(&mut frame.render_snapshot, running);
-    apply_running_play_mode_to_snapshot(&mut frame.render_snapshot, running);
-    running.result_graph.record_frame(&frame);
-    if matches!(frame.state, PlayState::Finished | PlayState::Failed) {
-        let chart_length_ms = running.chart_length_ms;
-        let play_duration_ms = running.finish_play_duration_ms();
-        let mut finished = finish_session_result_once(
-            &mut running.finished,
-            score_db,
-            network_db,
-            FinishSessionResultOnceRequest {
-                profile_paths,
-                replay_config,
-                ir_config,
-                session: &running.gameplay.session,
-                played_at,
-                applied_arrange: &running.applied_arrange,
-                source_ln_profile: running.source_ln_profile,
-                chart_length_ms: Some(chart_length_ms),
-                play_duration_ms: Some(play_duration_ms),
-                target_ex_score: running.target_ex_score,
-                target_name: &running.target,
-                score_key: running.score_key,
-                practice_mode: running.practice_mode,
-                finish_mode: FinishResultMode::Normal,
-            },
-        )?;
-        finished.summary.skin_attempt = running.skin_attempt;
-        finished.summary.graph =
-            std::sync::Arc::new(running.result_graph.snapshot_for_session(&running.session));
-        running.finished = Some(finished.clone());
-        // ここでは音声を止めない。スケジュール済みの BGM/キー音は
-        // オーディオ出力スレッド側で曲の最後まで鳴り切る。出力の解放は
-        // リザルト画面側 (advance_draining_audio) がドレイン完了後に行う。
-        return Ok(PlayAdvanceOutcome::Finished { frame, finished: Box::new(finished) });
-    }
-
-    Ok(PlayAdvanceOutcome::Playing(frame))
+    running.gameplay.poll().ok_or_else(|| anyhow!("gameplay runtime has no published frame"))
 }
 
 fn apply_running_play_target_to_snapshot(
@@ -468,16 +394,27 @@ pub fn refresh_play_ending_snapshot(
     running: &mut RunningPlaySession,
     timers: PlayEndingSkinTimers,
 ) -> RenderSnapshot {
-    running.gameplay.flush_audio(&running.audio.engine);
-    let mut snapshot = refresh_play_ending_snapshot_with_session_cached(
-        &mut running.gameplay.session,
-        running.best_ex_score,
-        running.best_ghost.as_deref(),
-        running.target_ex_score,
-        &running.bga_frames,
-        timers,
-        &running.render_snapshot_cache,
-    );
+    let mut snapshot = if let Some(frame) = running.gameplay.poll() {
+        frame.render_snapshot
+    } else {
+        let session = running.gameplay.prepared_session().expect("prepared or running session");
+        build_render_snapshot_with_target_and_bga_frames_cached(
+            session,
+            session.audio_clock.now(),
+            &session.recent_judgements,
+            running.best_ex_score,
+            running.best_ghost.as_deref(),
+            running.target_ex_score,
+            &running.bga_frames,
+            &running.render_snapshot_cache,
+        )
+    };
+    snapshot.play_elapsed_time = timers.play_elapsed_time;
+    snapshot.ready_elapsed_time = timers.ready_elapsed_time;
+    snapshot.backbmp_background = timers.backbmp_background;
+    snapshot.failed_elapsed_ms = timers.failed_elapsed_ms;
+    snapshot.music_end_elapsed_ms = timers.music_end_elapsed_ms;
+    snapshot.fadeout_elapsed_ms = timers.fadeout_elapsed_ms;
     apply_play_arrange_to_snapshot(&mut snapshot, &running.applied_arrange);
     apply_running_play_target_to_snapshot(&mut snapshot, running);
     apply_running_play_mode_to_snapshot(&mut snapshot, running);

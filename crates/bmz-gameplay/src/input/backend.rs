@@ -48,7 +48,9 @@ pub fn monotonic_timestamp_ns() -> u128 {
     MONOTONIC_START.get_or_init(Instant::now).elapsed().as_nanos()
 }
 
-pub trait InputBackend {
+pub trait InputBackend: Send {
+    /// A timestamped input arrival may interrupt the runtime's deadline sleep.
+    fn set_waker(&mut self, _waker: Option<std::thread::Thread>) {}
     fn update(&mut self) {}
     fn drain_events(&mut self) -> Vec<DeviceInputEvent>;
 }

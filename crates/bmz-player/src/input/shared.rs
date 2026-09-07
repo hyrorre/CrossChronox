@@ -7,6 +7,7 @@ use bmz_gameplay::input::backend::{
 #[derive(Debug, Clone, Default)]
 pub struct SharedInputBackend {
     buffer: Arc<Mutex<BufferedInputBackend>>,
+    waker: Arc<Mutex<Option<std::thread::Thread>>>,
 }
 
 impl SharedInputBackend {
@@ -14,10 +15,20 @@ impl SharedInputBackend {
         if let Ok(mut buffer) = self.buffer.lock() {
             buffer.push_event(event);
         }
+        if let Ok(waker) = self.waker.lock()
+            && let Some(waker) = &*waker
+        {
+            waker.unpark();
+        }
     }
 }
 
 impl InputBackend for SharedInputBackend {
+    fn set_waker(&mut self, waker: Option<std::thread::Thread>) {
+        if let Ok(mut target) = self.waker.lock() {
+            *target = waker;
+        }
+    }
     fn drain_events(&mut self) -> Vec<DeviceInputEvent> {
         self.buffer.lock().map(|mut buffer| buffer.drain_events()).unwrap_or_default()
     }

@@ -387,24 +387,29 @@ impl WinitApp {
             self.play.pending_play_start.as_ref().filter(|pending| pending.chart_id == chart_id)
         {
             let speed_locked = active_course_speed_locked(self.play.active_course.as_ref());
-            replay_pending_play_lane_actions(
-                &mut active_play.running.session,
-                &mut lane_target,
-                &pending.lane_actions,
-                &self.boot.profile_config,
-                speed_locked,
-            );
+            active_play.running.gameplay.configure_prepared(|session| {
+                replay_pending_play_lane_actions(
+                    session,
+                    &mut lane_target,
+                    &pending.lane_actions,
+                    &self.boot.profile_config,
+                    speed_locked,
+                )
+            });
             debug_assert_eq!(lane_target, pending.lane.lane_target);
             // pending 中の入力は表示状態へ反映済み。共有 backend に残った同じイベントを
             // 再処理すると key-on/off が install 時刻へずれるため、ここで一度だけ破棄し、
             // placeholder の表示状態を実セッションへ引き継ぐ。
-            handoff_pending_play_visual_input(
-                &mut active_play.running.session,
-                &active_play.input,
-                &pending.visual_input,
-            );
+            active_play.running.gameplay.configure_prepared(|session| {
+                handoff_pending_play_visual_input(
+                    session,
+                    &active_play.input,
+                    &pending.visual_input,
+                )
+            });
         }
-        active_play.running.session.lane_cover_changing = self.play_lane_value_changing();
+        let changing = self.play_lane_value_changing();
+        active_play.running.gameplay.edit(move |session| session.lane_cover_changing = changing);
         let active_bga_assets = &active_play.running.session.chart.bga_assets;
         let preload_matches_active_chart =
             self.play.bga_preload.matches_chart(chart_id, active_bga_assets);
@@ -446,7 +451,7 @@ impl WinitApp {
         self.sync_play_backbmp_texture(&folder, &chart.metadata.backbmp_file);
         let render_now = self.play_skin_playstart_offset();
         let mut snapshot = build_render_snapshot_with_target_and_bga_frames_cached(
-            &active_play.running.session,
+            active_play.running.gameplay.prepared_session().expect("installing prepared session"),
             render_now,
             &active_play.running.session.recent_judgements,
             active_play.running.best_ex_score,
@@ -471,7 +476,7 @@ impl WinitApp {
         self.apply_play_table_text(&mut snapshot);
         crate::screens::play_snapshot::refresh_play_skin_visuals_with_input_elapsed(
             &mut snapshot,
-            &active_play.running.session,
+            active_play.running.gameplay.prepared_session().expect("installing prepared session"),
             play_elapsed_time,
         );
         self.play.last_play_snapshot = Some(snapshot);

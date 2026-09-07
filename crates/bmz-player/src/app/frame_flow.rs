@@ -846,7 +846,7 @@ impl WinitApp {
         self.play
             .active_play
             .as_ref()
-            .map(|active| active_lane_state_for_session(&active.running.session))
+            .map(|active| active_lane_state_for_observation(&active.running.session))
             .or_else(|| {
                 self.play.pending_play_start.as_ref().map(|pending| ActiveLaneState {
                     lane_cover: pending.lane.lane_cover,
@@ -907,7 +907,7 @@ impl WinitApp {
         apply_lane_state_to_profile(
             &mut self.boot.profile_config,
             Some(session.hispeed),
-            Some(active_lane_state_for_session(session)),
+            Some(active_lane_state_for_observation(session)),
         );
         self.boot.profile_config.updated_at = now_unix_seconds();
         true

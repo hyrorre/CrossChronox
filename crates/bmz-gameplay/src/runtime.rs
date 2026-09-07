@@ -13,6 +13,47 @@ pub struct GameplayRuntime {
 }
 
 impl GameplayRuntime {
+    /// Bound the sleep by chart events in addition to the safety wake. Input
+    /// arrivals wake the owner separately through InputBackend::set_waker.
+    pub fn next_wake_after(&self, safety: std::time::Duration) -> std::time::Duration {
+        let session = &self.session;
+        if !session.audio_clock.running {
+            return safety;
+        }
+        let now = session.audio_clock.now().0;
+        let mut next_us = safety.as_micros().min(i64::MAX as u128) as i64;
+        let rate = i64::from(session.audio_clock.playback_rate_percent().max(1));
+        let mut consider = |deadline: i64| {
+            if deadline > now {
+                next_us = next_us.min(deadline.saturating_sub(now).saturating_mul(100) / rate);
+            }
+        };
+        consider(0);
+        for lane in bmz_core::lane::Lane::ALL {
+            let state = &session.judge.lanes[lane.index()];
+            if let Some(note) = session.chart.notes_for_lane(lane).get(state.next_note_index) {
+                consider(note.time.0);
+                consider(
+                    note.time.0.saturating_add(session.judge.windows.bad_slow_us).saturating_add(1),
+                );
+            }
+            if let Some(long) = state.active_long {
+                consider(session.chart.long_notes[long.pair_index].end_time.0);
+            }
+            if let Some(release) = session.lane_auto_release_at[lane.index()] {
+                consider(release.0);
+            }
+        }
+        if let Some(replay) = &session.replay_player
+            && let Some(event) = replay.events.get(replay.next_index)
+        {
+            consider(event.time.0);
+        }
+        if let Some(bgm) = session.chart.bgm_events.get(session.bgm_scheduler.next_index) {
+            consider(bgm.time.0.saturating_sub(crate::session::AUDIO_SCHEDULE_AHEAD_US));
+        }
+        std::time::Duration::from_micros(next_us.max(100) as u64).min(safety)
+    }
     pub fn new(session: GameSession) -> Self {
         Self {
             session,

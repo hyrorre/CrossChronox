@@ -59,6 +59,86 @@ pub enum FinishResultMode {
     CourseStage,
 }
 
+/// Result persistence accepts either a local test/prepared session or the
+/// immutable result captured by the dedicated gameplay owner.
+pub trait FinishSessionSource {
+    fn capture_graph(&self, collector: &ResultGraphCollector) -> ResultGraphCollector {
+        collector.clone()
+    }
+    fn capture_result(
+        &self,
+        profile: ChartLnProfile,
+        arrange: &AppliedArrange,
+    ) -> Result<FinishSessionSnapshot>;
+    fn ensure_result_ready(&self, settled_at: Option<TimeUs>) -> Result<()>;
+    fn result_graph(
+        &self,
+        collector: &ResultGraphCollector,
+    ) -> bmz_render::snapshot::ResultGraphSnapshot;
+}
+
+impl FinishSessionSource for GameSession {
+    fn capture_result(
+        &self,
+        profile: ChartLnProfile,
+        arrange: &AppliedArrange,
+    ) -> Result<FinishSessionSnapshot> {
+        Ok(FinishSessionSnapshot::from_session(self, profile, arrange))
+    }
+    fn ensure_result_ready(&self, settled_at: Option<TimeUs>) -> Result<()> {
+        ensure_storable_session(
+            self,
+            settled_at.map_or(FinishSessionReadiness::Terminal, FinishSessionReadiness::SettledAt),
+        )
+    }
+    fn result_graph(
+        &self,
+        collector: &ResultGraphCollector,
+    ) -> bmz_render::snapshot::ResultGraphSnapshot {
+        collector.snapshot_for_session(self)
+    }
+}
+
+impl FinishSessionSource for crate::gameplay_runtime::GameplayClient {
+    fn capture_graph(&self, collector: &ResultGraphCollector) -> ResultGraphCollector {
+        self.result.as_ref().map_or_else(|| collector.clone(), |result| result.graph.clone())
+    }
+    fn capture_result(
+        &self,
+        profile: ChartLnProfile,
+        arrange: &AppliedArrange,
+    ) -> Result<FinishSessionSnapshot> {
+        if let Some(result) = &self.result {
+            return Ok(result.snapshot.clone());
+        }
+        self.prepared_session()
+            .ok_or_else(|| anyhow::anyhow!("gameplay result is pending"))?
+            .capture_result(profile, arrange)
+    }
+    fn ensure_result_ready(&self, settled_at: Option<TimeUs>) -> Result<()> {
+        if self.result.is_some() {
+            return Ok(());
+        }
+        self.prepared_session()
+            .ok_or_else(|| anyhow::anyhow!("gameplay result is pending"))?
+            .ensure_result_ready(settled_at)
+    }
+    fn result_graph(
+        &self,
+        collector: &ResultGraphCollector,
+    ) -> bmz_render::snapshot::ResultGraphSnapshot {
+        if let Some(result) = &self.result {
+            return result.graph.snapshot_for_result_parts(
+                &result.snapshot.chart,
+                &result.snapshot.result_judgements,
+                result.snapshot.failed_gauge.as_ref(),
+            );
+        }
+        self.prepared_session()
+            .map_or_else(|| collector.snapshot(), |session| collector.snapshot_for_session(session))
+    }
+}
+
 impl FinishResultMode {
     fn store_mode(self) -> StorePlayResultMode {
         match self {
@@ -138,7 +218,7 @@ pub struct FinishSessionResultRequest<'a> {
     pub profile_paths: &'a ProfilePaths,
     pub replay_config: &'a ReplayConfig,
     pub ir_config: &'a IrConfig,
-    pub session: &'a GameSession,
+    pub session: &'a dyn FinishSessionSource,
     pub played_at: i64,
     pub applied_arrange: &'a AppliedArrange,
     pub source_ln_profile: ChartLnProfile,
@@ -151,7 +231,7 @@ pub struct FinishSessionResultRequest<'a> {
 }
 
 #[derive(Debug, Clone)]
-struct FinishSessionSnapshot {
+pub struct FinishSessionSnapshot {
     chart: Arc<PlayableChart>,
     skin_attempt: bmz_render::snapshot::SkinAttemptState,
     result: PlayResult,
@@ -169,7 +249,7 @@ struct FinishSessionSnapshot {
 }
 
 impl FinishSessionSnapshot {
-    fn from_session(
+    pub(crate) fn from_session(
         session: &GameSession,
         source_ln_profile: ChartLnProfile,
         applied_arrange: &AppliedArrange,
@@ -310,8 +390,11 @@ fn finish_session_result_when(
         practice_mode,
         finish_mode,
     } = request;
-    ensure_storable_session(session, readiness)?;
-    let snapshot = FinishSessionSnapshot::from_session(session, source_ln_profile, applied_arrange);
+    session.ensure_result_ready(match readiness {
+        FinishSessionReadiness::Terminal => None,
+        FinishSessionReadiness::SettledAt(at) => Some(at),
+    })?;
+    let snapshot = session.capture_result(source_ln_profile, applied_arrange)?;
     finish_session_snapshot_result(
         score_db,
         network_db,
@@ -777,7 +860,7 @@ pub struct FinishSessionResultOnceRequest<'a> {
     pub profile_paths: &'a ProfilePaths,
     pub replay_config: &'a ReplayConfig,
     pub ir_config: &'a IrConfig,
-    pub session: &'a GameSession,
+    pub session: &'a dyn FinishSessionSource,
     pub played_at: i64,
     pub applied_arrange: &'a AppliedArrange,
     pub source_ln_profile: ChartLnProfile,
@@ -846,16 +929,14 @@ pub fn spawn_settled_session_result(
     settled_at: TimeUs,
     result_graph: ResultGraphCollector,
 ) -> Result<PendingFinishedPlaySession> {
-    ensure_storable_session(request.session, FinishSessionReadiness::SettledAt(settled_at))?;
+    request.session.ensure_result_ready(Some(settled_at))?;
     let job = FinishSessionResultJob {
         profile_paths: request.profile_paths.clone(),
         replay_config: request.replay_config.clone(),
         ir_config: request.ir_config.clone(),
-        snapshot: FinishSessionSnapshot::from_session(
-            request.session,
-            request.source_ln_profile,
-            request.applied_arrange,
-        ),
+        snapshot: request
+            .session
+            .capture_result(request.source_ln_profile, request.applied_arrange)?,
         played_at: request.played_at,
         applied_arrange: request.applied_arrange.clone(),
         source_ln_profile: request.source_ln_profile,
@@ -866,7 +947,7 @@ pub fn spawn_settled_session_result(
         score_key: request.score_key,
         practice_mode: request.practice_mode,
         finish_mode: request.finish_mode,
-        result_graph,
+        result_graph: request.session.capture_graph(&result_graph),
     };
     let (sender, receiver) = mpsc::channel();
     let worker =

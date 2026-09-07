@@ -96,7 +96,7 @@ impl WinitApp {
                         profile_paths: &self.boot.profile_paths,
                         replay_config: &self.boot.profile_config.replay,
                         ir_config: &self.boot.profile_config.ir,
-                        session: &started.running.gameplay.session,
+                        session: &started.running.gameplay,
                         played_at: now_unix_seconds(),
                         applied_arrange: &started.running.applied_arrange,
                         source_ln_profile: started.running.source_ln_profile,
@@ -120,7 +120,7 @@ impl WinitApp {
                             started
                                 .running
                                 .result_graph
-                                .snapshot_for_session(&started.running.session),
+                                .snapshot_for_source(&started.running.gameplay),
                         );
                         finished
                     }

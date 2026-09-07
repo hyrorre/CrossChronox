@@ -38,19 +38,24 @@ impl WinitApp {
         let Some(active_play) = &mut self.play.active_play else {
             return;
         };
-        if apply_profile_lane_settings_to_session(
-            &mut active_play.running.gameplay.session,
-            before,
-            before_lane_effect,
-            &profile_lane,
-            self.boot.profile_config.play.lane_effect,
-            speed_locked,
-            active_play.running.practice_mode,
-        ) {
-            update_pre_ready_play_snapshot_options_for_session(
+        let before = before.clone();
+        let lane_effect = self.boot.profile_config.play.lane_effect;
+        let practice_mode = active_play.running.practice_mode;
+        if active_play.running.gameplay.edit(move |session| {
+            apply_profile_lane_settings_to_session(
+                session,
+                &before,
+                before_lane_effect,
+                &profile_lane,
+                lane_effect,
+                speed_locked,
+                practice_mode,
+            );
+        }) {
+            update_pre_ready_play_snapshot_options_for_runtime(
                 self.play.play_ready_sound_started_at,
                 &mut self.play.last_play_snapshot,
-                &active_play.running.session,
+                &active_play.running.gameplay,
                 &active_play.running.applied_arrange,
             );
             tracing::info!(
@@ -66,27 +71,26 @@ impl WinitApp {
 
     pub(super) fn sync_active_play_realtime_profile_settings(&mut self) {
         if let Some(active_play) = &mut self.play.active_play {
-            let session = &mut active_play.running.session;
-            let key_mode = session.play_config_key_mode;
-            let chart_normalization_gain = session.audio_mix.chart_normalization_gain;
-            session.audio_mix = crate::config::play::audio_mix_from_profile_with_chart_gain(
-                &self.boot.profile_config,
-                chart_normalization_gain,
-            );
-            session.offsets = crate::config::play::play_offsets_from_profile_for_mode(
-                &self.boot.profile_config,
-                key_mode,
-            );
-            session.input_offset_auto_adjust_enabled =
-                self.boot.profile_config.judge.visual_offset_auto_adjust;
-            session.guide_se_enabled = self.boot.profile_config.play.guide_se;
-            let auto_adjust_available = session.replay_player.is_none()
-                && !session.autoplay.as_ref().is_some_and(|autoplay| autoplay.is_full());
-            if session.input_offset_auto_adjust_enabled && auto_adjust_available {
-                session.input_offset_auto_adjust.get_or_insert_with(Default::default);
-            } else {
-                session.input_offset_auto_adjust = None;
-            }
+            let profile = self.boot.profile_config.clone();
+            active_play.running.gameplay.edit(move |session| {
+                let key_mode = session.play_config_key_mode;
+                let chart_normalization_gain = session.audio_mix.chart_normalization_gain;
+                session.audio_mix = crate::config::play::audio_mix_from_profile_with_chart_gain(
+                    &profile,
+                    chart_normalization_gain,
+                );
+                session.offsets =
+                    crate::config::play::play_offsets_from_profile_for_mode(&profile, key_mode);
+                session.input_offset_auto_adjust_enabled = profile.judge.visual_offset_auto_adjust;
+                session.guide_se_enabled = profile.play.guide_se;
+                let auto_adjust_available = session.replay_player.is_none()
+                    && !session.autoplay.as_ref().is_some_and(|autoplay| autoplay.is_full());
+                if session.input_offset_auto_adjust_enabled && auto_adjust_available {
+                    session.input_offset_auto_adjust.get_or_insert_with(Default::default);
+                } else {
+                    session.input_offset_auto_adjust = None;
+                }
+            });
         }
     }
 
@@ -180,7 +184,7 @@ impl WinitApp {
         })
         .collect();
         if let Some(active_play) = &mut self.play.active_play {
-            active_play.running.session.skin_offsets = offsets;
+            active_play.running.gameplay.edit(move |session| session.skin_offsets = offsets);
         }
     }
 }

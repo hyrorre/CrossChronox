@@ -411,6 +411,22 @@ pub(in crate::app) const fn floating_policy_config(policy: FloatingPolicy) -> Fl
     }
 }
 
+pub(in crate::app) fn update_pre_ready_play_snapshot_options_for_runtime(
+    ready_sound_started_at: Option<Instant>,
+    last_play_snapshot: &mut Option<RenderSnapshot>,
+    runtime: &crate::gameplay_runtime::GameplayClient,
+    applied_arrange: &AppliedArrange,
+) {
+    if let Some(session) = runtime.prepared_session() {
+        update_pre_ready_play_snapshot_options_for_session(
+            ready_sound_started_at,
+            last_play_snapshot,
+            session,
+            applied_arrange,
+        );
+    }
+}
+
 pub(in crate::app) fn update_pre_ready_play_snapshot_options_for_session(
     ready_sound_started_at: Option<Instant>,
     last_play_snapshot: &mut Option<RenderSnapshot>,
@@ -452,3 +468,23 @@ pub(in crate::app) fn play_exit_hold_elapsed(
     started_at.is_some_and(|started_at| now.duration_since(started_at) >= duration)
 }
 use super::*;
+
+pub(in crate::app) fn active_lane_state_for_observation(
+    session: &crate::gameplay_runtime::PlaySessionObservation,
+) -> ActiveLaneState {
+    ActiveLaneState {
+        lane_cover: session.lane_cover,
+        lift: session.lift,
+        hidden_cover: session.hidden_cover,
+        sudden_enabled: session.lanecover_enabled,
+        lift_enabled: session.lift_enabled,
+        hidden_enabled: session.hidden_enabled,
+        hispeed_mode: session.hispeed_mode,
+        base_hispeed_mode: session.base_hispeed_mode,
+        floating_policy: session.floating_policy,
+        normal_hispeed_level: session.normal_hispeed_level,
+        // 基準方式の現在表示は曲終了時に変動するため保存しない。target は
+        // Floatingへの明示切替時にsession側で更新された値を引き継ぐ。
+        target_green_number: session.target_green_number,
+    }
+}
