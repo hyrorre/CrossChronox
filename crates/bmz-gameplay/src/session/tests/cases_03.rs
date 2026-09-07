@@ -253,6 +253,65 @@ fn auto_keysound_plays_note_sounds_without_input() {
 }
 
 #[test]
+fn viewer_seek_auto_keysound_skips_past_notes_and_keeps_boundary_once() {
+    let mut chart = chart_with_keysound();
+    for (id, lane, time) in [
+        (2, Lane::Key2, 250_000),
+        (3, Lane::Key1, 500_000),
+        (4, Lane::Key2, 500_000),
+        (5, Lane::Key1, 550_000),
+    ] {
+        let mut note = chart.lane_notes[Lane::Key1.index()][0].clone();
+        note.id = NoteId(id);
+        note.lane = lane;
+        note.time = TimeUs(time);
+        note.sound = Some(SoundId(id));
+        chart.lane_notes[lane.index()].push(note);
+    }
+    chart.total_notes = 5;
+    chart.end_time = TimeUs(550_000);
+    for (start, expected) in [
+        (0, vec![SoundId(7)]),
+        (500_000, vec![SoundId(3), SoundId(4), SoundId(5)]),
+        (1_000_000, vec![]),
+    ] {
+        let mut session = session_with_autoplay(chart.clone());
+        session.audio_mix.auto_keysound = true;
+        prepare_viewer_seek(&mut session, TimeUs(start));
+        session.audio_clock =
+            AudioClock::with_position(48_000, 0, start, Arc::new(AtomicU64::new(0)), true);
+        let mut audio = TestAudio::default();
+        advance_session_frame(&mut session, &mut audio);
+        advance_session_frame(&mut session, &mut audio);
+        let mut sounds: Vec<_> = audio.scheduled.iter().map(|sound| sound.sound_id).collect();
+        sounds.sort_by_key(|sound| sound.0);
+        assert_eq!(sounds, expected, "seek at {start}");
+        if start == 500_000 {
+            for sound in &audio.scheduled {
+                assert_eq!(sound.start_frame, if sound.sound_id == SoundId(5) { 2_400 } else { 0 });
+            }
+        }
+    }
+}
+
+#[test]
+fn viewer_seek_auto_keysound_keeps_crossing_long_end_without_start_sound() {
+    let chart = ln_chart_with_start_sound_and_end_sound(Some(SoundId(8)));
+    let end_time = chart.long_notes[0].end_time;
+    let start = TimeUs(end_time.0 - 50_000);
+    let mut session = session_with_autoplay(chart);
+    session.audio_mix.auto_keysound = true;
+    prepare_viewer_seek(&mut session, start);
+    session.audio_clock =
+        AudioClock::with_position(48_000, 0, start.0, Arc::new(AtomicU64::new(0)), true);
+    let mut audio = TestAudio::default();
+    advance_session_frame(&mut session, &mut audio);
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(8));
+    assert_eq!(audio.scheduled[0].start_frame, 2_400);
+}
+
+#[test]
 fn auto_keysound_suppresses_hit_keysounds() {
     let mut session = session_with_autoplay(chart_with_keysound());
     session.audio_mix.auto_keysound = true;

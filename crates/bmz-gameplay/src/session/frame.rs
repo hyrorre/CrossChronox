@@ -49,8 +49,8 @@ pub fn advance_session_frame(
     }
 
     if matches!(session.state, PlayState::Ready | PlayState::Playing) {
-        // BGMはchart 0に間に合うようREADY中もschedule-aheadする。
-        // 判定・keysound・MineはPlayingに入るまで開始しない。
+        // BGM・自動キー音はchart 0に間に合うようREADY中もschedule-aheadする。
+        // 判定・入力起因のkeysound・MineはPlayingに入るまで開始しない。
         session.bgm_scheduler.schedule_until(
             &session.chart,
             &session.audio_clock,
@@ -169,6 +169,8 @@ pub fn prepare_viewer_seek(session: &mut GameSession, start_time: TimeUs) {
         }
     }
     session.bgm_scheduler = BgmScheduler::starting_at(&session.chart, start_time);
+    session.auto_keysound_scheduler =
+        AutoKeysoundScheduler::starting_at(&session.chart, start_time);
 }
 
 fn apply_viewer_pgreat_prefix(session: &mut GameSession, start_time: TimeUs) {

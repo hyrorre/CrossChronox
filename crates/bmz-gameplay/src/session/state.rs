@@ -489,6 +489,16 @@ impl BgmScheduler {
 }
 
 impl AutoKeysoundScheduler {
+    /// Skip notes before the seek position while keeping notes exactly on the boundary.
+    pub fn starting_at(chart: &PlayableChart, start_time: TimeUs) -> Self {
+        let mut scheduler = Self::default();
+        for lane in Lane::ALL {
+            scheduler.next_note_index[lane.index()] =
+                chart.notes_for_lane(lane).partition_point(|note| note.time < start_time);
+        }
+        scheduler
+    }
+
     pub fn schedule_until(
         &mut self,
         chart: &PlayableChart,
