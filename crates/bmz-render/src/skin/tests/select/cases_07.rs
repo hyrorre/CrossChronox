@@ -840,3 +840,16 @@ fn select_songlist_judgegraph_renders_chart_distribution() {
 
     assert_eq!(rect_count, 7);
 }
+#[test]
+fn select_level_uses_chart_level_independently_of_table_memberships() {
+    for (play_level, table_level, expected) in
+        [("5", "5/5", 5), ("7", "6/6", 7), ("11", "2/4", 11), ("", "12", 0)]
+    {
+        let row = SelectRowSnapshot {
+            play_level: play_level.into(),
+            table_level: table_level.into(),
+            ..SelectRowSnapshot::default()
+        };
+        assert_eq!(select_row_level_number(&row), expected);
+    }
+}

@@ -48,8 +48,7 @@ pub(super) fn full_label(primary: &str, secondary: &str) -> String {
 }
 
 pub(super) fn select_row_level_number(row: &SelectRowSnapshot) -> i64 {
-    let source = if !row.table_level.is_empty() { &row.table_level } else { &row.play_level };
-    source.chars().filter(|ch| ch.is_ascii_digit()).collect::<String>().parse().unwrap_or(0)
+    row.play_level.chars().filter(|ch| ch.is_ascii_digit()).collect::<String>().parse().unwrap_or(0)
 }
 
 pub(super) fn select_row_difficulty_code(row: &SelectRowSnapshot) -> i64 {
