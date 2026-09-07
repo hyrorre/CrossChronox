@@ -15,7 +15,7 @@ pub(super) struct FrameRuntime {
     pending_wake: Option<PendingFrameWake>,
     current_pacing_timings: FramePacingTimings,
     consecutive_deadline_misses: u32,
-    cadence: FrameCadence,
+    cadence: Box<FrameCadence>,
     select_profiler: SceneFrameProfiler,
     decide_profiler: SceneFrameProfiler,
     play_profiler: SceneFrameProfiler,
@@ -40,7 +40,7 @@ impl FrameRuntime {
             pending_wake: None,
             current_pacing_timings: FramePacingTimings::default(),
             consecutive_deadline_misses: 0,
-            cadence: FrameCadence::default(),
+            cadence: Box::default(),
             select_profiler: SceneFrameProfiler::default(),
             decide_profiler: SceneFrameProfiler::default(),
             play_profiler: SceneFrameProfiler::default(),
@@ -83,7 +83,7 @@ impl FrameRuntime {
         self.fps.reset(now);
         self.pending_wake = None;
         self.consecutive_deadline_misses = 0;
-        self.cadence = FrameCadence::default();
+        *self.cadence = FrameCadence::default();
         self.pacer = FramePacer::default();
         self.select_profiler = SceneFrameProfiler::default();
         self.decide_profiler = SceneFrameProfiler::default();

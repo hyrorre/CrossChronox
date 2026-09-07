@@ -81,7 +81,7 @@ pub struct GameplayClient {
     worker: Option<Worker>,
     generation: u64,
     latest_frame: Option<Arc<FrameOutput<RenderSnapshot>>>,
-    snapshot_diagnostics: SnapshotDiagnostics,
+    snapshot_diagnostics: Box<SnapshotDiagnostics>,
     pub result: Option<Arc<RuntimeResult>>,
 }
 
@@ -93,7 +93,7 @@ impl GameplayClient {
             worker: None,
             generation: NEXT_GENERATION.fetch_add(1, Ordering::Relaxed),
             latest_frame: None,
-            snapshot_diagnostics: SnapshotDiagnostics::default(),
+            snapshot_diagnostics: Box::default(),
             result: None,
         }
     }
