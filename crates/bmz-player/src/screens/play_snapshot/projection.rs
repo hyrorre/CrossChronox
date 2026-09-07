@@ -221,3 +221,6 @@ impl ProjectionClock {
         (chart, lane)
     }
 }
+
+#[cfg(test)]
+mod tests;

@@ -30,8 +30,9 @@ $env:RUST_LOG = 'info,bmz_player::play_profile=debug,bmz_player::frame_pacing=de
 ```
 
 `CPU frame cadence` は描画開始間隔と、理想周期からの絶対誤差を5秒ごとに集計する。
-`snapshot cadence` はゲーム時計に対するsnapshot age、前回consumeとの時刻差、
-同じ時刻のsnapshotを使った回数を集計する。histogramのp95/p99はbucket上限の近似値。
+`snapshot cadence` は描画時刻へ投影したsnapshotのage、前回描画との時刻差、
+同じ描画時刻を使った回数を集計する。`publication_age_us` は投影前のgameplay状態の古さで、
+描画時刻のageとは別に記録する。histogramのp95/p99はbucket上限の近似値。
 `bmz_player::frame_pacing=trace` にすると個々のsampleを記録でき、offlineで正確な分位を計算できる。
 通常プレイでTRACEは必要ない。既存profilerのwake latenessはOSへ渡した早期wake期限に
 対する遅れなので、この変更後の描画期限の遅れそのものとは区別する。
@@ -65,9 +66,47 @@ PresentMonはIndependent Flipの先頭2秒と末尾1秒を除外した約12秒�
 起動・ロードも含むためCPU時間の減少を最適化の成果と解釈しない。
 
 報告された持続的な30/60FPS相当のカクつきは、この条件では修正前にも再現しなかった。
-snapshot ageは120FPSで約7ms、240FPSで約2.8ms残っており、snapshotの時刻に固定された
-ノーツ位置には別の量子化が残る。描画専用の時刻投影を追加する場合は、LN端点、STOP、
-SCROLL/SPEED、CONSTANT、PMS見逃し表示、pause/seek/retryを含めた検証を別途行う。
+この測定時点ではsnapshot ageが120FPSで約7ms、240FPSで約2.8ms残っており、
+snapshotの時刻に固定されたノーツ位置には別の周期の揺れが残っていた。
+この表はCPU待機処理の比較であり、gameplay分離前の `e974998e` に対する
+ノーツの滑らかさの改善を示すものではない。
+
+## 描画時刻でのノーツ投影
+
+ノーツ位置は最新のimmutableな描画用状態から、consumerのAudioClock時刻で計算する。
+gameplayの公開周期やrendererとの位相差に座標更新周期を固定しない。
+描画時刻の単調性はconsumer内で保持し、seek/retryの新しいgenerationでリセットする。
+FPS制限、present mode、gameplay wake、判定・音声の処理はこの変更の対象外。
+
+自動テストは120/240FPS、5種類の公開位相、0/16/33/100/250msの描画停止を組み合わせ、
+等速区間の座標と移動量を数式に照合する。さらに、公開データを受け取れないconsumer、
+新たに可視範囲へ入るノーツ・Mine・LN、STOP、BPM/SCROLL/SPEED、CONSTANT、
+PMS/retention、LN/CN/HCN状態、表示offsetの変更とclock resetを検証する。
+既存のruntimeテストは、描画停止の有無で判定・replay・score・audio schedulingが
+従来のsession advanceと一致することを引き続き確認する。
+
+### 投影変更の実測
+
+`604ff9d2` と `301c6b79` のrelease buildを、同じ
+`target/release/bmz-player.exe` パスで比較した。Windows / RTX 5090 / DX12 / 4K Native /
+borderless / Immediate / frame latency 1、同梱sample・default skin・autoplay。
+各runでPresentMonを併用し、Playのsnapshot sampleの先頭・末尾1秒を除外した約13秒を集計。
+
+| FPS制限 | 描画間隔と投影時刻差のずれ p99 前→後 | 理想周期と投影時刻差のずれ p99 前→後 |
+|---|---:|---:|
+| 120 | 2091 → 203 us | 1990 → 420 us |
+| 240 | 2147 → 182 us | 2114 → 474 us |
+
+前者は `abs(snapshot時刻の差分 - CPU描画開始間隔)`、後者は
+`abs(snapshot時刻の差分 - 1/FPS)`。描画開始とclock取得は異なる位置なので、前者にも
+描画開始後のCPU処理時間の揺れが含まれる。修正後のpublication ageは平均約7.17ms / 2.85ms
+だが、ノーツ座標の時刻にはその遅れを持ち込まない。判定状態を先読みするものではない。
+この計測はCPU側の描画時刻の追従を示すもので、GPU/presentや物理scanoutのstall解消を
+示すものではない。
+
+同じDX12/4K条件のECFNスキンでも、VSync（実効Fifo）とFastVSync（実効Mailbox）の
+Unlimited設定でsample autoplayをResultまで実行した。5秒ごとの集計では投影後ageと
+同一時刻の繰り返しはいずれも0だった。FPS半減の調査はこの修正の対象外。
 判定・replay仕様を変えて描画の不連続を隠さない。
 
 Vulkanでも同条件の最終ビルドを計測し、描画間隔の誤差は120FPSでavg 30us / p99 405us、

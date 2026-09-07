@@ -378,3 +378,37 @@ fn autoplay_and_replay_are_invariant_to_render_stalls() {
         }
     }
 }
+
+#[test]
+fn renderer_projects_cached_publication_when_exchange_is_unavailable() {
+    for fps in [120, 240] {
+        let mut session = prepared(SharedInputBackend::default());
+        session.hispeed = 1.0;
+        session.offsets.visual_offset_us = 0;
+        let audio = AudioEngineHandle::new(AudioEngine::new(1_000_000));
+        let config = config(&session, Arc::new(RuntimeProbe::default()));
+        let mut client = GameplayClient::new(session);
+        client.start(audio, config).unwrap();
+        let slot = client.worker.as_ref().unwrap().latest.clone();
+        // Keep the producer from delivering anything: poll must project its
+        // cached logical state even if it never receives another publication.
+        let guard = slot.lock().unwrap();
+        for frame in 0..=fps / 20 {
+            let now = frame as u64 * 1_000_000 / fps as u64;
+            client.session.audio_clock.current_frame.store(now, Ordering::Release);
+            let rendered = client.poll().unwrap().render_snapshot;
+            assert_eq!(rendered.time, TimeUs(now as i64));
+            let note = rendered.visible_notes[Lane::Key1.index()]
+                .iter()
+                .find(|note| note.time == TimeUs(300_000))
+                .unwrap();
+            assert!((note.y - (300_000 - now) as f32 / 2_000_000.0).abs() < 1e-6);
+        }
+        for now in [150_000, 300_000] {
+            client.session.audio_clock.current_frame.store(now, Ordering::Release);
+            assert_eq!(client.poll().unwrap().render_snapshot.time, TimeUs(now as i64));
+        }
+        drop(guard);
+        client.shutdown();
+    }
+}

@@ -62,6 +62,17 @@ immutable publication を受け取る。publication は最新の 1 件だけを�
 snapshot は consumer の要求時と最大 8ms 間隔で生成し、入力のない safety wake ごとの
 snapshot allocation を避ける。score と result graph は snapshot の生成頻度から独立して記録する。
 
+ノーツ座標は gameplay thread では確定しない。publication に付随する `PlayfieldProjection`
+は譜面・TimingMap・scroll cache と、判定済みノーツ・LN/HCN状態・表示オプションの
+読み取り専用コピーを持つ。chart-sized の判定mapを事前確保した3つのArcバッファを再利用し、
+consumerが参照していないバッファだけを更新する。GameSessionや判定engineは渡さない。
+
+consumerは取得したAudioClockの現在時刻で、ノーツ・Mine・LN端点・ガイド線・表示BPMを
+既存のスクロール計算から投影する。同じpublicationを再利用しても表示座標は進む。
+可視ノーツだけを外挿する方式ではないため、stall中に新しく可視範囲へ入ったノーツも描画できる。
+STOP、SCROLL/SPEED、CONSTANT、note retention、PMS見逃し表示の計算は準備画面と共通。
+consumerの投影はgameplayのadvance、入力判定、audio enqueueを呼ばず、交換lockの外で行う。
+
 入力・判定の presentation event は既存 sequence と game time を保持する。
 consumer が受領した sequence までを acknowledgement で破棄する。
 skin runtime は既読 sequence を再処理せず、timer はイベントの元時刻から評価する。
