@@ -240,7 +240,7 @@ impl AudioEngineHandle {
         CommandedAudioEngine {
             engine: Arc::clone(&self.engine),
             inner: Arc::clone(&self.inner),
-            command_scratch: Vec::new(),
+            command_scratch: Vec::with_capacity(self.inner.capacity),
         }
     }
 
@@ -298,7 +298,7 @@ impl AudioEngineHandle {
     }
 
     pub fn push_command(&self, command: AudioEngineCommand) -> bool {
-        self.push_commands(vec![command])
+        self.push_command_or_return(command).is_ok()
     }
 
     pub fn push_commands(&self, commands: Vec<AudioEngineCommand>) -> bool {
@@ -511,7 +511,7 @@ impl CommandedAudioEngine {
         self.command_scratch.clear();
         match self.inner.queue.try_lock() {
             Ok(mut queue) => {
-                self.command_scratch.reserve(queue.len());
+                debug_assert!(self.command_scratch.capacity() >= queue.len());
                 while let Some(command) = queue.pop_front() {
                     self.command_scratch.push(command);
                 }

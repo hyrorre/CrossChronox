@@ -79,15 +79,14 @@ impl GameplayRuntime {
 
     pub fn flush_audio(&mut self, audio: &AudioEngineHandle) {
         if !self.pending_audio.is_empty() {
-            let sounds = self.pending_audio.drain_all().collect();
-            match audio.try_schedule_all(sounds) {
-                Ok(()) => crate::session::latency::audio_enqueued(),
-                Err(sounds) => {
-                    for sound in sounds {
-                        self.pending_audio.schedule(sound);
-                    }
+            self.pending_audio.retain(|sound| {
+                if audio.schedule_sound(*sound) {
+                    crate::session::latency::audio_enqueued();
+                    false
+                } else {
+                    true
                 }
-            }
+            });
         }
         self.pending_keysound_volumes.retain(|&(id, volume)| !audio.set_sound_volume(id, volume));
     }

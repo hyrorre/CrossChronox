@@ -206,8 +206,12 @@ impl AppAudioOutput {
 }
 
 impl RunningPlaySession {
-    pub fn start_gameplay_runtime(&mut self) -> Result<()> {
+    pub fn start_gameplay_runtime(
+        &mut self,
+        effects: Option<crate::system_sound_manager::GameplaySoundOutput>,
+    ) -> Result<()> {
         let config = RuntimeRenderConfig {
+            effects,
             best_ex_score: self.best_ex_score,
             best_ghost: self.best_ghost.clone(),
             target_ex_score: self.target_ex_score,

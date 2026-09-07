@@ -104,9 +104,35 @@ pub struct SystemSoundManager {
     bgm_normalization_gains: HashMap<SoundType, f32>,
     normalize_bgm_volume: Cell<bool>,
     normalization_analysis_enabled: bool,
+    gameplay_se_volume: std::sync::Arc<std::sync::atomic::AtomicU32>,
+}
+
+#[derive(Clone)]
+pub struct GameplaySoundOutput {
+    engine: AudioEngineHandle,
+    ids: HashMap<SoundType, SoundId>,
+    volume: std::sync::Arc<std::sync::atomic::AtomicU32>,
+}
+
+impl GameplaySoundOutput {
+    pub fn play(&self, kind: SoundType) {
+        if let Some(&id) = self.ids.get(&kind) {
+            let volume = f32::from_bits(self.volume.load(std::sync::atomic::Ordering::Relaxed));
+            self.engine.set_master_gain(1.0);
+            self.engine.play_now(id, volume, false);
+        }
+    }
 }
 
 impl SystemSoundManager {
+    pub fn gameplay_output(&self, volume: f32) -> GameplaySoundOutput {
+        self.gameplay_se_volume.store(volume.to_bits(), std::sync::atomic::Ordering::Relaxed);
+        GameplaySoundOutput {
+            engine: self.engine.clone(),
+            ids: self.id_map.clone(),
+            volume: self.gameplay_se_volume.clone(),
+        }
+    }
     /// `selection` から各 [`SoundType`] のパスを解決し、デコードして engine へ登録する。
     /// 解決失敗は info、デコード失敗は warn をサウンド単位で出してスキップする。
     pub fn new(
@@ -289,6 +315,9 @@ impl SystemSoundManager {
             bgm_normalization_gains,
             normalize_bgm_volume: Cell::new(normalize_bgm_volume),
             normalization_analysis_enabled,
+            gameplay_se_volume: std::sync::Arc::new(std::sync::atomic::AtomicU32::new(
+                1.0f32.to_bits(),
+            )),
         }
     }
 
@@ -368,6 +397,8 @@ impl SystemSoundManager {
 
     /// 登録済み sound の再生待ち/再生中音量を、SoundType ごとの最新設定で更新する。
     pub fn refresh_volumes(&self, mut volume_for: impl FnMut(SoundType) -> f32) {
+        self.gameplay_se_volume
+            .store(volume_for(SoundType::Landmine).to_bits(), std::sync::atomic::Ordering::Relaxed);
         let mut updates = Vec::new();
         {
             let last_volumes = self.last_volumes.borrow();

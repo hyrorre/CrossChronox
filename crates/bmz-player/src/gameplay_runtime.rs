@@ -31,6 +31,7 @@ const PRESENTATION_HISTORY_CAPACITY: usize = 8192;
 const SAFETY_WAKE: Duration = Duration::from_millis(2);
 
 pub struct RuntimeRenderConfig {
+    pub effects: Option<crate::system_sound_manager::GameplaySoundOutput>,
     pub best_ex_score: Option<u32>,
     pub best_ghost: Option<Vec<u8>>,
     pub target_ex_score: Option<u32>,
@@ -225,7 +226,25 @@ fn run(
         if stop.load(Ordering::Acquire) {
             break;
         }
+        let previous_state = runtime.session.state;
         let frame = runtime.advance(&audio);
+        if let Some(effects) = &config.effects {
+            if runtime.session.guide_se_enabled {
+                for event in &frame.judgements {
+                    effects.play(crate::system_sound::guide_se_for_judge(event.judge));
+                }
+            }
+            let mix = runtime.session.audio_mix;
+            if (!mix.auto_keysound || mix.auto_keysound_mine)
+                && frame.mine_hits.iter().any(|hit| hit.sound.is_none())
+            {
+                effects.play(crate::system_sound::SoundType::Landmine);
+            }
+            if previous_state != PlayState::Failed && frame.state == PlayState::Failed {
+                effects.play(crate::system_sound::SoundType::PlayStop);
+            }
+        }
+        crate::screens::play_loop::log_audio_scheduling_latency(&audio);
         let mut frame = crate::screens::play_loop::frame_output_from_session_frame_cached(
             &runtime.session,
             frame,

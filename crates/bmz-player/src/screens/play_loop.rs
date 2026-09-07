@@ -270,7 +270,7 @@ fn flush_scheduled_audio_commands(
     }
 }
 
-fn log_audio_scheduling_latency(audio: &AudioEngineHandle) {
+pub(crate) fn log_audio_scheduling_latency(audio: &AudioEngineHandle) {
     if !tracing::enabled!(tracing::Level::DEBUG) {
         return;
     }
@@ -351,7 +351,6 @@ fn flush_keysound_volumes_commands(
 pub fn advance_running_play_session(
     running: &mut RunningPlaySession,
 ) -> Result<FrameOutput<RenderSnapshot>> {
-    log_audio_scheduling_latency(&running.audio.engine);
     running.gameplay.poll().ok_or_else(|| anyhow!("gameplay runtime has no published frame"))
 }
 
