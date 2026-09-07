@@ -518,6 +518,17 @@ fn chart_normalization_analysis_roundtrips_and_rescan_clears_it() {
     assert_eq!(stored.short_term_lufs, -8.0);
     assert_eq!(stored.sample_peak, 0.75);
 
+    db.conn().execute(
+        "UPDATE chart_analysis SET loudness_analysis_version = 2, sample_peak = 6405.997 WHERE chart_id = ?1",
+        params![chart_id],
+    ).unwrap();
+    assert!(db.chart_normalization_analysis_by_chart_id(chart_id).unwrap().is_none());
+    db.write_chart_normalization_analysis(chart_id, stored).unwrap();
+    assert_eq!(
+        db.chart_normalization_analysis_by_chart_id(chart_id).unwrap().unwrap().sample_peak,
+        0.75
+    );
+
     db.upsert_chart_import(&record_for_chart("/songs/normalization.bms", &chart)).unwrap();
     assert!(db.chart_normalization_analysis_by_chart_id(chart_id).unwrap().is_none());
 }

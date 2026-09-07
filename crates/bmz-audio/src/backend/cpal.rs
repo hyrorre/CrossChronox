@@ -232,6 +232,20 @@ pub enum CpalBackendError {
 mod tests {
     use super::*;
 
+    #[test]
+    fn output_boundary_removes_non_finite_and_clips_extreme_pcm() {
+        let input = [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, 6405.997, -6405.997, 0.25];
+        let mut output = [0.0f32; 6];
+        write_interleaved_output(
+            &mut output,
+            2,
+            0,
+            &input,
+            &CpalOutputDiagnosticsCounters::default(),
+        );
+        assert_eq!(output, [0.0, 0.0, 0.0, 1.0, -1.0, 0.25]);
+    }
+
     #[cfg(windows)]
     #[test]
     #[ignore = "requires a Windows 10+ output device with IAudioClient3 low-period support"]

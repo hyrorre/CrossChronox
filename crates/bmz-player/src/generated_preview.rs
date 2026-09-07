@@ -14,7 +14,7 @@ use bmz_chart::volume::{chart_channel_volume_factor, chart_volume_at_time};
 
 use crate::storage::library_db::{ChartDistributionSecond, LibraryDatabase};
 
-pub const GENERATED_PREVIEW_VERSION: u32 = 3;
+pub const GENERATED_PREVIEW_VERSION: u32 = 4;
 pub const GENERATED_PREVIEW_DURATION_MS: i64 = 18_000;
 
 const GENERATED_PREVIEW_KEY_PREFIX: &str = "generated-preview";
@@ -530,6 +530,7 @@ mod tests {
             Some(GeneratedPreviewKey { chart_id: 42, start_ms: 15_000 })
         );
         assert_eq!(parse_generated_preview_cache_key("folder|preview.ogg"), None);
+        assert_eq!(parse_generated_preview_cache_key("generated-preview|3|42|15000"), None);
     }
 
     #[test]

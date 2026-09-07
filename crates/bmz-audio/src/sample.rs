@@ -3,6 +3,15 @@ use std::sync::Arc;
 
 use bmz_core::ids::SoundId;
 
+/// Generous per-source headroom (+18 dBFS), not a clipping ceiling for a mix.
+/// Vorbis overshoot above unity is valid; values beyond this are treated as
+/// corrupt PCM. Do not apply this threshold to the sum of layered voices.
+pub const MAX_PCM_AMPLITUDE: f32 = 8.0;
+
+pub(crate) fn safe_pcm(value: f32) -> f32 {
+    if value.is_finite() && value.abs() <= MAX_PCM_AMPLITUDE { value } else { 0.0 }
+}
+
 #[derive(Debug, Clone)]
 pub struct DecodedSample {
     pub channels: u16,
@@ -67,7 +76,7 @@ impl SampleRegion {
             1 => {
                 let source = &self.source.frames[absolute_start..absolute_start + mixed_frames];
                 for (output, sample) in output.chunks_exact_mut(2).zip(source) {
-                    let sample = *sample * gain;
+                    let sample = safe_pcm(*sample) * gain;
                     output[0] += sample;
                     output[1] += sample;
                 }
@@ -77,8 +86,8 @@ impl SampleRegion {
                 let source_start = absolute_start * 2;
                 let source = &self.source.frames[source_start..source_start + mixed_frames * 2];
                 for (output, source) in output.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
-                    output[0] += source[0] * gain;
-                    output[1] += source[1] * gain;
+                    output[0] += safe_pcm(source[0]) * gain;
+                    output[1] += safe_pcm(source[1]) * gain;
                 }
                 mixed_frames
             }
@@ -86,8 +95,8 @@ impl SampleRegion {
                 let channels = channels as usize;
                 for (frame, output) in output.chunks_exact_mut(2).take(mixed_frames).enumerate() {
                     let source = (absolute_start + frame) * channels;
-                    output[0] += self.source.frames[source] * gain;
-                    output[1] += self.source.frames[source + 1] * gain;
+                    output[0] += safe_pcm(self.source.frames[source]) * gain;
+                    output[1] += safe_pcm(self.source.frames[source + 1]) * gain;
                 }
                 mixed_frames
             }
@@ -202,6 +211,31 @@ fn scale_region_boundary(boundary: usize, old_frame_count: usize, new_frame_coun
 }
 
 impl DecodedSample {
+    /// Repair before gain/resampling so invalid values cannot spread to neighbors.
+    /// One diagnostic per decode, never one per PCM value.
+    pub(crate) fn sanitize_pcm(&mut self, path: &std::path::Path) {
+        let mut replaced = 0usize;
+        let mut peak = 0.0f32;
+        let mut non_finite = 0usize;
+        for value in &mut self.frames {
+            if value.is_finite() {
+                peak = peak.max(value.abs());
+            } else {
+                non_finite += 1;
+            }
+            let safe = safe_pcm(*value);
+            if !value.is_finite() || *value != safe {
+                replaced += 1;
+                *value = safe;
+            }
+        }
+        if replaced != 0 {
+            tracing::warn!(path = %path.display(), peak, replaced, non_finite,
+                threshold = MAX_PCM_AMPLITUDE, action = "replace with silence",
+                "abnormal decoded PCM amplitude");
+        }
+    }
+
     pub fn frame_count(&self) -> usize {
         if self.channels == 0 { 0 } else { self.frames.len() / self.channels as usize }
     }
@@ -210,14 +244,14 @@ impl DecodedSample {
         match self.channels {
             0 => (0.0, 0.0),
             1 => {
-                let value = self.frames.get(frame).copied().unwrap_or(0.0);
+                let value = safe_pcm(self.frames.get(frame).copied().unwrap_or(0.0));
                 (value, value)
             }
             _ => {
                 let index = frame * self.channels as usize;
                 (
-                    self.frames.get(index).copied().unwrap_or(0.0),
-                    self.frames.get(index + 1).copied().unwrap_or(0.0),
+                    safe_pcm(self.frames.get(index).copied().unwrap_or(0.0)),
+                    safe_pcm(self.frames.get(index + 1).copied().unwrap_or(0.0)),
                 )
             }
         }
@@ -271,8 +305,8 @@ impl DecodedSample {
             let base = idx * channels;
             let next = base + channels;
             for c in 0..channels {
-                let a = self.frames.get(base + c).copied().unwrap_or(0.0);
-                let b = self.frames.get(next + c).copied().unwrap_or(a);
+                let a = safe_pcm(self.frames.get(base + c).copied().unwrap_or(0.0));
+                let b = safe_pcm(self.frames.get(next + c).copied().unwrap_or(a));
                 frames.push(a + (b - a) * frac);
             }
         }
@@ -287,6 +321,27 @@ fn lerp(a: f32, b: f32, t: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pcm_safety_preserves_headroom_and_replaces_only_outliers() {
+        let mut sample = DecodedSample {
+            channels: 1,
+            sample_rate: 48_000,
+            frames: vec![
+                1.1,
+                -1.2,
+                1.36,
+                8.0,
+                -8.0,
+                6405.997,
+                f32::NAN,
+                f32::INFINITY,
+                f32::NEG_INFINITY,
+            ],
+        };
+        sample.sanitize_pcm(std::path::Path::new("fixture.ogg"));
+        assert_eq!(sample.frames, vec![1.1, -1.2, 1.36, 8.0, -8.0, 0.0, 0.0, 0.0, 0.0]);
+    }
 
     #[test]
     fn sample_bank_returns_inserted_sample() {

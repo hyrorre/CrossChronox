@@ -38,8 +38,10 @@ impl SampleLoader for FfmpegSampleLoader {
         if let Err(message) = bmz_ffmpeg::ensure_init() {
             return Err(decode_error(path, message));
         }
-        decode_audio(path, self.packet_yield_interval)
-            .map_err(|message| decode_error(path, message))
+        let mut sample = decode_audio(path, self.packet_yield_interval)
+            .map_err(|message| decode_error(path, message))?;
+        sample.sanitize_pcm(path);
+        Ok(sample)
     }
 
     fn duration_ms_hint(&mut self, path: &Path) -> Option<i64> {
@@ -361,9 +363,11 @@ mod tests {
             bytes.push(0);
         }
 
+        static NEXT_FILE: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
         let path = std::env::temp_dir().join(format!(
-            "bmz-ffmpeg-loader-{}-{}.wav",
+            "bmz-ffmpeg-loader-{}-{}-{}.wav",
             std::process::id(),
+            NEXT_FILE.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
         ));
         std::fs::write(&path, bytes).unwrap();
@@ -388,6 +392,112 @@ mod tests {
 
         // L/R が交互に並んだインターリーブになっていること（右が 0.0 に潰れていない）。
         assert_eq!(frames, vec![0.1, -0.1, 0.2, -0.2, 0.3, -0.3]);
+    }
+
+    /// Opt-in real-asset regression; copyrighted BMS assets stay outside the repo.
+    #[test]
+    #[ignore = "set BMZ_PCM_REGRESSION_CHART to a The Formula BMS path"]
+    fn formula_pcm_regression() {
+        use crate::engine::AudioEngine;
+        use crate::loader::{LoadedSampleStatus, load_chart_samples};
+        use crate::loudness::{analyze_chart_loudness, play_normalization_gain_for_analysis};
+        use crate::queue::ScheduledSound;
+
+        let path = std::path::PathBuf::from(std::env::var_os("BMZ_PCM_REGRESSION_CHART").unwrap());
+        let source = path.parent().unwrap().join("bassl - Marker #8.ogg");
+        bmz_ffmpeg::ensure_init().unwrap();
+        let raw = decode_audio(&source, None).unwrap();
+        let raw_peak = raw.frames.iter().fold(0.0f32, |peak, v| peak.max(v.abs()));
+        assert!(raw_peak > 1_000.0, "fixture must reproduce corrupt PCM: {raw_peak}");
+        let repaired = FfmpegSampleLoader::default().load(&source).unwrap();
+        let repaired_peak = repaired.frames.iter().fold(0.0f32, |peak, v| peak.max(v.abs()));
+        let replaced = raw.frames.iter().zip(&repaired.frames).filter(|(a, b)| a != b).count();
+        assert!(replaced > 0);
+        assert!(
+            repaired
+                .frames
+                .iter()
+                .all(|v| v.is_finite() && v.abs() <= crate::sample::MAX_PCM_AMPLITUDE)
+        );
+        assert_eq!(raw.frames.len(), repaired.frames.len());
+        for (&raw, &safe) in raw.frames.iter().zip(&repaired.frames) {
+            if raw.is_finite() && raw.abs() <= crate::sample::MAX_PCM_AMPLITUDE {
+                assert_eq!(raw, safe);
+            }
+        }
+
+        let chart = bmz_chart::import::import_chart(&path, Some(0), false).unwrap().chart;
+        let asset = chart
+            .sounds
+            .iter()
+            .find(|s| s.path.file_name().unwrap() == "bassl - Marker #8.wav")
+            .unwrap();
+        assert!(
+            chart.bgm_events.iter().any(|e| e.sound == asset.id)
+                || chart
+                    .lane_notes
+                    .iter()
+                    .flatten()
+                    .any(|n| n.sound == Some(asset.id) || n.layered_sounds.contains(&asset.id))
+        );
+        let mut engine = AudioEngine::new(48_000);
+        let reports = load_chart_samples(&mut engine, &chart, &mut FfmpegSampleLoader::default());
+        assert!(
+            reports
+                .iter()
+                .any(|r| r.path == source && matches!(r.status, LoadedSampleStatus::Loaded))
+        );
+        assert!(
+            reports.iter().all(|r| matches!(r.status, LoadedSampleStatus::Loaded)),
+            "failed loads: {:?}",
+            reports
+                .iter()
+                .filter(|r| !matches!(r.status, LoadedSampleStatus::Loaded))
+                .collect::<Vec<_>>()
+        );
+        let analysis = analyze_chart_loudness(&chart, &engine.samples, 48_000).unwrap();
+        let gain = play_normalization_gain_for_analysis(analysis);
+        assert!((0.03..=1.0).contains(&gain), "gain must remain above -30.46 dB: {gain}");
+        let mut events = Vec::new();
+        for event in &chart.bgm_events {
+            events.push((event.time, event.sound));
+        }
+        for note in chart.lane_notes.iter().flatten() {
+            if let Some(sound) = note.sound {
+                events.push((note.time, sound));
+            }
+            for &sound in &note.layered_sounds {
+                events.push((note.time, sound));
+            }
+        }
+        for volume in [1.0, gain] {
+            let mut playback = AudioEngine::new(48_000);
+            playback.samples = engine.samples.clone();
+            playback.schedule_all(events.iter().map(|(time, sound)| {
+                ScheduledSound::one_shot(
+                    (time.0.max(0) as u64 * 48_000) / 1_000_000,
+                    *sound,
+                    volume,
+                    0.0,
+                )
+            }));
+            let mut output = vec![0.0; 4096];
+            let mut energy = 0.0f64;
+            let end = (chart.end_time.0.max(0) as u64 * 48_000) / 1_000_000 + 48_000;
+            for start in (0..end).step_by(2048) {
+                playback.render_stereo(start, &mut output);
+                assert!(output.iter().all(|v| v.is_finite() && v.abs() < 100.0));
+                energy += output.iter().map(|v| f64::from(*v).powi(2)).sum::<f64>();
+            }
+            let rms = (energy / (end * 2) as f64).sqrt();
+            assert!(rms > 0.005, "rendered chart must be audible: rms={rms}");
+            eprintln!("render volume={volume:.6} rms={rms:.6}");
+        }
+        eprintln!(
+            "raw_peak={raw_peak} repaired_peak={repaired_peak} replaced={replaced} loaded={} analysis={analysis:?} gain={gain} gain_db={}",
+            reports.len(),
+            20.0 * gain.log10()
+        );
     }
 
     #[test]

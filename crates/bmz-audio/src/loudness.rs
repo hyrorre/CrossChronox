@@ -76,6 +76,8 @@ impl LoudnessAccumulator {
             self.valid = false;
             return;
         }
+        // Source PCM is sanitized before summing. Keep the absolute maximum of
+        // the mix: legitimate simultaneous voices must still trigger protection.
         self.peak_abs = self.peak_abs.max(left.abs()).max(right.abs());
         let left = f64::from(left);
         let right = f64::from(right);
@@ -514,7 +516,7 @@ mod tests {
     }
 
     #[test]
-    fn preview_analysis_rejects_empty_silent_and_non_finite_audio() {
+    fn preview_analysis_rejects_silence_and_repairs_non_finite_audio() {
         let empty = DecodedSample { channels: 2, sample_rate: 48_000, frames: Vec::new() };
         let silent = DecodedSample { channels: 2, sample_rate: 48_000, frames: vec![0.0; 200] };
         let nan = DecodedSample { channels: 2, sample_rate: 48_000, frames: vec![0.1, f32::NAN] };
@@ -523,8 +525,76 @@ mod tests {
 
         assert_eq!(analyze_preview_loudness(&empty), None);
         assert_eq!(analyze_preview_loudness(&silent), None);
-        assert_eq!(analyze_preview_loudness(&nan), None);
-        assert_eq!(analyze_preview_loudness(&infinite), None);
+        assert_eq!(analyze_preview_loudness(&nan).unwrap().peak_abs, 0.1);
+        assert_eq!(analyze_preview_loudness(&infinite).unwrap().peak_abs, 0.1);
+    }
+
+    #[test]
+    fn corrupt_pcm_does_not_attenuate_the_entire_chart() {
+        for channels in [1, 2, 3] {
+            for offset in [0, 500] {
+                let mut frames = vec![0.2; 1_000 * channels as usize];
+                frames[offset..offset + 4].copy_from_slice(&[
+                    6405.997,
+                    f32::NAN,
+                    f32::INFINITY,
+                    f32::NEG_INFINITY,
+                ]);
+                let sample = DecodedSample { channels, sample_rate: 1_000, frames };
+                let direct = analyze_decoded_loudness(&sample).unwrap();
+                assert_eq!(direct.peak_abs, 0.2);
+                let mut bank = SampleBank::default();
+                bank.insert(SoundId(1), sample);
+                let mut chart = chart();
+                chart.bgm_events.push(SoundEvent {
+                    tick: ChartTick(0),
+                    time: TimeUs(0),
+                    sound: SoundId(1),
+                });
+                let analysis = analyze_chart_loudness(&chart, &bank, 1_000).unwrap();
+                assert_eq!(analysis.peak_abs, 0.2);
+                // This quiet fixture needs no attenuation, including at full output gain.
+                assert_eq!(play_normalization_gain_for_analysis(analysis), 1.0);
+                let mut engine = crate::engine::AudioEngine::new(1_000);
+                engine.samples = bank;
+                engine.schedule_all([crate::queue::ScheduledSound::one_shot(
+                    0,
+                    SoundId(1),
+                    1.0,
+                    0.0,
+                )]);
+                let mut output = vec![0.0; 2_000];
+                engine.render_stereo(0, &mut output);
+                assert!(output.iter().all(|v| v.is_finite() && v.abs() <= 0.2));
+            }
+        }
+    }
+
+    #[test]
+    fn normal_overshoot_and_layered_peaks_remain_protected() {
+        let mut sample =
+            DecodedSample { channels: 1, sample_rate: 1_000, frames: vec![0.1; 1_000] };
+        sample.frames[..3].copy_from_slice(&[1.1, -1.2, 1.36]);
+        let analysis = analyze_decoded_loudness(&sample).unwrap();
+        assert_eq!(analysis.peak_abs, 1.36);
+        let ceiling = 10.0f32.powf(-1.0 / 20.0);
+        assert!((play_normalization_gain_for_analysis(analysis) - ceiling / 1.36).abs() < 1e-6);
+        let mut bank = SampleBank::default();
+        bank.insert(SoundId(1), sample);
+        let mut chart = chart();
+        for _ in 0..10 {
+            chart.bgm_events.push(SoundEvent {
+                tick: ChartTick(0),
+                time: TimeUs(0),
+                sound: SoundId(1),
+            });
+        }
+        let analysis = analyze_chart_loudness(&chart, &bank, 1_000).unwrap();
+        assert!((analysis.peak_abs - 13.6).abs() < 1e-5);
+        assert!(
+            (play_normalization_gain_for_analysis(analysis) * analysis.peak_abs - ceiling).abs()
+                < 1e-5
+        );
     }
 
     #[test]

@@ -36,7 +36,8 @@ pub(crate) fn library_path_key(path: &Path) -> String {
 }
 
 pub const CHART_IMPORT_VERSION: i64 = 8;
-pub const CHART_LOUDNESS_ANALYSIS_VERSION: i64 = 2;
+// v3 removes corrupt decoded PCM before peak and energy analysis.
+pub const CHART_LOUDNESS_ANALYSIS_VERSION: i64 = 3;
 const MAX_ANALYSIS_DISTRIBUTION_SECONDS: usize = 10 * 60;
 
 pub struct LibraryDatabase {

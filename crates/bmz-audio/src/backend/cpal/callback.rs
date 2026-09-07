@@ -444,7 +444,7 @@ pub(super) fn write_interleaved_output<T: OutputSample>(
         if channels == 1 {
             let mono = (left + right) * 0.5;
             observe_output_sample(mono, &mut clipped, &mut peak_abs);
-            frame[0] = T::from_f32(mono);
+            frame[0] = T::from_f32(safe_output_sample(mono));
             continue;
         }
         // 対象ペア以外は無音にして、選択チャンネルへ L/R を書く。
@@ -453,13 +453,18 @@ pub(super) fn write_interleaved_output<T: OutputSample>(
         }
         observe_output_sample(left, &mut clipped, &mut peak_abs);
         observe_output_sample(right, &mut clipped, &mut peak_abs);
-        frame[left_channel] = T::from_f32(left);
-        frame[left_channel + 1] = T::from_f32(right);
+        frame[left_channel] = T::from_f32(safe_output_sample(left));
+        frame[left_channel + 1] = T::from_f32(safe_output_sample(right));
     }
     diagnostics.observe_output_peak(peak_abs);
     if clipped != 0 {
         diagnostics.clipped_sample_count.fetch_add(clipped, Ordering::Relaxed);
     }
+}
+
+fn safe_output_sample(value: f32) -> f32 {
+    // Device boundary only: preserve float headroom throughout decode/analysis/mix.
+    if value.is_finite() { value.clamp(-1.0, 1.0) } else { 0.0 }
 }
 
 pub(super) fn observe_output_sample(value: f32, clipped: &mut u64, peak_abs: &mut f32) {

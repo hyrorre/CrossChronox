@@ -40,7 +40,9 @@ impl SampleLoader for WavSampleLoader {
     fn load(&mut self, path: &Path) -> Result<DecodedSample, SampleLoadError> {
         let bytes = std::fs::read(path)
             .map_err(|source| SampleLoadError::Io { path: path.to_path_buf(), source })?;
-        decode_wav(path, &bytes)
+        let mut sample = decode_wav(path, &bytes)?;
+        sample.sanitize_pcm(path);
+        Ok(sample)
     }
 }
 
@@ -138,6 +140,8 @@ fn load_asset(
             },
             Entry::Vacant(entry) => match loader.load(path) {
                 Ok(mut sample) => {
+                    // Also protects custom SampleLoader implementations.
+                    sample.sanitize_pcm(path);
                     // 同一pathの VOLWAV 適用・出力レート化は最初の1回だけ行う。
                     sample.apply_gain(volwav);
                     let sample = if sample.sample_rate == engine.output_sample_rate() {
@@ -425,7 +429,7 @@ mod tests {
             DecodedSample {
                 channels: 1,
                 sample_rate: 10,
-                frames: (0..10).map(|value| value as f32).collect(),
+                frames: (0..10).map(|value| value as f32 / 10.0).collect(),
             },
         );
 
@@ -434,14 +438,14 @@ mod tests {
         assert_eq!(loader.attempts, vec![path]);
         let first = engine.samples.get(SoundId(1)).unwrap();
         assert_eq!(first.frame_count(), 14_400);
-        assert!((first.sample_stereo(0).0 - 2.0).abs() < 0.001);
-        assert!(first.sample_stereo(first.frame_count() - 1).0 > 4.99);
-        assert!(first.sample_stereo(first.frame_count() - 1).0 < 5.0);
+        assert!((first.sample_stereo(0).0 - 0.2).abs() < 0.001);
+        assert!(first.sample_stereo(first.frame_count() - 1).0 > 0.499);
+        assert!(first.sample_stereo(first.frame_count() - 1).0 < 0.5);
 
         let second = engine.samples.get(SoundId(2)).unwrap();
         assert_eq!(second.frame_count(), 24_000);
-        assert!((second.sample_stereo(0).0 - 5.0).abs() < 0.001);
-        assert!((second.sample_stereo(second.frame_count() - 1).0 - 9.0).abs() < 0.001);
+        assert!((second.sample_stereo(0).0 - 0.5).abs() < 0.001);
+        assert!((second.sample_stereo(second.frame_count() - 1).0 - 0.9).abs() < 0.001);
         assert!(first.shares_source_with(second));
         std::fs::remove_dir_all(dir).unwrap();
     }
@@ -506,7 +510,7 @@ mod tests {
             DecodedSample {
                 channels: 1,
                 sample_rate: 1_000,
-                frames: (0..2_000).map(|value| value as f32).collect(),
+                frames: (0..2_000).map(|value| value as f32 / 2_000.0).collect(),
             },
         );
 
@@ -522,7 +526,7 @@ mod tests {
         assert_eq!(first.frame_count(), 1);
         assert_eq!(last.frame_count(), 1);
         assert_eq!(first.sample_stereo(0), (0.0, 0.0));
-        assert_eq!(last.sample_stereo(0), (1_999.0, 1_999.0));
+        assert_eq!(last.sample_stereo(0), (0.9995, 0.9995));
         std::fs::remove_dir_all(dir).unwrap();
     }
 
@@ -578,6 +582,24 @@ mod tests {
         assert_eq!(sound_asset_candidates(&requested), vec![flac, ogg, mp3]);
 
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn float_wav_loaders_repair_pcm_before_resampling() {
+        let values = [1.36f32, 6405.997, f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -1.2];
+        let data = values.into_iter().flat_map(f32::to_le_bytes).collect::<Vec<_>>();
+        let path =
+            write_temp_wav(&[wav_header(3, 1, 24_000, 32, data.len() as u32).as_slice(), &data]);
+        for mut loader in [
+            Box::new(WavSampleLoader) as Box<dyn SampleLoader>,
+            Box::new(crate::ffmpeg_loader::FfmpegSampleLoader::default()),
+        ] {
+            let sample = loader.load(&path).unwrap();
+            assert_eq!(sample.frames, [1.36, 0.0, 0.0, 0.0, 0.0, -1.2]);
+            let resampled = sample.resampled_to(48_000);
+            assert!(resampled.frames.iter().all(|v| v.is_finite() && v.abs() <= 1.36));
+        }
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]
