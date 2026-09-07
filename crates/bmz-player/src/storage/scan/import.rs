@@ -29,6 +29,7 @@ pub fn scan_song_roots_with_progress(
         entries: Vec<ChartFileEntry>,
         discovery_complete: bool,
         root_readable: bool,
+        recursive: bool,
     }
 
     struct FileTodo {
@@ -113,6 +114,7 @@ pub fn scan_song_roots_with_progress(
             entries: discovery.entries,
             discovery_complete: discovery.complete,
             root_readable: discovery.root_readable,
+            recursive: root.recursive,
         });
     }
     on_progress(ScanProgress { done: 0, total: files_total });
@@ -289,6 +291,7 @@ pub fn scan_song_roots_with_progress(
         );
 
         if root.discovery_complete {
+            db.prune_missing_chart_files(root_path, root.recursive)?;
             db.update_root_scanned_at(root.root_id, scanned_at)?;
         } else {
             tracing::warn!(

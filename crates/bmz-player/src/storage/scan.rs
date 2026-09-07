@@ -143,6 +143,44 @@ mod tests {
     }
 
     #[test]
+    fn rescan_prunes_deleted_duplicate_and_preserves_unchanged_copy() {
+        let root = make_temp_dir("scan-deleted-duplicate");
+        let old = root.join("old");
+        std::fs::create_dir_all(&old).unwrap();
+        let contents = "#TITLE Duplicate\n#BPM 120\n#00011:01\n";
+        write_file(&root.join("keep.bms"), contents);
+        write_file(&old.join("removed.bms"), contents);
+        let mut conn = Connection::open_in_memory().unwrap();
+        configure_connection(&conn).unwrap();
+        run_migrations(&mut conn, LIBRARY_MIGRATIONS).unwrap();
+        let mut db = LibraryDatabase::from_connection(conn);
+        let roots = vec![PathEntry {
+            path: root.to_string_lossy().into_owned(),
+            enabled: true,
+            recursive: true,
+        }];
+        scan_song_roots(&mut db, &roots, &scan_config(), 1, false).unwrap();
+        assert_eq!(db.list_charts(10, 0).unwrap().len(), 2);
+        std::fs::remove_file(old.join("removed.bms")).unwrap();
+        // A shallow scan must not prune descendants, even when their files are missing.
+        let shallow = vec![PathEntry { recursive: false, ..roots[0].clone() }];
+        scan_song_roots(&mut db, &shallow, &scan_config(), 2, false).unwrap();
+        assert_eq!(db.list_charts(10, 0).unwrap().len(), 2);
+        let report = scan_song_roots(&mut db, &roots, &scan_config(), 3, false).unwrap();
+        assert_eq!(report.summary.skipped, 1);
+        let charts = db.list_charts(10, 0).unwrap();
+        assert_eq!(charts.len(), 1);
+        assert_eq!(
+            db.primary_chart_file_path(charts[0].chart_id).unwrap(),
+            Some(library_path_key(&root.join("keep.bms")))
+        );
+        let count: i64 =
+            db.conn().query_row("SELECT COUNT(*) FROM chart_files", [], |row| row.get(0)).unwrap();
+        assert_eq!(count, 1);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn discover_chart_files_respects_recursion_and_hidden_files() {
         let root = make_temp_dir("discover");
         write_file(&root.join("a.bms"), "#TITLE A\n#BPM 120\n");

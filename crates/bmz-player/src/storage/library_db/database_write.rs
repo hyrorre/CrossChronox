@@ -1,6 +1,58 @@
 use super::*;
 
 impl LibraryDatabase {
+    /// Only remove confirmed missing files within a successfully scanned scope.
+    /// Do not infer deletion from timestamps: unchanged imports keep old timestamps.
+    pub fn prune_missing_chart_files(&mut self, root: &Path, recursive: bool) -> Result<()> {
+        let root = library_path_key(root);
+        let prefix = format!("{}/", root.trim_end_matches('/'));
+        let candidates = {
+            let mut stmt = self.conn.prepare("SELECT id, path FROM chart_files")?;
+            stmt.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?)))?
+                .collect::<rusqlite::Result<Vec<_>>>()?
+        };
+        let missing: Vec<_> = candidates
+            .into_iter()
+            .filter(|(_, path)| {
+                path.strip_prefix(&prefix)
+                    .is_some_and(|relative| recursive || !relative.contains('/'))
+                    && matches!(Path::new(path).try_exists(), Ok(false))
+            })
+            .collect();
+        if missing.is_empty() {
+            return Ok(());
+        }
+        let tx = self.conn.transaction()?;
+        for (file_id, _) in missing {
+            let chart_ids = {
+                let mut stmt =
+                    tx.prepare("SELECT chart_id FROM chart_file_links WHERE chart_file_id = ?1")?;
+                stmt.query_map([file_id], |row| row.get::<_, i64>(0))?
+                    .collect::<rusqlite::Result<Vec<_>>>()?
+            };
+            tx.execute("DELETE FROM chart_import_warnings WHERE chart_file_id = ?1", [file_id])?;
+            tx.execute("DELETE FROM chart_file_links WHERE chart_file_id = ?1", [file_id])?;
+            tx.execute("DELETE FROM chart_files WHERE id = ?1", [file_id])?;
+            for chart_id in chart_ids {
+                let linked: bool = tx.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM chart_file_links WHERE chart_id = ?1)",
+                    [chart_id],
+                    |row| row.get(0),
+                )?;
+                if !linked {
+                    tx.execute(
+                        "UPDATE course_entries SET chart_id = NULL WHERE chart_id = ?1",
+                        [chart_id],
+                    )?;
+                    tx.execute("DELETE FROM charts WHERE id = ?1", [chart_id])?;
+                }
+            }
+        }
+        super::super::course_db::repair_course_entry_chart_links_with_stats(&tx)?;
+        tx.commit()?;
+        Ok(())
+    }
+
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)?;
         configure_connection(&conn)?;
