@@ -492,6 +492,40 @@ async fn decode_response<T: serde::de::DeserializeOwned>(
     response.json().await.with_context(|| format!("failed to decode {label} response"))
 }
 
+#[cfg(test)]
+#[tokio::test]
+async fn collision_response_is_an_error_even_with_a_success_body() {
+    use std::io::{Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let server = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        stream.set_read_timeout(Some(std::time::Duration::from_secs(5))).unwrap();
+        let mut request = [0; 4096];
+        assert!(stream.read(&mut request).unwrap() > 0);
+        let body =
+            r#"{"accepted":true,"score_id":"old","statusMessage":"idempotency key collision"}"#;
+        write!(
+            stream,
+            "HTTP/1.1 409 Conflict\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        )
+        .unwrap();
+    });
+    let response = reqwest::Client::builder()
+        .no_proxy()
+        .build()
+        .unwrap()
+        .get(format!("http://{address}"))
+        .send()
+        .await
+        .unwrap();
+    let error = decode_response::<serde_json::Value>(response, "BMZ IR score").await.unwrap_err();
+    assert!(error.to_string().contains("409"));
+    assert!(error.to_string().contains("idempotency key collision"));
+    server.join().unwrap();
+}
+
 fn scope_query_value(scope: &IrRankingScope) -> &'static str {
     match scope {
         IrRankingScope::Global => "global",

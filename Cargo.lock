@@ -677,6 +677,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "unic-langid",
+ "uuid",
  "webbrowser",
  "windows-sys 0.61.2",
  "winit",

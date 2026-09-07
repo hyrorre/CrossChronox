@@ -57,6 +57,7 @@ sha2.workspace = true
 ed25519-dalek.workspace = true
 keyring.workspace = true
 getrandom.workspace = true
+uuid.workspace = true
 
 bmz-core = { path = "../bmz-core" }
 bmz-chart = { path = "../bmz-chart" }

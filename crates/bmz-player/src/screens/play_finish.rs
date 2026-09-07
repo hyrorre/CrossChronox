@@ -581,6 +581,14 @@ fn enqueue_ir_jobs(
     if enabled.is_empty() {
         return;
     }
+    let idempotency_key = match crate::ir::payload::new_score_idempotency_key() {
+        Ok(key) => key,
+        Err(error) => {
+            summary.ir_last_error = Some(error.to_string());
+            tracing::error!(%error, "failed to create IR submission");
+            return;
+        }
+    };
     let payload = build_score_submission(
         &snapshot.chart,
         result,
@@ -592,7 +600,7 @@ fn enqueue_ir_jobs(
             source_ln_profile,
             gauge_option: result.gauge_type.as_str().to_string(),
             device_type: stored.device_type,
-            idempotency_key: format!("bmz-score-{}", stored.score_history_id),
+            idempotency_key,
             arrange: applied_arrange.arrange,
             arrange_2p: if snapshot.replay_lane_mask {
                 crate::select_options::ArrangeOption::Normal

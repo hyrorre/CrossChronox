@@ -15,6 +15,14 @@ use super::types::{
     IrRulePayload, IrScoreSubmission,
 };
 
+/// Generate once before enqueue; retries must use the persisted payload.
+pub fn new_score_idempotency_key() -> anyhow::Result<String> {
+    let mut bytes = [0; 16];
+    getrandom::getrandom(&mut bytes)
+        .map_err(|error| anyhow::anyhow!("failed to generate IR submission UUID: {error}"))?;
+    Ok(format!("bmz-score-v2-{}", uuid::Builder::from_random_bytes(bytes).into_uuid()))
+}
+
 #[derive(Debug, Clone)]
 pub struct IrSubmissionContext {
     pub played_at: i64,

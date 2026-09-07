@@ -105,7 +105,8 @@ SHA-256 fallback でラベルを付与する。
   再送せず、所有者のdevice keyでscore IDを署名してverificationだけを更新する。
   成功履歴の保持期間外でremote score IDを失ったscoreは対象外で、将来のserver側一括
   attestation APIが必要になる。
-  同じユーザー・`idempotency_key` の再送は、保存済みscoreを副作用なしで成功として返す。
+  同じユーザー・`idempotency_key`・同じプレイ内容の再送は、保存済みscoreを副作用なしで成功として返す。
+  同じkeyで譜面・ルール・成績などが異なる場合は409 Conflictを返す。
   これは廃止済みのevidence形式でqueueに残ったjobを回復するためで、初回送信の署名・
   データ検証は従来どおり行う。
   per-history ghost は現在の `score_history` には保持していないため送らない。
@@ -787,9 +788,15 @@ ForceHcn
 は score submit response には含めず、
 `POST /api/v1/scores/{id}/replay/upload-url` で別途取得する。
 
-同じ player / `idempotency_key` の重複投稿は既存の `score_id` を返す。
-履歴の二重 insert は行わないが、現在の実装では best 更新判定は通常の投稿と
-同じ経路を通る。
+同じ player / `idempotency_key` で保存済みのプレイ内容と一致する投稿は、既存の
+`score_id` を返し、履歴・bestを変更しない。譜面SHA256、ルール、成績、判定内訳、
+プレイオプション、replay情報などが異なる場合は409 Conflictを返す。
+retryごとに変わり得るevidenceやclient version、譜面の表示用metadataは比較しない。
+旧形式のkeyも受け付けるが、衝突時は同じ409を返す。
+
+新しいプレイの送信keyは `bmz-score-v2-<UUID v4>` をenqueue前に一度だけ生成し、
+payloadに保存する。HTTP retryでは保存済みkeyを再利用する。ローカルscore IDは
+keyの一意性には使わない。既存スコアの再送や既存jobの再enqueueは行わない。
 
 ### Response: ランキングあり
 
@@ -1855,7 +1862,8 @@ CREATE TABLE ir_score_jobs (
     last_error TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
-    UNIQUE(provider, account_id, kind, local_score_id)
+    submission_key TEXT NOT NULL,
+    UNIQUE(provider, account_id, kind, submission_key)
 );
 
 CREATE INDEX idx_ir_score_jobs_status_next_attempt

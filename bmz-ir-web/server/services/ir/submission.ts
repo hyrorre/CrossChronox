@@ -1,21 +1,15 @@
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, ne, or } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import { db, schema } from 'hub:db'
 import { isUniqueConstraintError } from '../../utils/db_errors'
+import { assertIdempotentSubmission } from './idempotency'
 import type {
-  IrAppliedDoubleOption,
   IrChartLnProfile,
-  IrDeviceType,
   IrDoubleOption,
-  IrJudgeCounts,
-  IrJudges,
-  IrRanking,
-  IrRankingEntry,
   IrRankingScope,
   IrRuleMode,
   IrScoreSubmission,
-  IrScoreSourceKind,
   IrSubmitResponse,
   IrVerificationStatus,
   LnScorePolicy,
@@ -27,24 +21,16 @@ import {
   MAX_LOCAL_BACKFILL_DELETE_BATCH_SIZE,
   type BestScoreCandidate,
   type BestScoreKey,
-  type BestScoreRow,
   IrBackfillCleanupError,
   IrEvidenceValidationError,
   IrScoreNotFoundError,
   type IrRequestUser,
   type LocalBackfillDeleteResult,
-  type RankingQuery,
   type ScoreAttestationPayload,
-  type ScoreHistoryRankingRow,
-  arrangeOptionsFromPlayOptions,
   bestCandidateWins,
-  isRecord,
   judgeTotal,
-  nonEmptyString,
   normalizeDoubleOption,
-  normalizeGaugeName,
   playedAtDate,
-  requireHex,
   scoreSubmissionMetadata,
 } from './common'
 import {
@@ -105,6 +91,7 @@ export async function submitScore(
   // 保存済み score を成功として返す。初回送信の検証・保存には到達させない。
   const existing = await findIdempotentScore(user.id, payload.idempotency_key)
   if (existing) {
+    assertIdempotentSubmission(existing, user.id, payload)
     let previousBestExScore: number | null | undefined
     try {
       previousBestExScore = await fetchPreviousBestExScoreExcluding(user.id, payload, existing.id)
@@ -212,8 +199,9 @@ export async function submitScore(
     // 再送 payload で best score を再計算・上書きしない。
     const existing = await findIdempotentScore(user.id, payload.idempotency_key)
     if (!existing) {
-      throw new Error('failed to insert score')
+      throw new Error('failed to insert score', { cause: error })
     }
+    assertIdempotentSubmission(existing, user.id, payload)
     let previousBestExScore: number | null | undefined
     try {
       previousBestExScore = await fetchPreviousBestExScoreExcluding(user.id, payload, existing.id)
@@ -495,12 +483,8 @@ export function scoreHistoryKeyCondition(key: BestScoreKey) {
   )
 }
 
-export async function findIdempotentScore(
-  playerId: string,
-  idempotencyKey: string,
-): Promise<{ id: string; serverReceivedAt: Date } | undefined> {
+export async function findIdempotentScore(playerId: string, idempotencyKey: string) {
   return db.query.scores.findFirst({
-    columns: { id: true, serverReceivedAt: true },
     where: and(
       eq(schema.scores.playerId, playerId),
       eq(schema.scores.idempotencyKey, idempotencyKey),

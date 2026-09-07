@@ -26,6 +26,173 @@ fn enqueue_test_job(db: &mut NetworkDatabase, local_score_id: i64, now: i64) -> 
 }
 
 #[test]
+fn uuid_submission_survives_failure_reopen_and_local_id_reuse() {
+    let path = std::env::temp_dir()
+        .join(format!("{}.db", crate::ir::payload::new_score_idempotency_key().unwrap()));
+    crate::storage::migration::migrate_network_db(&path).unwrap();
+    let mut db = NetworkDatabase::open(&path).unwrap();
+    let key_a = crate::ir::payload::new_score_idempotency_key().unwrap();
+    let key_b = crate::ir::payload::new_score_idempotency_key().unwrap();
+    assert_ne!(key_a, key_b);
+    for key in [&key_a, &key_b] {
+        let uuid = uuid::Uuid::parse_str(key.strip_prefix("bmz-score-v2-").unwrap()).unwrap();
+        assert_eq!(uuid.get_version_num(), 4);
+    }
+    let job = NewIrScoreJob {
+        provider: "bmz".into(),
+        account_id: "player".into(),
+        kind: IrJobKind::Score,
+        local_score_id: 95,
+        chart_sha256: [7; 32],
+        ln_policy: LnScorePolicy::ForceLn,
+        payload_json: serde_json::json!({"idempotency_key": key_a, "ex_score": 1234}).to_string(),
+        now: 100,
+    };
+    let first = db.enqueue_ir_score_job(&job).unwrap();
+    assert_eq!(db.enqueue_ir_score_job(&job).unwrap(), first);
+    let claimed = db.claim_pending_ir_score_jobs(100, 10, false).unwrap();
+    assert_eq!(claimed[0].payload_json, job.payload_json);
+    db.mark_ir_score_job_failed(first, 101, "network failure", None).unwrap();
+    drop(db);
+    let mut db = NetworkDatabase::open(&path).unwrap();
+    let retry = db.claim_pending_ir_score_jobs(162, 10, false).unwrap();
+    assert_eq!(retry.len(), 1);
+    assert_eq!(retry[0].payload_json, job.payload_json);
+    let response = r#"{"accepted":true,"score_id":"old"}"#;
+    db.complete_ir_score_job(
+        &NewIrScoreSubmission {
+            job_id: first,
+            provider: job.provider.clone(),
+            account_id: job.account_id.clone(),
+            kind: job.kind,
+            local_score_id: 95,
+            remote_score_id: "old".into(),
+            status: "succeeded".into(),
+            submitted_at: 163,
+            log_path: String::new(),
+            error: String::new(),
+        },
+        None,
+        response,
+    )
+    .unwrap();
+    // A recreated score DB assigns 95 to a different play.
+    let second = db
+        .enqueue_ir_score_job(&NewIrScoreJob {
+            chart_sha256: [8; 32],
+            payload_json: serde_json::json!({"idempotency_key": key_b, "ex_score": 2776})
+                .to_string(),
+            now: 200,
+            ..job
+        })
+        .unwrap();
+    assert_ne!(first, second);
+    let current = db.ir_score_jobs_for_local_score(IrJobKind::Score, 95).unwrap();
+    assert_eq!(current.len(), 1);
+    assert_eq!(current[0].id, second);
+    assert_eq!(current[0].chart_sha256, [8; 32]);
+    assert!(
+        db.latest_ir_score_submission_response("bmz", "player", IrJobKind::Score, 95)
+            .unwrap()
+            .is_none()
+    );
+    db.mark_ir_score_job_failed(second, 201, "409 Conflict: idempotency key collision", None)
+        .unwrap();
+    assert_eq!(db.ir_score_jobs_for_local_score(IrJobKind::Score, 95).unwrap()[0].status, "failed");
+    let old_status: String = db
+        .conn()
+        .query_row("SELECT status FROM ir_score_jobs WHERE id = ?1", [first], |row| row.get(0))
+        .unwrap();
+    assert_eq!(old_status, "succeeded");
+    drop(db);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn submission_identity_migration_preserves_jobs_and_submission_history() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    configure_connection(&conn).unwrap();
+    run_migrations(&mut conn, &NETWORK_MIGRATIONS[..3]).unwrap();
+    conn.execute_batch(
+        "INSERT INTO ir_score_jobs
+        (id, provider, account_id, kind, local_score_id, chart_sha256, ln_policy, payload_json,
+         status, attempt_count, next_attempt_at, last_error, created_at, updated_at)
+        VALUES (5, 'bmz', 'player', 'score', 95, 'hash', 'ForceLn',
+                '{\"idempotency_key\":\"bmz-score-95\"}', 'failed', 3, 999, 'offline', 1, 2);
+        INSERT INTO ir_score_submissions (job_id, provider, local_score_id, status, submitted_at)
+        VALUES (5, 'bmz', 95, 'failed', 2);",
+    )
+    .unwrap();
+    run_migrations(&mut conn, NETWORK_MIGRATIONS).unwrap();
+    let row: (String, String, i64, i64) = conn.query_row(
+        "SELECT submission_key, status, attempt_count, next_attempt_at FROM ir_score_jobs WHERE id = 5",
+        [], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))).unwrap();
+    assert_eq!(row, ("bmz-score-95".into(), "failed".into(), 3, 999));
+    assert_eq!(
+        conn.query_row("SELECT job_id FROM ir_score_submissions", [], |row| row.get::<_, i64>(0))
+            .unwrap(),
+        5
+    );
+    assert!(
+        conn.prepare("PRAGMA foreign_key_check")
+            .unwrap()
+            .query([])
+            .unwrap()
+            .next()
+            .unwrap()
+            .is_none()
+    );
+    conn.execute("DELETE FROM ir_score_jobs WHERE id = 5", []).unwrap();
+    assert_eq!(
+        conn.query_row("SELECT COUNT(*) FROM ir_score_submissions", [], |row| row.get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
+
+#[test]
+fn reused_local_id_keeps_unfinished_jobs_separate_for_each_provider() {
+    let mut db = open_network_db();
+    for provider in ["bmz", "rian-ir"] {
+        let mut job = NewIrScoreJob {
+            provider: provider.into(), account_id: "player".into(), kind: IrJobKind::Score,
+            local_score_id: 95, chart_sha256: [7; 32], ln_policy: LnScorePolicy::ForceLn,
+            payload_json: serde_json::json!({"idempotency_key": crate::ir::payload::new_score_idempotency_key().unwrap()}).to_string(),
+            now: 100,
+        };
+        let first = db.enqueue_ir_score_job(&job).unwrap();
+        db.mark_ir_score_job_failed(first, 101, "offline", None).unwrap();
+        let old_payload = job.payload_json.clone();
+        job.chart_sha256 = [8; 32];
+        assert!(db.enqueue_ir_score_job(&job).is_err());
+        job.payload_json = serde_json::json!({"idempotency_key": crate::ir::payload::new_score_idempotency_key().unwrap()}).to_string();
+        let second = db.enqueue_ir_score_job(&job).unwrap();
+        assert_ne!(first, second);
+        let current = db
+            .claim_pending_ir_score_job_for_local_score(
+                provider,
+                "player",
+                IrJobKind::Score,
+                95,
+                200,
+                true,
+            )
+            .unwrap();
+        assert_eq!(current.len(), 1);
+        assert_eq!(current[0].id, second);
+        let old: (String, String) = db
+            .conn()
+            .query_row(
+                "SELECT payload_json, status FROM ir_score_jobs WHERE id = ?1",
+                [first],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(old, (old_payload, "failed".into()));
+    }
+}
+
+#[test]
 fn rival_score_cache_replaces_one_rival_snapshot() {
     let mut db = open_network_db();
     let first = IrRivalScoreRecord {

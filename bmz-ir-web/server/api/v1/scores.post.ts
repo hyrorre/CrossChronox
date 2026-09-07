@@ -1,4 +1,5 @@
 import { getQuery, readBody } from 'h3'
+import { IrIdempotencyCollisionError } from '../../services/ir/idempotency'
 import {
   IrEvidenceValidationError,
   parseRankingScope,
@@ -26,6 +27,9 @@ export default defineEventHandler(async (event) => {
   try {
     return await submitScore(user, payload, rankingScopes, rankingLimit)
   } catch (error) {
+    if (error instanceof IrIdempotencyCollisionError) {
+      throw createError({ statusCode: 409, statusMessage: error.message })
+    }
     if (error instanceof IrEvidenceValidationError) {
       throw createError({ statusCode: 400, statusMessage: error.message })
     }

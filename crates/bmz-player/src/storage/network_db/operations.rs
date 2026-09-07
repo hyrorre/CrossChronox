@@ -1,3 +1,17 @@
+// Payloads without a submission identifier are legacy/internal jobs.
+fn job_submission_key(job: &NewIrScoreJob) -> String {
+    serde_json::from_str::<serde_json::Value>(&job.payload_json)
+        .ok()
+        .and_then(|value| {
+            value
+                .get("idempotency_key")
+                .or_else(|| value.get("remote_score_id"))
+                .and_then(|value| value.as_str())
+                .map(str::to_owned)
+        })
+        .unwrap_or_else(|| format!("local:{}", job.local_score_id))
+}
+
 impl NetworkDatabase {
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)?;
@@ -131,18 +145,22 @@ impl NetworkDatabase {
     }
 
     pub fn enqueue_ir_score_job(&mut self, job: &NewIrScoreJob) -> Result<i64> {
+        let submission_key = job_submission_key(job);
         self.conn.execute(
             "INSERT INTO ir_score_jobs (
                 provider, account_id, kind, local_score_id, chart_sha256, ln_policy,
                 payload_json, status, attempt_count, next_attempt_at, last_error,
-                created_at, updated_at
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'pending', 0, ?8, '', ?8, ?8)
-            ON CONFLICT(provider, account_id, kind, local_score_id) DO UPDATE SET
+                created_at, updated_at, submission_key
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'pending', 0, ?8, '', ?8, ?8, ?9)
+            ON CONFLICT(provider, account_id, kind, submission_key) DO UPDATE SET
                 payload_json = excluded.payload_json,
                 status = 'pending',
                 next_attempt_at = excluded.next_attempt_at,
                 last_error = '',
-                updated_at = excluded.updated_at",
+                updated_at = excluded.updated_at
+            WHERE ir_score_jobs.submission_key LIKE 'local:%'
+              AND ir_score_jobs.chart_sha256 = excluded.chart_sha256
+              AND ir_score_jobs.ln_policy = excluded.ln_policy",
             params![
                 job.provider,
                 job.account_id,
@@ -152,14 +170,21 @@ impl NetworkDatabase {
                 job.ln_policy.as_str(),
                 job.payload_json,
                 job.now,
+                submission_key,
             ],
         )?;
-        let id = self.conn.query_row(
-            "SELECT id FROM ir_score_jobs
-             WHERE provider = ?1 AND account_id = ?2 AND kind = ?3 AND local_score_id = ?4",
-            params![job.provider, job.account_id, job.kind.as_str(), job.local_score_id],
-            |row| row.get::<_, i64>(0),
+        let (id, chart, ln_policy, payload): (i64, String, String, String) = self.conn.query_row(
+            "SELECT id, chart_sha256, ln_policy, payload_json FROM ir_score_jobs
+             WHERE provider = ?1 AND account_id = ?2 AND kind = ?3 AND submission_key = ?4",
+            params![job.provider, job.account_id, job.kind.as_str(), submission_key],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )?;
+        anyhow::ensure!(
+            chart == hash_to_hex(&job.chart_sha256)
+                && ln_policy == job.ln_policy.as_str()
+                && (payload.is_empty() || payload == job.payload_json),
+            "IR submission identifier collision for job {id}"
+        );
         Ok(id)
     }
 
@@ -190,6 +215,9 @@ impl NetworkDatabase {
                 created_at, updated_at, kind
              FROM ir_score_jobs
              WHERE kind = ?1 AND local_score_id = ?2
+               AND id IN (SELECT MAX(id) FROM ir_score_jobs
+                          WHERE kind = ?1 AND local_score_id = ?2
+                          GROUP BY provider, account_id)
              ORDER BY id ASC",
         )?;
         stmt.query_map(params![kind.as_str(), local_score_id], ir_score_job_from_row)?
@@ -358,6 +386,9 @@ impl NetworkDatabase {
                AND account_id = ?4
                AND kind = ?5
                AND local_score_id = ?6
+               AND id = (SELECT MAX(id) FROM ir_score_jobs
+                         WHERE provider = ?3 AND account_id = ?4
+                           AND kind = ?5 AND local_score_id = ?6)
                AND (({retry_filter})
                     OR (status = 'sending' AND updated_at <= ?1 - ?2))
              LIMIT 1"
@@ -630,9 +661,9 @@ impl NetworkDatabase {
                 "INSERT INTO ir_score_jobs (
                     provider, account_id, kind, local_score_id, chart_sha256, ln_policy,
                     payload_json, status, attempt_count, next_attempt_at, last_error,
-                    created_at, updated_at
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'pending', 0, ?8, '', ?8, ?8)
-                ON CONFLICT(provider, account_id, kind, local_score_id) DO UPDATE SET
+                    created_at, updated_at, submission_key
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'pending', 0, ?8, '', ?8, ?8, ?9)
+                ON CONFLICT(provider, account_id, kind, submission_key) DO UPDATE SET
                     payload_json = excluded.payload_json,
                     status = 'pending',
                     attempt_count = 0,
@@ -648,6 +679,7 @@ impl NetworkDatabase {
                     job.ln_policy.as_str(),
                     job.payload_json,
                     job.now,
+                    job_submission_key(job),
                 ],
             )?;
         }
@@ -679,6 +711,9 @@ impl NetworkDatabase {
                    AND local_score_id = ?4
                    AND status = 'succeeded'
                    AND response_json != ''
+                   AND job_id = (SELECT MAX(id) FROM ir_score_jobs
+                                 WHERE provider = ?1 AND account_id = ?2
+                                   AND kind = ?3 AND local_score_id = ?4)
                  ORDER BY submitted_at DESC, id DESC
                  LIMIT 1",
                 params![provider, account_id, kind.as_str(), local_score_id],
