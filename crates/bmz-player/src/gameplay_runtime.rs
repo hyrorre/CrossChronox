@@ -228,7 +228,7 @@ impl Drop for GameplayClient {
 fn run(
     mut runtime: GameplayRuntime,
     audio: AudioEngineHandle,
-    config: RuntimeRenderConfig,
+    mut config: RuntimeRenderConfig,
     commands: mpsc::Receiver<EditSession>,
     latest: Arc<Mutex<Option<Publication>>>,
     stop: Arc<AtomicBool>,
@@ -236,6 +236,10 @@ fn run(
     snapshot_requested: Arc<AtomicBool>,
     event_ack: Arc<AtomicU64>,
 ) {
+    let audio = audio.for_play(stop.clone());
+    if let Some(effects) = &mut config.effects {
+        effects.bind_play(stop.clone());
+    }
     let mut graph = ResultGraphCollector::for_runtime(&runtime.session.chart);
     let mut history = VecDeque::<SkinRuntimeEvent>::with_capacity(PRESENTATION_HISTORY_CAPACITY);
     let mut result = None;
@@ -248,6 +252,11 @@ fn run(
         let iteration_started = Instant::now();
         for edit in commands.try_iter() {
             edit(&mut runtime.session);
+        }
+        if !runtime.session.audio_clock.running && runtime.session.audio_clock.now() < last_time {
+            // A pause request can cross an already completed gameplay wake.
+            // Freeze at the last observed instant, never rewind the same play.
+            runtime.session.audio_clock.pause_at(last_time);
         }
         if stop.load(Ordering::Acquire) {
             break;

@@ -235,7 +235,7 @@ impl RunningPlaySession {
     pub fn set_playback_rate_percent(&mut self, rate: u16) {
         self.audio.set_playback_rate_percent(rate);
         self.sync_gameplay_clock();
-        self.playback_rate_percent = self.session.audio_clock.playback_rate_percent();
+        self.playback_rate_percent = self.audio.clock().playback_rate_percent();
     }
 
     pub fn start(&mut self, chart_zero_time: TimeUs) -> Result<()> {
@@ -307,7 +307,10 @@ impl RunningPlaySession {
             return duration_ms;
         }
 
-        let duration_ms = (self.audio.clock().elapsed_since(TimeUs(0)).0.max(0) / 1_000) as u64;
+        let duration_ms = self.gameplay.result.as_ref().map_or_else(
+            || (self.audio.clock().elapsed_since(TimeUs(0)).0.max(0) / 1_000) as u64,
+            |result| result.play_duration_ms,
+        );
         self.play_duration_ms = Some(duration_ms);
         duration_ms
     }

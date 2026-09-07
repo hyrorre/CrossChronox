@@ -115,6 +115,9 @@ pub struct GameplaySoundOutput {
 }
 
 impl GameplaySoundOutput {
+    pub fn bind_play(&mut self, cancelled: std::sync::Arc<std::sync::atomic::AtomicBool>) {
+        self.engine = self.engine.for_play(cancelled);
+    }
     pub fn play(&self, kind: SoundType) {
         if let Some(&id) = self.ids.get(&kind) {
             let volume = f32::from_bits(self.volume.load(std::sync::atomic::Ordering::Relaxed));

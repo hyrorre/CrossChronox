@@ -708,7 +708,6 @@ impl WinitApp {
             true
         };
         self.clear_play_control_holds();
-        self.play_system_sound(crate::system_sound::SoundType::PlayStop);
         if practice_phase == Some(PracticePhase::Playing) {
             if let Some(active_play) = &mut self.play.active_play
                 && let Err(error) = active_play.running.pause_audio()

@@ -91,7 +91,17 @@ impl NativeCapture {
             _ => false,
         };
         if !same {
-            self.pressed.clear();
+            if let Some(input) = &self.input {
+                for key in self.pressed.drain() {
+                    if let Some(event) = super::winit::physical_key_to_device_input(
+                        key,
+                        winit::event::ElementState::Released,
+                        false,
+                    ) {
+                        input.push_shared_event(event);
+                    }
+                }
+            }
             self.input = route.map(|route| route.input.clone());
         }
         let active = route.filter(|route| {

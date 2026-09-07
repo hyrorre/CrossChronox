@@ -172,8 +172,19 @@ impl Default for AudioCommandQueueCounters {
 }
 
 #[derive(Debug)]
+struct QueuedCommand {
+    command: AudioEngineCommand,
+    cancelled: Option<Arc<AtomicBool>>,
+}
+impl QueuedCommand {
+    fn is_cancelled(&self) -> bool {
+        self.cancelled.as_ref().is_some_and(|cancelled| cancelled.load(Ordering::Acquire))
+    }
+}
+
+#[derive(Debug)]
 struct AudioCommandQueueInner {
-    queue: Mutex<VecDeque<AudioEngineCommand>>,
+    queue: Mutex<VecDeque<QueuedCommand>>,
     capacity: usize,
     counters: AudioCommandQueueCounters,
     output_sample_rate: AtomicU32,
@@ -206,16 +217,22 @@ impl AudioCommandQueueInner {
 pub struct AudioEngineHandle {
     engine: Arc<Mutex<AudioEngine>>,
     inner: Arc<AudioCommandQueueInner>,
+    cancelled: Option<Arc<AtomicBool>>,
 }
 
 #[derive(Debug)]
 pub struct CommandedAudioEngine {
     engine: Arc<Mutex<AudioEngine>>,
     inner: Arc<AudioCommandQueueInner>,
-    command_scratch: Vec<AudioEngineCommand>,
+    command_scratch: Vec<QueuedCommand>,
 }
 
 impl AudioEngineHandle {
+    /// Commands retain the play lifetime. Retirement rejects both queued commands
+    /// and concurrent producers without waiting for gameplay or the callback.
+    pub fn for_play(&self, cancelled: Arc<AtomicBool>) -> Self {
+        Self { engine: self.engine.clone(), inner: self.inner.clone(), cancelled: Some(cancelled) }
+    }
     pub fn new(engine: AudioEngine) -> Self {
         Self::with_capacity(engine, DEFAULT_AUDIO_COMMAND_QUEUE_CAPACITY)
     }
@@ -226,13 +243,14 @@ impl AudioEngineHandle {
         Self {
             engine: Arc::new(Mutex::new(engine)),
             inner: Arc::new(AudioCommandQueueInner {
-                queue: Mutex::new(VecDeque::new()),
+                queue: Mutex::new(VecDeque::with_capacity(capacity.max(1))),
                 capacity: capacity.max(1),
                 counters: AudioCommandQueueCounters::default(),
                 output_sample_rate: AtomicU32::new(output_sample_rate),
                 idle: AtomicBool::new(idle),
                 last_drop_warn_ms: AtomicU64::new(0),
             }),
+            cancelled: None,
         }
     }
 
@@ -307,6 +325,13 @@ impl AudioEngineHandle {
         }
         match self.inner.queue.lock() {
             Ok(mut queue) => {
+                if self
+                    .cancelled
+                    .as_ref()
+                    .is_some_and(|cancelled| cancelled.load(Ordering::Acquire))
+                {
+                    return false;
+                }
                 let coalescible = count_coalescible_pending_commands(&queue, &commands);
                 if queue.len().saturating_sub(coalescible).saturating_add(commands.len())
                     > self.inner.capacity
@@ -319,7 +344,12 @@ impl AudioEngineHandle {
                     self.inner.counters.coalesced.fetch_add(coalesced as u64, Ordering::Relaxed);
                 }
                 let command_count = commands.len() as u64;
-                queue.extend(commands);
+                queue.extend(
+                    commands.into_iter().map(|command| QueuedCommand {
+                        command,
+                        cancelled: self.cancelled.clone(),
+                    }),
+                );
                 self.inner.counters.submitted.fetch_add(command_count, Ordering::Relaxed);
                 update_atomic_max(&self.inner.counters.max_depth, queue.len() as u64);
                 true
@@ -455,7 +485,7 @@ impl AudioEngineHandle {
                 if coalesced != 0 {
                     self.inner.counters.coalesced.fetch_add(coalesced as u64, Ordering::Relaxed);
                 }
-                queue.push_back(command);
+                queue.push_back(QueuedCommand { command, cancelled: self.cancelled.clone() });
                 self.inner.counters.submitted.fetch_add(1, Ordering::Relaxed);
                 update_atomic_max(&self.inner.counters.max_depth, queue.len() as u64);
                 Ok(())
@@ -527,7 +557,11 @@ impl CommandedAudioEngine {
         }
 
         let drained = self.command_scratch.len() as u64;
-        for command in self.command_scratch.drain(..) {
+        for queued in self.command_scratch.drain(..) {
+            if queued.is_cancelled() {
+                continue;
+            }
+            let command = queued.command;
             // Only atomic counters here: the audio callback must never log,
             // allocate a diagnostic buffer, or wait for the diagnostics reader.
             let sounds = match &command {
@@ -570,37 +604,37 @@ impl AudioCommandQueueInner {
 }
 
 fn count_coalescible_pending_commands(
-    queue: &VecDeque<AudioEngineCommand>,
+    queue: &VecDeque<QueuedCommand>,
     incoming: &[AudioEngineCommand],
 ) -> usize {
     queue
         .iter()
-        .filter(|pending| incoming.iter().any(|next| command_supersedes(next, pending)))
+        .filter(|pending| incoming.iter().any(|next| command_supersedes(next, &pending.command)))
         .count()
 }
 
 fn coalesce_pending_commands(
-    queue: &mut VecDeque<AudioEngineCommand>,
+    queue: &mut VecDeque<QueuedCommand>,
     incoming: &[AudioEngineCommand],
 ) -> usize {
     let before = queue.len();
-    queue.retain(|pending| !incoming.iter().any(|next| command_supersedes(next, pending)));
+    queue.retain(|pending| !incoming.iter().any(|next| command_supersedes(next, &pending.command)));
     before.saturating_sub(queue.len())
 }
 
 fn is_pending_command_coalescible(
-    queue: &VecDeque<AudioEngineCommand>,
+    queue: &VecDeque<QueuedCommand>,
     incoming: &AudioEngineCommand,
 ) -> bool {
-    queue.iter().any(|pending| command_supersedes(incoming, pending))
+    queue.iter().any(|pending| command_supersedes(incoming, &pending.command))
 }
 
 fn coalesce_pending_command(
-    queue: &mut VecDeque<AudioEngineCommand>,
+    queue: &mut VecDeque<QueuedCommand>,
     incoming: &AudioEngineCommand,
 ) -> usize {
     let before = queue.len();
-    queue.retain(|pending| !command_supersedes(incoming, pending));
+    queue.retain(|pending| !command_supersedes(incoming, &pending.command));
     before.saturating_sub(queue.len())
 }
 

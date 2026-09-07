@@ -1,7 +1,7 @@
 //! The renderer-independent owner of one chart's mutable gameplay state.
 //! Audio callbacks consume commands only; all judgement stays on this owner.
 use bmz_audio::command::AudioEngineHandle;
-use bmz_audio::queue::{AudioScheduler, ScheduledSoundQueue};
+use bmz_audio::queue::ScheduledSoundQueue;
 use bmz_core::ids::SoundId;
 
 use crate::session::{GameSession, SessionFrame, advance_session_frame};
@@ -63,6 +63,18 @@ impl GameplayRuntime {
     }
 
     pub fn advance(&mut self, audio: &AudioEngineHandle) -> SessionFrame {
+        if !self.session.audio_clock.running {
+            // Viewer pause consumes no gameplay input and advances no deadlines.
+            self.session.input_system.backend.drain_events();
+            return SessionFrame {
+                times: crate::session::compute_frame_times(&self.session),
+                judgements: Vec::new(),
+                mine_hits: Vec::new(),
+                keysound_volumes: Vec::new(),
+                skin_events: Vec::new(),
+                state: self.session.state,
+            };
+        }
         let frame = advance_session_frame(&mut self.session, &mut self.pending_audio);
         for &(id, volume) in &frame.keysound_volumes {
             if let Some((_, pending)) =

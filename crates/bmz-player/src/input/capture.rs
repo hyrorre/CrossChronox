@@ -70,6 +70,7 @@ impl InputCapture {
             #[cfg(not(windows))]
             let _ = (bridge, native_status);
             let mut last_devices = Instant::now() - Duration::from_secs(1);
+            let mut delivery = ButtonDelivery::default();
             while !worker_stop.load(Ordering::Acquire) {
                 let (configs, slots, route, owner) = {
                     let state = worker_state.lock().unwrap_or_else(|e| e.into_inner());
@@ -88,10 +89,10 @@ impl InputCapture {
                 } else {
                     GamepadPollOutput::default()
                 };
-                if let Some(route) = &route
-                    && route.focused
-                    && foreground_matches(owner)
-                {
+                let active_route =
+                    route.as_deref().filter(|route| route.focused && foreground_matches(owner));
+                delivery.set_route(active_route);
+                if let Some(route) = active_route {
                     for button in &output.buttons {
                         let mut event = to_device_input_event(button);
                         if button.synthesized_analog_axis
@@ -108,7 +109,7 @@ impl InputCapture {
                         {
                             event.bounce_policy = InputBouncePolicy::Bypass;
                         }
-                        route.input.push_shared_event(event);
+                        delivery.push(event);
                     }
                 }
                 let connected = if last_devices.elapsed() >= Duration::from_millis(250) {
@@ -185,6 +186,52 @@ impl InputCapture {
     #[cfg(all(windows, feature = "experimental-gameinput"))]
     pub fn gameinput_diagnostics(&self) -> Option<super::gameinput::GameInputPollDiagnostics> {
         None
+    }
+}
+
+#[derive(Default)]
+struct ButtonDelivery {
+    input: Option<SharedInputBackend>,
+    pressed: std::collections::HashMap<
+        (bmz_gameplay::input::backend::DeviceId, bmz_gameplay::input::backend::PhysicalControl),
+        bmz_gameplay::input::backend::DeviceInputEvent,
+    >,
+}
+
+impl ButtonDelivery {
+    fn set_route(&mut self, route: Option<&InputRoute>) {
+        let same = match (&self.input, route) {
+            (Some(input), Some(route)) => input.same_source(&route.input),
+            (None, None) => true,
+            _ => false,
+        };
+        if same {
+            return;
+        }
+        if let Some(input) = &self.input {
+            for (_, mut event) in self.pressed.drain() {
+                event.kind = bmz_core::input::InputKind::Release;
+                event.timestamp = bmz_gameplay::input::backend::DeviceTimestamp::MonotonicNs(
+                    bmz_gameplay::input::backend::monotonic_timestamp_ns(),
+                );
+                input.push_shared_event(event);
+            }
+        }
+        self.input = route.map(|route| route.input.clone());
+    }
+    fn push(&mut self, event: bmz_gameplay::input::backend::DeviceInputEvent) {
+        let key = (event.device, event.control.clone());
+        match event.kind {
+            bmz_core::input::InputKind::Press => {
+                self.pressed.insert(key, event.clone());
+            }
+            bmz_core::input::InputKind::Release => {
+                self.pressed.remove(&key);
+            }
+        }
+        if let Some(input) = &self.input {
+            input.push_shared_event(event);
+        }
     }
 }
 

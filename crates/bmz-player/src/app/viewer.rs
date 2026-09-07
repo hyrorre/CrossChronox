@@ -282,7 +282,7 @@ impl WinitApp {
             let active = self.play.active_play.as_ref().context("viewer play is not active")?;
             (
                 Arc::clone(&active.running.session.chart),
-                active.input.clone(),
+                SharedInputBackend::default(),
                 active.running.audio.engine.output_sample_rate(),
                 active.running.session.audio_mix.chart_normalization_gain,
                 active.running.session.assist,
@@ -303,7 +303,7 @@ impl WinitApp {
             chart,
             &self.boot.profile_config,
             session_options,
-            Box::new(input),
+            Box::new(input.clone()),
         );
         session.audio_mix.chart_normalization_gain = normalization_gain;
 
@@ -311,6 +311,7 @@ impl WinitApp {
         let (carryover_count, feedback) = {
             let active = self.play.active_play.as_mut().context("viewer play ended during seek")?;
             active.running.gameplay = crate::gameplay_runtime::GameplayClient::new(session);
+            active.input = input;
             active.running.play_duration_ms = None;
             active.running.finished = None;
             active.running.pending_finished = None;
@@ -331,6 +332,7 @@ impl WinitApp {
         self.play.play_ending = None;
         self.result.finished_play = None;
         self.viewer_waiting = false;
+        self.sync_input_capture_target();
         tracing::info!(target_time_us = target.0, carryover_count, ?seek, "viewer seek applied");
         self.show_left_overlay_toast(feedback);
         Ok(())

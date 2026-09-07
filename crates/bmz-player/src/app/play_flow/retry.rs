@@ -497,94 +497,14 @@ impl WinitApp {
             None => return false,
         }
 
-        let finish_mode = if self.play.active_course.is_some() {
-            crate::screens::play_finish::FinishResultMode::CourseStage
-        } else {
-            crate::screens::play_finish::FinishResultMode::Normal
-        };
-        let now = Instant::now();
-        let full_combo_elapsed_at_finish_ms = self
-            .play
-            .last_play_snapshot
-            .as_ref()
-            .and_then(|snapshot| snapshot.full_combo_elapsed_ms);
-        let early_finished = {
-            let Some(active_play) = &mut self.play.active_play else {
-                return false;
-            };
-            active_play
+        // The worker publishes the terminal result before the ordinary play
+        // transition persists it. Never save an observation from before this command.
+        self.play.active_play.as_mut().is_some_and(|active| {
+            active
                 .running
                 .gameplay
-                .edit(|session| session.state = bmz_gameplay::session::PlayState::Finished);
-            let chart_length_ms = active_play.running.chart_length_ms;
-            let play_duration_ms = active_play.running.finish_play_duration_ms();
-            if active_play.running.pending_finished.is_some() {
-                None
-            } else if let Some(finished) = active_play.running.finished.clone() {
-                Some(finished)
-            } else {
-                match crate::screens::play_finish::finish_session_result_once(
-                    &mut active_play.running.finished,
-                    &mut self.boot.score_db,
-                    &mut self.boot.network_db,
-                    crate::screens::play_finish::FinishSessionResultOnceRequest {
-                        profile_paths: &self.boot.profile_paths,
-                        replay_config: &self.boot.profile_config.replay,
-                        ir_config: &self.boot.profile_config.ir,
-                        session: &active_play.running.gameplay,
-                        played_at: now_unix_seconds(),
-                        applied_arrange: &active_play.running.applied_arrange,
-                        source_ln_profile: active_play.running.source_ln_profile,
-                        chart_length_ms: Some(chart_length_ms),
-                        play_duration_ms: Some(play_duration_ms),
-                        target_ex_score: active_play.running.target_ex_score,
-                        target_name: &active_play.running.target,
-                        score_key: active_play.running.score_key,
-                        practice_mode: active_play.running.practice_mode
-                            || active_play.running.score_save_disabled,
-                        finish_mode,
-                    },
-                ) {
-                    Ok(mut finished) => {
-                        finished.summary.skin_attempt = active_play.running.skin_attempt;
-                        finished.summary.graph = Arc::new(
-                            active_play
-                                .running
-                                .result_graph
-                                .snapshot_for_source(&active_play.running.gameplay),
-                        );
-                        Some(finished)
-                    }
-                    Err(error) => {
-                        tracing::error!(%error, "failed to finish play session on requested fadeout");
-                        None
-                    }
-                }
-            }
-        };
-        self.save_current_play_options(
-            self.play.active_play.as_ref().map(|active| active.running.session.hispeed),
-            "play fadeout requested",
-        );
-        if let Some(finished) = &early_finished {
-            if let Some(chart_id) = self.play.last_started_chart_id {
-                self.prepare_terminal_course_finish(chart_id, finished);
-            }
-            self.start_result_ir_for_finished_play(finished);
-        }
-        self.notify_obs_play_ended();
-        self.play.play_ending = Some(PlayEndingTransition {
-            started_at: now,
-            music_end_started_at: None,
-            fadeout_started_at: Some(now),
-            failed: false,
-            completion: PlayEndingCompletion::Result,
-            full_combo_elapsed_at_finish_ms,
-            finished: early_finished,
-        });
-        self.update_play_ending_snapshot();
-        tracing::info!(control, "started play fadeout after final notes");
-        true
+                .edit(|session| session.state = bmz_gameplay::session::PlayState::Finished)
+        })
     }
 
     pub(super) fn quick_retry_active_play(&mut self, mode: ResultRetryMode) {
