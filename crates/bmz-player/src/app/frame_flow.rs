@@ -1,5 +1,6 @@
 use super::*;
 use crate::screens::select_model::SelectCourseRow;
+use bmz_render::renderer::WgpuPresentMode;
 
 mod render;
 
@@ -89,23 +90,46 @@ impl WinitApp {
         FramePacingState {
             focused: self.ui.focused,
             effective_frame_limit: self.current_frame_limit(),
-            present_mode: config_present_mode(&self.boot.app_config.video),
+            present_mode: self.renderer.surface_presentation_status().map_or_else(
+                || config_present_mode(&self.boot.app_config.video),
+                |status| match status.effective_mode {
+                    "Immediate" => WgpuPresentMode::Immediate,
+                    "Mailbox" => WgpuPresentMode::Mailbox,
+                    "FifoRelaxed" => WgpuPresentMode::FifoRelaxed,
+                    _ => WgpuPresentMode::Fifo,
+                },
+            ),
             window_mode,
         }
     }
 
     /// `RedrawRequested` が現在の deadline に到達していればフレームを開始する。
     ///
-    /// deadline より早い redraw は描画せず `WaitUntil` へ戻す。event loop thread を
-    /// sleep させないため、待機中も keyboard/device event を遅延なく受け取れる。
+    /// 長い待機はwinitへ返す。Windowsのfocused Immediateだけは起床ジッターを
+    /// 吸収するため期限直前の短い区間をrender threadで待つ。
     pub(super) fn begin_scheduled_frame(&mut self, event_loop: &ActiveEventLoop) -> bool {
         let pacing_state = self.current_frame_pacing_state();
         let now = Instant::now();
         match self.frame.begin_scheduled_frame(now, pacing_state) {
             FrameSchedule::Start => true,
             FrameSchedule::WaitUntil(deadline) => {
-                event_loop.set_control_flow(ControlFlow::WaitUntil(deadline));
-                false
+                match pacing_state.wait_plan(now, deadline, cfg!(windows)) {
+                    frame_runtime::FrameWait::SleepUntil(wake) => {
+                        event_loop.set_control_flow(ControlFlow::WaitUntil(wake));
+                        false
+                    }
+                    frame_runtime::FrameWait::FinishAt(deadline) => {
+                        // At most min(600us, frame budget / 8), with no gameplay,
+                        // input or GPU lock held. All longer waits stay in winit.
+                        while Instant::now() < deadline {
+                            std::hint::spin_loop();
+                        }
+                        matches!(
+                            self.frame.begin_scheduled_frame(Instant::now(), pacing_state),
+                            FrameSchedule::Start
+                        )
+                    }
+                }
             }
         }
     }
@@ -116,7 +140,15 @@ impl WinitApp {
         let now = Instant::now();
         let fps = self.current_frame_limit();
         if let Some(deadline) = self.frame.next_deadline(now, fps) {
-            event_loop.set_control_flow(ControlFlow::WaitUntil(deadline));
+            match self.current_frame_pacing_state().wait_plan(now, deadline, cfg!(windows)) {
+                frame_runtime::FrameWait::SleepUntil(wake) => {
+                    event_loop.set_control_flow(ControlFlow::WaitUntil(wake));
+                }
+                frame_runtime::FrameWait::FinishAt(_) => {
+                    event_loop.set_control_flow(ControlFlow::Wait);
+                    self.request_redraw();
+                }
+            }
             return;
         }
 

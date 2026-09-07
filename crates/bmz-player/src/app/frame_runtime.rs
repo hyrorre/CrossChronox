@@ -84,6 +84,7 @@ impl FrameRuntime {
         self.pending_wake = None;
         self.consecutive_deadline_misses = 0;
         self.cadence = FrameCadence::default();
+        self.pacer = FramePacer::default();
         self.select_profiler = SceneFrameProfiler::default();
         self.decide_profiler = SceneFrameProfiler::default();
         self.play_profiler = SceneFrameProfiler::default();
@@ -192,6 +193,29 @@ pub(super) struct FramePacingState {
     pub(super) effective_frame_limit: u32,
     pub(super) present_mode: WgpuPresentMode,
     pub(super) window_mode: FrameWindowMode,
+}
+
+pub(super) enum FrameWait {
+    SleepUntil(Instant),
+    FinishAt(Instant),
+}
+
+impl FramePacingState {
+    /// winit already uses a high-resolution Windows timer. Wake a little early
+    /// to absorb its measured scheduling jitter, then finish only the bounded
+    /// tail on the rendering thread. Never spin for FIFO, background or unlimited.
+    pub(super) fn wait_plan(self, now: Instant, deadline: Instant, windows: bool) -> FrameWait {
+        let guard = if windows && self.focused && self.present_mode == WgpuPresentMode::Immediate {
+            (frame_budget_or_zero(self.effective_frame_limit) / 8).min(Duration::from_micros(600))
+        } else {
+            Duration::ZERO
+        };
+        if guard.is_zero() {
+            return FrameWait::SleepUntil(deadline);
+        }
+        let wake = deadline - guard;
+        if now < wake { FrameWait::SleepUntil(wake) } else { FrameWait::FinishAt(deadline) }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -351,7 +375,7 @@ impl FramePacer {
             .unwrap_or_default()
     }
 
-    fn record_frame_started(&mut self, now: Instant, fps: u32, rebase: bool) {
+    fn record_frame_started(&mut self, now: Instant, fps: u32, immediate: bool) {
         if fps == 0 {
             self.next_frame_at = None;
             self.fps = None;
@@ -360,11 +384,23 @@ impl FramePacer {
 
         let budget = frame_budget(fps);
         let fps_changed = self.fps != Some(fps);
-        let next_frame_at = if rebase || fps_changed {
+        let next_frame_at = if fps_changed {
             now + budget
         } else if let Some(previous_deadline) = self.next_frame_at {
-            let scheduled = previous_deadline + budget;
-            if scheduled > now { scheduled } else { now + budget }
+            if immediate && previous_deadline > now {
+                // A skin upload needs a fresh image, not a new periodic clock.
+                previous_deadline
+            } else {
+                let scheduled = previous_deadline + budget;
+                // Preserve phase for ordinary wake jitter, but don't follow a
+                // late frame with a near-immediate catch-up frame. That creates
+                // long/short pairs even when the average FPS looks correct.
+                if scheduled.saturating_duration_since(now) >= budget / 2 {
+                    scheduled
+                } else {
+                    now + budget
+                }
+            }
         } else {
             now + budget
         };
@@ -915,6 +951,57 @@ mod tests {
     }
 
     #[test]
+    fn immediate_wait_has_a_bounded_tail_only_on_focused_windows() {
+        for fps in [120, 240] {
+            let now = Instant::now();
+            let deadline = now + frame_budget(fps);
+            let state = FramePacingState {
+                present_mode: WgpuPresentMode::Immediate,
+                ..test_pacing_state(fps)
+            };
+            let FrameWait::SleepUntil(wake) = state.wait_plan(now, deadline, true) else {
+                panic!("long wait must sleep")
+            };
+            let tail = deadline.duration_since(wake);
+            assert!(tail <= Duration::from_micros(600));
+            assert!(tail <= frame_budget(fps) / 8);
+            assert!(
+                matches!(state.wait_plan(wake, deadline, true), FrameWait::FinishAt(value) if value == deadline)
+            );
+            for (state, windows) in [
+                (state, false),
+                (FramePacingState { focused: false, ..state }, true),
+                (FramePacingState { effective_frame_limit: 0, ..state }, true),
+                (FramePacingState { present_mode: WgpuPresentMode::Fifo, ..state }, true),
+                (FramePacingState { present_mode: WgpuPresentMode::Mailbox, ..state }, true),
+            ] {
+                assert!(
+                    matches!(state.wait_plan(wake, deadline, windows), FrameWait::SleepUntil(value) if value == deadline)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn immediate_frame_preserves_period_and_stall_does_not_catch_up_in_a_burst() {
+        for fps in [120, 240] {
+            for stall_ms in [16, 33, 100, 250] {
+                let now = Instant::now();
+                let budget = frame_budget(fps);
+                let mut pacer = FramePacer::default();
+                pacer.record_frame_started(now, fps, false);
+                for micros in [100, 200, 300] {
+                    pacer.record_frame_started(now + Duration::from_micros(micros), fps, true);
+                    assert_eq!(pacer.next_frame_at, Some(now + budget));
+                }
+                let resumed = now + Duration::from_millis(stall_ms);
+                pacer.record_frame_started(resumed, fps, false);
+                assert_eq!(pacer.next_frame_at, Some(resumed + budget));
+            }
+        }
+    }
+
+    #[test]
     fn frame_pacer_exposes_the_next_deadline_without_blocking() {
         let started_at = Instant::now();
         let budget = frame_budget(120);
@@ -1015,7 +1102,7 @@ mod tests {
     }
 
     #[test]
-    fn frame_pacer_rebases_when_fps_changes_or_wait_is_skipped() {
+    fn frame_pacer_rebases_when_fps_changes_but_keeps_phase_for_immediate_frames() {
         let started_at = Instant::now();
         let work = Duration::from_micros(500);
         let mut pacer = FramePacer::default();
@@ -1029,7 +1116,10 @@ mod tests {
         let skipped_at = fps_changed_at + Duration::from_millis(2);
         assert_eq!(pacer.delay(skipped_at, 60, true), Duration::ZERO);
         pacer.record_frame_started(skipped_at, 60, true);
-        assert_eq!(pacer.delay(skipped_at + work, 60, false), frame_budget(60) - work);
+        assert_eq!(
+            pacer.next_deadline(skipped_at + work, 60, false),
+            Some(fps_changed_at + frame_budget(60))
+        );
 
         pacer.record_frame_started(skipped_at + work, 0, false);
         assert_eq!(pacer.delay(skipped_at + work, 0, false), Duration::ZERO);
