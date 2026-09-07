@@ -1,7 +1,7 @@
 use super::*;
 
 impl WinitApp {
-    pub(super) fn advance_active_play(&mut self) {
+    pub(super) fn consume_active_play(&mut self) {
         if self.viewer_mode && self.viewer_waiting {
             if self.stop_play_if_exit_hold_elapsed() {
                 self.clear_play_control_holds();
@@ -53,7 +53,7 @@ impl WinitApp {
             return;
         };
 
-        let advance_outcome = advance_running_play_session(&mut active_play.running);
+        let advance_outcome = consume_running_play_snapshot(&mut active_play.running);
         match advance_outcome {
             Ok(frame)
                 if !matches!(
@@ -71,6 +71,10 @@ impl WinitApp {
                     &mut self.renderer,
                     &mut active_play.running,
                     snapshot.time,
+                );
+                crate::video_bga::resolve_snapshot_textures(
+                    &mut snapshot,
+                    &active_play.running.bga_frames,
                 );
                 self.apply_profile_fast_slow_filter(&mut snapshot);
                 snapshot.play_elapsed_time = play_elapsed_time;
@@ -986,6 +990,7 @@ impl WinitApp {
         );
 
         let mut snapshot = refresh_play_ending_snapshot(&mut active_play.running, timers);
+        crate::video_bga::resolve_snapshot_textures(&mut snapshot, &active_play.running.bga_frames);
         snapshot.seamless_play_entry = seamless_play_entry;
         snapshot.stagefile_background = stagefile_background;
         snapshot.stagefile_image_size = stagefile_image_size;

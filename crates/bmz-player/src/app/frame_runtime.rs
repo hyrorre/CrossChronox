@@ -410,7 +410,7 @@ struct SceneFrameProfiler {
     background_us: u128,
     transition_us: u128,
     egui_us: u128,
-    advance_active_play_us: u128,
+    consume_active_play_us: u128,
     post_scene_us: u128,
     wait_wake_samples: u128,
     scheduled_wait_us: u128,
@@ -440,7 +440,7 @@ pub(super) struct AppLoopFrameTimings {
     pub(super) background_us: u64,
     pub(super) transition_us: u64,
     pub(super) egui_us: u64,
-    pub(super) advance_active_play_us: u64,
+    pub(super) consume_active_play_us: u64,
     pub(super) post_scene_us: u64,
     pub(super) pacing: FramePacingTimings,
 }
@@ -515,7 +515,7 @@ impl SceneFrameProfiler {
         self.background_us += u128::from(app_loop.background_us);
         self.transition_us += u128::from(app_loop.transition_us);
         self.egui_us += u128::from(app_loop.egui_us);
-        self.advance_active_play_us += u128::from(app_loop.advance_active_play_us);
+        self.consume_active_play_us += u128::from(app_loop.consume_active_play_us);
         self.post_scene_us += u128::from(app_loop.post_scene_us);
         self.effective_frame_limit = app_loop.pacing.effective_frame_limit;
         self.frame_budget_us = app_loop.pacing.frame_budget_us;
@@ -587,7 +587,7 @@ impl SceneFrameProfiler {
         let background_ms = fmt_profile_ms(self.background_us, frames);
         let transition_ms = fmt_profile_ms(self.transition_us, frames);
         let egui_ms = fmt_profile_ms(self.egui_us, frames);
-        let advance_active_play_ms = fmt_profile_ms(self.advance_active_play_us, frames);
+        let consume_active_play_ms = fmt_profile_ms(self.consume_active_play_us, frames);
         let post_scene_ms = fmt_profile_ms(self.post_scene_us, frames);
         let wait_wake_samples = self.wait_wake_samples;
         let scheduled_wait_ms = fmt_profile_ms(self.scheduled_wait_us, wait_wake_samples.max(1));
@@ -664,7 +664,7 @@ impl SceneFrameProfiler {
                     background_ms,
                     transition_ms,
                     egui_ms,
-                    advance_active_play_ms,
+                    consume_active_play_ms,
                     post_scene_ms,
                     effective_frame_limit = self.effective_frame_limit,
                     frame_budget_ms = fmt_profile_us_ms(self.frame_budget_us),

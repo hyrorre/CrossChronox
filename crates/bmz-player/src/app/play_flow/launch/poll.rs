@@ -158,7 +158,7 @@ impl WinitApp {
                 }
                 // スキン宣言のロード演出時間を既に超えていれば、同一フレーム内で
                 // READY を開始して op 80→81 切り替えと timer 40 発火を揃える
-                // (次フレームの advance_active_play まで待つと 1 フレーム
+                // (次フレームの consume_active_play まで待つと 1 フレーム
                 // 曲名表示が途切れる)。
                 self.maybe_start_ready_phase();
             }

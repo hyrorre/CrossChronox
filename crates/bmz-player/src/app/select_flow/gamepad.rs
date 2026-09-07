@@ -1,7 +1,7 @@
 use super::*;
 
 impl WinitApp {
-    pub(super) fn poll_gamepad_events(&mut self) {
+    pub(super) fn consume_captured_gamepad_events(&mut self) {
         let should_log_raw_input = self.should_log_gamepad_key_config_raw_input();
         let configs = gamepad_scratch_configs(&self.boot.profile_config.input);
         let slots =
@@ -479,7 +479,7 @@ impl WinitApp {
                     return;
                 };
                 self.apply_play_lane_action(action);
-                // Gamepad play input was already queued in poll_gamepad_events.
+                // Gamepad play input was already queued in consume_captured_gamepad_events.
             }
         }
         if !pressed {

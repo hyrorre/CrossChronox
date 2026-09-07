@@ -250,6 +250,7 @@ pub(in crate::app) fn final_notes_control_action(
     })
 }
 
+#[cfg(test)]
 pub(in crate::app) fn should_play_retire_sound_for_failed_transition(
     previous: bmz_gameplay::session::PlayState,
     current: bmz_gameplay::session::PlayState,

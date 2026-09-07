@@ -97,7 +97,7 @@ fn chart() -> Arc<PlayableChart> {
         sounds: Vec::new(),
         bga_assets: Vec::new(),
         total_notes: 8,
-        end_time: TimeUs(600_000),
+        end_time: TimeUs(1_200_000),
     };
     for (id, lane, kind, time) in [
         (1, Lane::Key1, NoteKind::Tap, 100_000),
@@ -109,7 +109,7 @@ fn chart() -> Arc<PlayableChart> {
         (7, Lane::Key3, NoteKind::LongStart, 100_000),
         (8, Lane::Key3, NoteKind::LongEnd, 600_000),
         (9, Lane::Key4, NoteKind::LongStart, 100_000),
-        (10, Lane::Key4, NoteKind::LongEnd, 600_000),
+        (10, Lane::Key4, NoteKind::LongEnd, 1_200_000),
     ] {
         chart.lane_notes[lane.index()].push(NoteEvent {
             id: NoteId(id),
@@ -134,9 +134,9 @@ fn chart() -> Arc<PlayableChart> {
             start_note_id: NoteId(start),
             end_note_id: NoteId(start + 1),
             start_tick: ChartTick(19),
-            end_tick: ChartTick(115),
+            end_tick: ChartTick(if mode == LongNoteMode::Hcn { 230 } else { 115 }),
             start_time: TimeUs(100_000),
-            end_time: TimeUs(600_000),
+            end_time: TimeUs(if mode == LongNoteMode::Hcn { 1_200_000 } else { 600_000 }),
             sound: Some(SoundId(1)),
         });
     }
@@ -154,11 +154,12 @@ fn events(tick: i64) -> Vec<DeviceInputEvent> {
         110 => &[("Z", InputKind::Release)],
         200 => &[("Z", InputKind::Press)],
         210 => &[("Z", InputKind::Release)],
-        250 => &[("D", InputKind::Release)], // HCN early release, later regrab
+        350 => &[("D", InputKind::Release)], // HCN recovery pulse, then damage pulses
         400 => &[("Z", InputKind::Press)],
         410 => &[("Z", InputKind::Release)],
-        500 => &[("D", InputKind::Press)],
-        600 => &[("S", InputKind::Release), ("X", InputKind::Release), ("D", InputKind::Release)],
+        600 => &[("S", InputKind::Release), ("X", InputKind::Release)],
+        950 => &[("D", InputKind::Press)],
+        1200 => &[("D", InputKind::Release)],
         _ => &[],
     };
     controls
@@ -247,7 +248,7 @@ fn run_mode_with_render_stall(stall_ms: u64, mode: u8) -> (String, u64) {
     }
     if mode == 2 {
         let ctx_clock = session.audio_clock.clone();
-        let replay = (10..=600)
+        let replay = (10..=1200)
             .step_by(10)
             .flat_map(events)
             .filter_map(|event| {
@@ -281,7 +282,7 @@ fn run_mode_with_render_stall(stall_ms: u64, mode: u8) -> (String, u64) {
     let wake = client.worker.as_ref().unwrap().thread.thread().clone();
     let driver_probe = probe.clone();
     let driver = thread::spawn(move || {
-        for tick in (10..=2_000).step_by(10) {
+        for tick in (10..=3_000).step_by(10) {
             let input = input.clone();
             commands
                 .send(Box::new(move |session| {
@@ -354,7 +355,7 @@ fn dedicated_runtime_matches_original_session_advance() {
     let audio = AudioEngineHandle::new(AudioEngine::new(1_000_000));
     let mut queue = bmz_audio::queue::ScheduledSoundQueue::new();
     let probe = RuntimeProbe::default();
-    for tick in (10..=2_000).step_by(10) {
+    for tick in (10..=3_000).step_by(10) {
         session.audio_clock.current_frame.store(tick as u64 * 1_000, Ordering::Release);
         for event in events(tick) {
             input.push_shared_event(event);

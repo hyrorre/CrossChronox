@@ -75,6 +75,15 @@ impl GameplayRuntime {
                 state: self.session.state,
             };
         }
+        if matches!(
+            self.session.state,
+            crate::session::PlayState::Finished | crate::session::PlayState::Failed
+        ) {
+            let now = self.session.audio_clock.now();
+            crate::session::apply_auto_key_release(&mut self.session, now);
+            crate::session::update_recent_inputs(&mut self.session, &[], now);
+            crate::session::update_recent_judgements(&mut self.session, &[], now);
+        }
         let frame = advance_session_frame(&mut self.session, &mut self.pending_audio);
         for &(id, volume) in &frame.keysound_volumes {
             if let Some((_, pending)) =

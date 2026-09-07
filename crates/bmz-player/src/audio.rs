@@ -210,6 +210,18 @@ impl RunningPlaySession {
         &mut self,
         effects: Option<crate::system_sound_manager::GameplaySoundOutput>,
     ) -> Result<()> {
+        // Asset identity belongs to the immutable timeline. Texture readiness
+        // and decoded video dimensions remain renderer-owned and may arrive later.
+        let mut bga_frames = self.bga_frames.clone();
+        for asset in &self.session.chart.bga_assets {
+            bga_frames.entry(asset.id).or_insert_with(|| {
+                if asset.kind == bmz_chart::model::BgaAssetKind::Video {
+                    crate::screens::play_snapshot::display_video_bga_frame(asset.id, 1, 1)
+                } else {
+                    crate::screens::play_snapshot::display_bga_frame(asset.id, 1, 1)
+                }
+            });
+        }
         let config = RuntimeRenderConfig {
             #[cfg(test)]
             probe: None,
@@ -224,7 +236,7 @@ impl RunningPlaySession {
             score_key: self.score_key,
             practice_mode: self.practice_mode,
             score_save_disabled: self.score_save_disabled,
-            bga_frames: self.bga_frames.clone(),
+            bga_frames,
             cache: self.render_snapshot_cache.clone(),
         };
         self.gameplay.start(self.audio.engine.clone(), config)

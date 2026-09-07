@@ -295,7 +295,7 @@ impl ApplicationHandler<AppUserEvent> for WinitApp {
                 let drain_us = instant_elapsed_us_u64(drain_start);
                 let input_start = Instant::now();
                 self.sync_input_capture_target();
-                self.poll_gamepad_events();
+                self.consume_captured_gamepad_events();
                 if !self.viewer_waiting {
                     self.advance_select_hold_move();
                     self.advance_select_ir_battle_hold();
@@ -325,10 +325,9 @@ impl ApplicationHandler<AppUserEvent> for WinitApp {
                 if !self.first_frame_startup_completed {
                     self.ensure_audio_output();
                 }
-                let advance_active_play_start = Instant::now();
-                self.advance_active_play();
-                let advance_active_play_us = instant_elapsed_us_u64(advance_active_play_start);
-                self.log_input_diagnostics();
+                let consume_active_play_start = Instant::now();
+                self.consume_active_play();
+                let consume_active_play_us = instant_elapsed_us_u64(consume_active_play_start);
                 let scene_start = Instant::now();
                 let scene_profile = self.render_current_scene();
                 let scene_us = instant_elapsed_us_u64(scene_start);
@@ -365,7 +364,7 @@ impl ApplicationHandler<AppUserEvent> for WinitApp {
                             background_us,
                             transition_us,
                             egui_us,
-                            advance_active_play_us,
+                            consume_active_play_us,
                             post_scene_us,
                             pacing: pacing_timings,
                         },

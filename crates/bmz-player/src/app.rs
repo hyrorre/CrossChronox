@@ -18,9 +18,7 @@ use bmz_gameplay::input::backend::{
     DeviceId, DeviceInputEvent, InputBackend, InputBouncePolicy, PhysicalControl,
 };
 use bmz_gameplay::input::binding::LaneBinding;
-use bmz_gameplay::input::system::last_input_collection_diagnostics;
 use bmz_gameplay::rule::RuleMode;
-use bmz_gameplay::session::compute_frame_times;
 use bmz_gameplay::session::{FloatingPolicy, HispeedMode, PlaySkinOffset};
 use bmz_render::assets::{RgbaImageAsset, load_chart_bga_image, load_static_rgba_image};
 use bmz_render::plan::{
@@ -103,7 +101,7 @@ use crate::screens::course_session::{ActiveCourseSession, CourseEntryResult, Cou
 use crate::screens::key_config_edit::KeyConfigEditSession;
 use crate::screens::play_finish::FinishedPlaySession;
 use crate::screens::play_loop::{
-    PlayEndingSkinTimers, advance_running_play_session, apply_play_arrange_to_snapshot,
+    PlayEndingSkinTimers, apply_play_arrange_to_snapshot, consume_running_play_snapshot,
     refresh_play_ending_snapshot,
 };
 use crate::screens::play_session::{AppliedArrange, PreparedPlayChart};

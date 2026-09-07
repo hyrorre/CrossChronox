@@ -280,6 +280,7 @@ impl WinitApp {
 }
 
 /// 既定地雷 SE (`play_landmine_se`) を鳴らすべきか判定する。
+#[cfg(test)]
 pub(in crate::app) fn landmine_se_should_play(
     mine_hits: &[bmz_gameplay::judge::model::MineHitEvent],
     audio_mix: bmz_gameplay::session::PlayAudioMix,

@@ -174,6 +174,7 @@ pub(in crate::app) fn lane_state_for_profile_save(
     if speed_locked { (None, None) } else { (hispeed, lane_state) }
 }
 
+#[cfg(test)]
 pub(in crate::app) fn active_lane_state_for_session(
     session: &bmz_gameplay::session::GameSession,
 ) -> ActiveLaneState {

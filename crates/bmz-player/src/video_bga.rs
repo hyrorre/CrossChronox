@@ -15,6 +15,32 @@ pub struct ActiveVideoBgaDecoder {
     pub last_pts: Option<i64>,
 }
 
+/// Resolve an immutable BGA timeline selection against renderer-owned assets.
+/// This also handles textures that finished loading after gameplay started.
+pub fn resolve_snapshot_textures(
+    snapshot: &mut bmz_render::snapshot::RenderSnapshot,
+    frames: &BgaFrameCatalog,
+) {
+    for selected in [
+        &mut snapshot.bga_base,
+        &mut snapshot.bga_layer,
+        &mut snapshot.bga_layer2,
+        &mut snapshot.bga_poor,
+    ] {
+        if let Some(frame) = selected {
+            if let Some(loaded) =
+                frames.values().find(|loaded| loaded.texture_id == frame.texture_id)
+            {
+                frame.width = loaded.width;
+                frame.height = loaded.height;
+                frame.is_video = loaded.is_video;
+            } else {
+                *selected = None;
+            }
+        }
+    }
+}
+
 /// Sentinel so a reused decoder is treated as needing a fresh event binding (and
 /// `restart`) on the first activation after install / quick retry.
 pub const REUSED_VIDEO_EVENT_START: TimeUs = TimeUs(i64::MIN);
@@ -255,3 +281,26 @@ pub fn prepare_reused_video_decoders_for_seek(decoders: &mut VideoBgaDecoderMap)
 }
 
 pub type VideoBgaDecoderMap = HashMap<BgaAssetId, ActiveVideoBgaDecoder>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn immutable_bga_selection_resolves_late_video_upload_and_preserves_tint() {
+        let mut selected = display_video_bga_frame(BgaAssetId(7), 1, 1);
+        selected.tint_a = 0.5;
+        let mut snapshot =
+            bmz_render::snapshot::RenderSnapshot { bga_base: Some(selected), ..Default::default() };
+        resolve_snapshot_textures(&mut snapshot, &BgaFrameCatalog::new());
+        assert!(snapshot.bga_base.is_none());
+        snapshot.bga_base = Some(selected);
+        let frames = BgaFrameCatalog::from([(
+            BgaAssetId(7),
+            display_video_bga_frame(BgaAssetId(7), 1920, 1080),
+        )]);
+        resolve_snapshot_textures(&mut snapshot, &frames);
+        let frame = snapshot.bga_base.unwrap();
+        assert_eq!((frame.width, frame.height, frame.tint_a), (1920.0, 1080.0, 0.5));
+        assert!(frame.is_video);
+    }
+}

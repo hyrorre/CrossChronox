@@ -20,6 +20,8 @@ pub struct InputRoute {
 }
 
 struct State {
+    #[cfg(all(windows, feature = "experimental-gameinput"))]
+    gameinput_diagnostics: Option<super::gameinput::GameInputPollDiagnostics>,
     configs: [GamepadScratchConfig; 2],
     slots: GamepadSlotMap,
     route: Option<Arc<InputRoute>>,
@@ -43,6 +45,8 @@ impl InputCapture {
         bridge: Option<RawInputBridge>,
     ) -> anyhow::Result<Self> {
         let state = Arc::new(Mutex::new(State {
+            #[cfg(all(windows, feature = "experimental-gameinput"))]
+            gameinput_diagnostics: None,
             configs,
             slots: GamepadSlotMap::default(),
             route: None,
@@ -120,6 +124,11 @@ impl InputCapture {
                 };
                 {
                     let mut state = worker_state.lock().unwrap_or_else(|e| e.into_inner());
+                    #[cfg(all(windows, feature = "experimental-gameinput"))]
+                    {
+                        state.gameinput_diagnostics =
+                            backend.as_ref().and_then(GamepadBackend::gameinput_diagnostics);
+                    }
                     // This queue is UI-only. Gameplay has already consumed its
                     // independent copy, so UI stalls cannot lose judged inputs.
                     const LIMIT: usize = 4096;
@@ -145,7 +154,12 @@ impl InputCapture {
     }
 
     pub fn set_route(&self, route: Option<InputRoute>) {
-        self.state.lock().unwrap_or_else(|e| e.into_inner()).route = route.map(Arc::new);
+        let route = route.map(Arc::new);
+        let old = {
+            let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+            std::mem::replace(&mut state.route, route)
+        };
+        drop(old);
         if let Some(thread) = &self.thread {
             thread.thread().unpark();
         }
@@ -185,7 +199,7 @@ impl InputCapture {
     }
     #[cfg(all(windows, feature = "experimental-gameinput"))]
     pub fn gameinput_diagnostics(&self) -> Option<super::gameinput::GameInputPollDiagnostics> {
-        None
+        self.state.try_lock().ok().and_then(|state| state.gameinput_diagnostics)
     }
 }
 
@@ -252,38 +266,6 @@ fn append_bounded<T>(destination: &mut Vec<T>, source: &mut Vec<T>, capacity: us
     destination.extend(source.drain(..accepted));
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use bmz_gameplay::input::backend::*;
-    #[test]
-    fn changing_capture_route_releases_old_sink_without_leaking_into_retry() {
-        let mut delivery = ButtonDelivery::default();
-        let mut old = SharedInputBackend::default();
-        let mut new = SharedInputBackend::default();
-        let route = |input| InputRoute {
-            input,
-            binding: LaneBinding { entries: Vec::new() },
-            focused: true,
-            keyboard_enabled: true,
-        };
-        delivery.set_route(Some(&route(old.clone())));
-        delivery.push(DeviceInputEvent {
-            device: DeviceId(1),
-            control: PhysicalControl::HidButton(1),
-            kind: bmz_core::input::InputKind::Press,
-            timestamp: DeviceTimestamp::MonotonicNs(123),
-            bounce_policy: Default::default(),
-        });
-        delivery.set_route(Some(&route(new.clone())));
-        let events = old.drain_events();
-        assert_eq!(events.len(), 2);
-        assert_eq!(events[0].timestamp, DeviceTimestamp::MonotonicNs(123));
-        assert_eq!(events[1].kind, bmz_core::input::InputKind::Release);
-        assert!(new.drain_events().is_empty());
-    }
-}
-
 pub(super) fn foreground_matches(owner: usize) -> bool {
     #[cfg(windows)]
     {
@@ -327,5 +309,36 @@ fn create_backend(
             tracing::warn!(%error, "gamepad capture initialization failed");
             None
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bmz_gameplay::input::backend::*;
+    #[test]
+    fn changing_capture_route_releases_old_sink_without_leaking_into_retry() {
+        let mut delivery = ButtonDelivery::default();
+        let mut old = SharedInputBackend::default();
+        let mut new = SharedInputBackend::default();
+        let route = |input| InputRoute {
+            input,
+            binding: LaneBinding { entries: Vec::new() },
+            focused: true,
+            keyboard_enabled: true,
+        };
+        delivery.set_route(Some(&route(old.clone())));
+        delivery.push(DeviceInputEvent {
+            device: DeviceId(1),
+            control: PhysicalControl::HidButton(1),
+            kind: bmz_core::input::InputKind::Press,
+            timestamp: DeviceTimestamp::MonotonicNs(123),
+            bounce_policy: Default::default(),
+        });
+        delivery.set_route(Some(&route(new.clone())));
+        let events = old.drain_events();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].timestamp, DeviceTimestamp::MonotonicNs(123));
+        assert_eq!(events[1].kind, bmz_core::input::InputKind::Release);
+        assert!(new.drain_events().is_empty());
     }
 }

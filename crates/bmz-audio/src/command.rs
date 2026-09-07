@@ -237,7 +237,11 @@ impl AudioEngineHandle {
         Self::with_capacity(engine, DEFAULT_AUDIO_COMMAND_QUEUE_CAPACITY)
     }
 
-    pub fn with_capacity(engine: AudioEngine, capacity: usize) -> Self {
+    pub fn with_capacity(mut engine: AudioEngine, capacity: usize) -> Self {
+        // Allocate the ordinary playback working set before attaching a callback.
+        // A whole command batch can become due in the same audio buffer.
+        engine.queue.reserve(capacity.max(1));
+        engine.mixer.voices.reserve(capacity.max(1));
         let output_sample_rate = engine.output_sample_rate();
         let idle = engine.is_idle();
         Self {
@@ -477,7 +481,11 @@ impl AudioEngineHandle {
         match self.inner.queue.lock() {
             Ok(mut queue) => {
                 let coalescible = usize::from(is_pending_command_coalescible(&queue, &command));
-                if self.cancelled.as_ref().is_some_and(|cancelled| cancelled.load(Ordering::Acquire)) {
+                if self
+                    .cancelled
+                    .as_ref()
+                    .is_some_and(|cancelled| cancelled.load(Ordering::Acquire))
+                {
                     return Err(command);
                 }
                 if queue.len().saturating_sub(coalescible).saturating_add(1) > self.inner.capacity {

@@ -65,6 +65,10 @@ impl ScheduledSoundQueue {
         Self { sounds: Vec::new() }
     }
 
+    pub(crate) fn reserve(&mut self, additional: usize) {
+        self.sounds.reserve(additional);
+    }
+
     pub fn drain_until_frame(&mut self, frame: u64) -> Vec<ScheduledSound> {
         let split = self.sounds.partition_point(|sound| sound.start_frame <= frame);
         self.sounds.drain(..split).collect()

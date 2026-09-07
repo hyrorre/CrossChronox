@@ -207,6 +207,7 @@ pub(in crate::app) fn floating_hispeed_target_bpm(
     }
 }
 
+#[cfg(test)]
 pub(in crate::app) fn chart_play_has_started(session: &bmz_gameplay::session::GameSession) -> bool {
     session.audio_clock.running && session.audio_clock.now().0 >= 0
 }

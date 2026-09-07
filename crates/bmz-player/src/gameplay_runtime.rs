@@ -59,7 +59,7 @@ pub struct RuntimeResult {
 struct Publication {
     generation: u64,
     session: PlaySessionObservation,
-    frame: FrameOutput<RenderSnapshot>,
+    frame: Arc<FrameOutput<RenderSnapshot>>,
     result: Option<Arc<RuntimeResult>>,
 }
 
@@ -77,10 +77,10 @@ struct Worker {
 /// endpoint plus immutable observations, with no access to the live GameSession.
 pub struct GameplayClient {
     pub session: PlaySessionObservation,
-    local: Option<GameplayRuntime>,
+    local: Option<Box<GameplayRuntime>>,
     worker: Option<Worker>,
     generation: u64,
-    latest_frame: Option<FrameOutput<RenderSnapshot>>,
+    latest_frame: Option<Arc<FrameOutput<RenderSnapshot>>>,
     pub result: Option<Arc<RuntimeResult>>,
 }
 
@@ -88,7 +88,7 @@ impl GameplayClient {
     pub fn new(session: GameSession) -> Self {
         Self {
             session: PlaySessionObservation::from_session(&session),
-            local: Some(GameplayRuntime::new(session)),
+            local: Some(Box::new(GameplayRuntime::new(session))),
             worker: None,
             generation: NEXT_GENERATION.fetch_add(1, Ordering::Relaxed),
             latest_frame: None,
@@ -136,7 +136,7 @@ impl GameplayClient {
         let runtime = self.local.take().ok_or_else(|| anyhow!("gameplay is not prepared"))?;
         let times = bmz_gameplay::session::compute_frame_times(&runtime.session);
         self.latest_frame =
-            Some(crate::screens::play_loop::frame_output_from_session_frame_cached(
+            Some(Arc::new(crate::screens::play_loop::frame_output_from_session_frame_cached(
                 &runtime.session,
                 bmz_gameplay::session::SessionFrame {
                     times,
@@ -151,7 +151,7 @@ impl GameplayClient {
                 config.target_ex_score,
                 &config.bga_frames,
                 &config.cache,
-            ));
+            )));
         let latest = Arc::new(Mutex::new(None));
         let stop = Arc::new(AtomicBool::new(false));
         let (commands, receiver) = mpsc::sync_channel(COMMAND_CAPACITY);
@@ -165,7 +165,7 @@ impl GameplayClient {
         let thread =
             thread::Builder::new().name(format!("bmz-gameplay-{generation}")).spawn(move || {
                 run(
-                    runtime,
+                    *runtime,
                     audio,
                     config,
                     receiver,
@@ -188,7 +188,8 @@ impl GameplayClient {
     pub fn poll(&mut self) -> Option<FrameOutput<RenderSnapshot>> {
         let worker = self.worker.as_ref()?;
         worker.snapshot_requested.store(true, Ordering::Release);
-        worker.thread.thread().unpark();
+        // Rendering requests a publication at the next independent gameplay
+        // wake; it must not add gameplay advances or alter HCN update cadence.
         let publication = worker.latest.try_lock().ok().and_then(|mut latest| latest.take());
         if let Some(publication) = publication {
             if publication.generation != self.generation {
@@ -201,7 +202,7 @@ impl GameplayClient {
             self.result = publication.result;
             self.latest_frame = Some(publication.frame);
         }
-        self.latest_frame.clone()
+        self.latest_frame.as_deref().cloned()
     }
 
     pub fn is_running(&self) -> bool {
@@ -329,7 +330,7 @@ fn run(
             || previous_state != frame.state;
         if !publish {
             let remaining =
-                runtime.next_wake_after(SAFETY_WAKE).saturating_sub(iteration_started.elapsed());
+                runtime.next_wake_after(SAFETY_WAKE.saturating_sub(iteration_started.elapsed()));
             if !remaining.is_zero() {
                 thread::park_timeout(remaining);
             }
@@ -373,7 +374,7 @@ fn run(
         let publication = Publication {
             generation,
             session: PlaySessionObservation::from_session(&runtime.session),
-            frame,
+            frame: Arc::new(frame),
             result: result.clone(),
         };
         // The lock protects only the pointer exchange, never computation or GPU
@@ -382,7 +383,7 @@ fn run(
             if let Ok(mut slot) = latest.try_lock() { slot.replace(publication) } else { None };
         drop(old);
         let remaining =
-            runtime.next_wake_after(SAFETY_WAKE).saturating_sub(iteration_started.elapsed());
+            runtime.next_wake_after(SAFETY_WAKE.saturating_sub(iteration_started.elapsed()));
         if !remaining.is_zero() {
             thread::park_timeout(remaining);
         }

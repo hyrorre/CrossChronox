@@ -2,37 +2,51 @@
 use std::sync::TryLockError;
 
 use anyhow::{Result, anyhow};
+#[cfg(test)]
 use bmz_audio::backend::cpal::SharedAudioEngine;
 use bmz_audio::command::AudioEngineHandle;
+#[cfg(test)]
 use bmz_audio::queue::{AudioScheduler, ScheduledSoundQueue};
-use bmz_core::{ids::SoundId, time::TimeUs};
+#[cfg(test)]
+use bmz_core::ids::SoundId;
+use bmz_core::time::TimeUs;
+use bmz_gameplay::session::{FrameOutput, GameSession, SessionFrame};
+#[cfg(test)]
 use bmz_gameplay::session::{
-    FrameOutput, GameSession, PlayState, SessionFrame, advance_session_frame,
-    apply_auto_key_release, compute_frame_times, update_recent_inputs, update_recent_judgements,
+    PlayState, advance_session_frame, apply_auto_key_release, compute_frame_times,
+    update_recent_inputs, update_recent_judgements,
 };
 use bmz_render::snapshot::RenderSnapshot;
 
 use crate::audio::RunningPlaySession;
+#[cfg(test)]
 use crate::config::profile_config::{IrConfig, ReplayConfig};
+#[cfg(test)]
 use crate::paths::ProfilePaths;
+#[cfg(test)]
 use crate::screens::play_finish::{
-    FinishResultMode, FinishSessionResultOnceRequest, FinishSessionResultRequest,
-    FinishedPlaySession, finish_session_result, finish_session_result_once,
+    FinishResultMode, FinishSessionResultRequest, FinishedPlaySession, finish_session_result,
 };
 use crate::screens::play_session::AppliedArrange;
+#[cfg(test)]
+use crate::screens::play_snapshot::build_render_snapshot_with_target_and_bga_frames;
 use crate::screens::play_snapshot::{
-    BgaFrameCatalog, PlayRenderSnapshotCache, build_render_snapshot_with_target_and_bga_frames,
+    BgaFrameCatalog, PlayRenderSnapshotCache,
     build_render_snapshot_with_target_and_bga_frames_cached,
 };
+#[cfg(test)]
 use crate::storage::network_db::NetworkDatabase;
+#[cfg(test)]
 use crate::storage::score_db::ScoreDatabase;
 
+#[cfg(test)]
 #[derive(Debug, Clone)]
 pub enum PlayAdvanceOutcome {
     Playing(FrameOutput<RenderSnapshot>),
     Finished { frame: FrameOutput<RenderSnapshot>, finished: Box<FinishedPlaySession> },
 }
 
+#[cfg(test)]
 impl PlayAdvanceOutcome {
     pub fn frame(&self) -> &FrameOutput<RenderSnapshot> {
         match self {
@@ -52,6 +66,7 @@ impl PlayAdvanceOutcome {
     }
 }
 
+#[cfg(test)]
 pub fn advance_play_screen(
     session: &mut GameSession,
     audio: &mut dyn AudioScheduler,
@@ -67,6 +82,7 @@ pub fn advance_play_screen(
     )
 }
 
+#[cfg(test)]
 pub fn advance_play_screen_with_bga_frames(
     session: &mut GameSession,
     audio: &mut dyn AudioScheduler,
@@ -96,6 +112,7 @@ pub fn advance_play_screen_with_bga_frames(
     }
 }
 
+#[cfg(test)]
 pub fn advance_play_screen_until_result(
     session: &mut GameSession,
     audio: &mut dyn AudioScheduler,
@@ -144,6 +161,7 @@ pub fn advance_play_screen_until_result(
     Ok(PlayAdvanceOutcome::Playing(frame))
 }
 
+#[cfg(test)]
 pub fn advance_play_screen_with_shared_audio(
     session: &mut GameSession,
     audio: &SharedAudioEngine,
@@ -165,6 +183,7 @@ pub fn advance_play_screen_with_shared_audio(
 /// `SessionFrame`(audio スケジューリング結果)から、ロック不要な render
 /// snapshot を構築して `FrameOutput` を組み立てる。重い処理はここに集約し、
 /// audio エンジンロックの外で実行する。
+#[cfg(test)]
 fn frame_output_from_session_frame(
     session: &GameSession,
     frame: SessionFrame,
@@ -216,6 +235,7 @@ pub(crate) fn frame_output_from_session_frame_cached(
     }
 }
 
+#[cfg(test)]
 fn flush_scheduled_audio_blocking(
     audio: &SharedAudioEngine,
     scheduled: &mut ScheduledSoundQueue,
@@ -348,7 +368,7 @@ fn flush_keysound_volumes_commands(
     Ok(())
 }
 
-pub fn advance_running_play_session(
+pub fn consume_running_play_snapshot(
     running: &mut RunningPlaySession,
 ) -> Result<FrameOutput<RenderSnapshot>> {
     running.gameplay.poll().ok_or_else(|| anyhow!("gameplay runtime has no published frame"))
@@ -429,6 +449,7 @@ pub(crate) fn apply_play_arrange_to_snapshot(
     snapshot.lane_shuffle_pattern = applied.pattern.clone().unwrap_or_default();
 }
 
+#[cfg(test)]
 pub fn refresh_play_ending_snapshot_with_session(
     session: &mut GameSession,
     best_ex_score: Option<u32>,
@@ -449,6 +470,7 @@ pub fn refresh_play_ending_snapshot_with_session(
     )
 }
 
+#[cfg(test)]
 pub fn refresh_play_ending_snapshot_with_session_cached(
     session: &mut GameSession,
     best_ex_score: Option<u32>,

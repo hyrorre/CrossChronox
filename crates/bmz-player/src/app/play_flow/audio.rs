@@ -164,32 +164,6 @@ impl WinitApp {
         );
     }
 
-    pub(super) fn log_input_diagnostics(&mut self) {
-        let diagnostics = last_input_collection_diagnostics();
-        if diagnostics.sequence == 0
-            || diagnostics.sequence == self.audio.input_diagnostics_last_sequence
-        {
-            return;
-        }
-        self.audio.input_diagnostics_last_sequence = diagnostics.sequence;
-        if diagnostics.drained_events == 0 {
-            return;
-        }
-
-        tracing::debug!(
-            target: "bmz_player::input_profile",
-            sequence = diagnostics.sequence,
-            drained_events = diagnostics.drained_events,
-            translated_events = diagnostics.translated_events,
-            dropped_events = diagnostics.dropped_events,
-            timestamped_events = diagnostics.timestamped_events,
-            min_event_age_us = ?diagnostics.min_event_age_us,
-            max_event_age_us = ?diagnostics.max_event_age_us,
-            max_future_event_us = ?diagnostics.max_future_event_us,
-            "play input collection diagnostics"
-        );
-    }
-
     pub(super) fn collect_audio_diagnostics(&self) -> AudioOutputDiagnostics {
         let mut snapshot = self
             .audio

@@ -421,7 +421,6 @@ impl WinitApp {
                 audio_output_open_attempted,
                 audio_diagnostics_last_log_at: now,
                 audio_diagnostics_last: None,
-                input_diagnostics_last_sequence: 0,
                 system_audio,
                 system_sound_catalog,
                 system_sound: None,
