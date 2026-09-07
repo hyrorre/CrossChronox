@@ -46,6 +46,7 @@ mod frame;
 mod hcn;
 mod input;
 mod judgement;
+pub mod latency;
 mod state;
 
 pub use audio::*;

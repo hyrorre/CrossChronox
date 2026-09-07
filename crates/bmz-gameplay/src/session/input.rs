@@ -152,6 +152,7 @@ pub fn process_human_inputs(session: &mut GameSession) -> Vec<JudgementEvent> {
             }
         }
         let events = process_session_input(session, input);
+        super::latency::judged();
         apply_input_offset_auto_adjust(session, &events);
         judgements.extend(events);
     }

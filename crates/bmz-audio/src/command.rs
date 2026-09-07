@@ -128,6 +128,9 @@ impl AudioEngineCommand {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct AudioCommandQueueDiagnostics {
+    pub scheduled_sound_count: u64,
+    pub scheduling_late_frames: u64,
+    pub scheduling_max_late_frames: u64,
     pub submitted: u64,
     pub dropped: u64,
     pub drained: u64,
@@ -139,6 +142,9 @@ pub struct AudioCommandQueueDiagnostics {
 
 #[derive(Debug)]
 struct AudioCommandQueueCounters {
+    scheduled_sound_count: AtomicU64,
+    scheduling_late_frames: AtomicU64,
+    scheduling_max_late_frames: AtomicU64,
     submitted: AtomicU64,
     dropped: AtomicU64,
     drained: AtomicU64,
@@ -151,6 +157,9 @@ struct AudioCommandQueueCounters {
 impl Default for AudioCommandQueueCounters {
     fn default() -> Self {
         Self {
+            scheduled_sound_count: AtomicU64::new(0),
+            scheduling_late_frames: AtomicU64::new(0),
+            scheduling_max_late_frames: AtomicU64::new(0),
             submitted: AtomicU64::new(0),
             dropped: AtomicU64::new(0),
             drained: AtomicU64::new(0),
@@ -519,6 +528,19 @@ impl CommandedAudioEngine {
 
         let drained = self.command_scratch.len() as u64;
         for command in self.command_scratch.drain(..) {
+            // Only atomic counters here: the audio callback must never log,
+            // allocate a diagnostic buffer, or wait for the diagnostics reader.
+            let sounds = match &command {
+                AudioEngineCommand::Schedule(sound) => std::slice::from_ref(sound),
+                AudioEngineCommand::ScheduleAll(sounds) => sounds.as_slice(),
+                _ => &[],
+            };
+            for sound in sounds {
+                let late = output_frame.saturating_sub(sound.start_frame);
+                self.inner.counters.scheduled_sound_count.fetch_add(1, Ordering::Relaxed);
+                self.inner.counters.scheduling_late_frames.fetch_add(late, Ordering::Relaxed);
+                self.inner.counters.scheduling_max_late_frames.fetch_max(late, Ordering::Relaxed);
+            }
             command.apply(engine, output_frame);
         }
         if drained != 0 {
@@ -530,6 +552,12 @@ impl CommandedAudioEngine {
 impl AudioCommandQueueInner {
     fn diagnostics(&self) -> AudioCommandQueueDiagnostics {
         AudioCommandQueueDiagnostics {
+            scheduled_sound_count: self.counters.scheduled_sound_count.load(Ordering::Relaxed),
+            scheduling_late_frames: self.counters.scheduling_late_frames.load(Ordering::Relaxed),
+            scheduling_max_late_frames: self
+                .counters
+                .scheduling_max_late_frames
+                .load(Ordering::Relaxed),
             submitted: self.counters.submitted.load(Ordering::Relaxed),
             dropped: self.counters.dropped.load(Ordering::Relaxed),
             drained: self.counters.drained.load(Ordering::Relaxed),

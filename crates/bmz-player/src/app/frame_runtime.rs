@@ -5,6 +5,9 @@ use bmz_render::renderer::{RenderFrameTimings, RenderSurfaceStatus, WgpuPresentM
 use crate::i18n::{FluentArgs, Localizer};
 
 pub(super) struct FrameRuntime {
+    last_present: Option<Instant>,
+    present_window: Instant,
+    present_intervals: bmz_core::latency::LatencyHistogram,
     pacer: FramePacer,
     skip_next_pace: bool,
     fps: SkinFpsCounter,
@@ -26,6 +29,9 @@ pub(super) enum FrameSchedule {
 impl FrameRuntime {
     pub(super) fn new(now: Instant) -> Self {
         Self {
+            last_present: None,
+            present_window: now,
+            present_intervals: Default::default(),
             pacer: FramePacer::default(),
             skip_next_pace: false,
             fps: SkinFpsCounter::new(now),
@@ -126,6 +132,17 @@ impl FrameRuntime {
         status: Option<RenderSurfaceStatus>,
     ) {
         if status == Some(RenderSurfaceStatus::Rendered) {
+            if tracing::enabled!(tracing::Level::DEBUG) {
+                if let Some(last) = self.last_present.replace(now) {
+                    self.present_intervals
+                        .record(now.saturating_duration_since(last).as_micros() as u64);
+                }
+                if now.duration_since(self.present_window) >= Duration::from_secs(5) {
+                    tracing::debug!(present_interval_us = ?self.present_intervals.summary(), "presentation latency");
+                    self.present_window = now;
+                    self.present_intervals = Default::default();
+                }
+            }
             self.fps.record_presented_frame(now);
         }
     }

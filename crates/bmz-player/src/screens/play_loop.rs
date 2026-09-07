@@ -250,12 +250,16 @@ fn flush_scheduled_audio_commands(
     audio: &AudioEngineHandle,
     scheduled: &mut ScheduledSoundQueue,
 ) -> Result<()> {
+    log_audio_scheduling_latency(audio);
     if scheduled.is_empty() {
         return Ok(());
     }
     let sounds = scheduled.drain_all().collect::<Vec<_>>();
     match audio.try_schedule_all(sounds) {
-        Ok(()) => Ok(()),
+        Ok(()) => {
+            bmz_gameplay::session::latency::audio_enqueued();
+            Ok(())
+        }
         Err(sounds) => {
             for sound in sounds {
                 scheduled.schedule(sound);
@@ -263,6 +267,31 @@ fn flush_scheduled_audio_commands(
             Ok(())
         }
     }
+}
+
+fn log_audio_scheduling_latency(audio: &AudioEngineHandle) {
+    if !tracing::enabled!(tracing::Level::DEBUG) {
+        return;
+    }
+    thread_local! {
+        static LAST_LOG: std::cell::Cell<Option<std::time::Instant>> = const { std::cell::Cell::new(None) };
+    }
+    LAST_LOG.with(|last| {
+        let now = std::time::Instant::now();
+        if last.get().is_some_and(|last| now.duration_since(last).as_secs() < 5) {
+            return;
+        }
+        last.set(Some(now));
+        let d = audio.diagnostics();
+        let rate = u64::from(audio.output_sample_rate().max(1));
+        tracing::debug!(
+            scheduled = d.scheduled_sound_count,
+            late_frames = d.scheduling_late_frames,
+            max_late_frames = d.scheduling_max_late_frames,
+            max_late_us = d.scheduling_max_late_frames.saturating_mul(1_000_000) / rate,
+            "audio scheduling latency (cumulative callback arrival)"
+        );
+    });
 }
 
 fn queue_keysound_volumes(pending: &mut Vec<(SoundId, f32)>, volumes: &[(SoundId, f32)]) {

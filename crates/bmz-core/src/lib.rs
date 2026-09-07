@@ -5,5 +5,6 @@ pub mod ids;
 pub mod input;
 pub mod judge;
 pub mod lane;
+pub mod latency;
 pub mod replay;
 pub mod time;

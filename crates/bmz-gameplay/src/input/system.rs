@@ -49,6 +49,15 @@ impl InputSystem {
     pub fn collect_game_inputs(&mut self, ctx: &InputTimingContext<'_>) -> Vec<InputEvent> {
         self.backend.update();
         let events = self.backend.drain_events();
+        let collected_ns = super::backend::monotonic_timestamp_ns();
+        crate::session::latency::collected(events.iter().filter_map(
+            |event| match event.timestamp {
+                DeviceTimestamp::MonotonicNs(ns) => {
+                    Some((collected_ns.saturating_sub(ns) / 1_000).min(u128::from(u64::MAX)) as u64)
+                }
+                _ => None,
+            },
+        ));
         let mut diagnostics = input_collection_diagnostics(&events, ctx);
         let events = events
             .into_iter()

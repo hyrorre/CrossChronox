@@ -35,6 +35,7 @@ pub fn advance_session_frame(
     session: &mut GameSession,
     audio: &mut dyn AudioScheduler,
 ) -> SessionFrame {
+    super::latency::begin_advance();
     let times = compute_frame_times(session);
     sync_input_timestamp_anchor(session, times.audio_now);
     rebase_pre_ready_visual_times(session, times.audio_now);
