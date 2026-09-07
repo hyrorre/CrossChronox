@@ -39,7 +39,7 @@ impl WinitApp {
             return;
         };
         if apply_profile_lane_settings_to_session(
-            &mut active_play.running.session,
+            &mut active_play.running.gameplay.session,
             before,
             before_lane_effect,
             &profile_lane,

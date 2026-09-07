@@ -246,6 +246,7 @@ fn flush_scheduled_audio_nonblocking(
     }
 }
 
+#[cfg(test)]
 fn flush_scheduled_audio_commands(
     audio: &AudioEngineHandle,
     scheduled: &mut ScheduledSoundQueue,
@@ -294,6 +295,7 @@ fn log_audio_scheduling_latency(audio: &AudioEngineHandle) {
     });
 }
 
+#[cfg(test)]
 fn queue_keysound_volumes(pending: &mut Vec<(SoundId, f32)>, volumes: &[(SoundId, f32)]) {
     for &(sound_id, volume) in volumes {
         if let Some((_, pending_volume)) =
@@ -328,6 +330,7 @@ fn flush_keysound_volumes_nonblocking(
     }
 }
 
+#[cfg(test)]
 fn flush_keysound_volumes_commands(
     audio: &AudioEngineHandle,
     pending: &mut Vec<(SoundId, f32)>,
@@ -348,10 +351,8 @@ fn flush_keysound_volumes_commands(
 pub fn advance_running_play_session(
     running: &mut RunningPlaySession,
 ) -> Result<FrameOutput<RenderSnapshot>> {
-    let frame = advance_session_frame(&mut running.session, &mut running.pending_audio);
-    flush_scheduled_audio_commands(&running.audio.engine, &mut running.pending_audio)?;
-    queue_keysound_volumes(&mut running.pending_keysound_volumes, &frame.keysound_volumes);
-    flush_keysound_volumes_commands(&running.audio.engine, &mut running.pending_keysound_volumes)?;
+    log_audio_scheduling_latency(&running.audio.engine);
+    let frame = running.gameplay.advance(&running.audio.engine);
     let mut output = frame_output_from_session_frame_cached(
         &running.session,
         frame,
@@ -376,10 +377,8 @@ pub fn advance_running_play_session_until_result(
     ir_config: &IrConfig,
     played_at: i64,
 ) -> Result<PlayAdvanceOutcome> {
-    let session_frame = advance_session_frame(&mut running.session, &mut running.pending_audio);
-    flush_scheduled_audio_commands(&running.audio.engine, &mut running.pending_audio)?;
-    queue_keysound_volumes(&mut running.pending_keysound_volumes, &session_frame.keysound_volumes);
-    flush_keysound_volumes_commands(&running.audio.engine, &mut running.pending_keysound_volumes)?;
+    log_audio_scheduling_latency(&running.audio.engine);
+    let session_frame = running.gameplay.advance(&running.audio.engine);
     let mut frame = frame_output_from_session_frame_cached(
         &running.session,
         session_frame,
@@ -404,7 +403,7 @@ pub fn advance_running_play_session_until_result(
                 profile_paths,
                 replay_config,
                 ir_config,
-                session: &running.session,
+                session: &running.gameplay.session,
                 played_at,
                 applied_arrange: &running.applied_arrange,
                 source_ln_profile: running.source_ln_profile,
@@ -469,13 +468,9 @@ pub fn refresh_play_ending_snapshot(
     running: &mut RunningPlaySession,
     timers: PlayEndingSkinTimers,
 ) -> RenderSnapshot {
-    let _ = flush_scheduled_audio_commands(&running.audio.engine, &mut running.pending_audio);
-    let _ = flush_keysound_volumes_commands(
-        &running.audio.engine,
-        &mut running.pending_keysound_volumes,
-    );
+    running.gameplay.flush_audio(&running.audio.engine);
     let mut snapshot = refresh_play_ending_snapshot_with_session_cached(
-        &mut running.session,
+        &mut running.gameplay.session,
         running.best_ex_score,
         running.best_ghost.as_deref(),
         running.target_ex_score,

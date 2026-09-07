@@ -96,7 +96,7 @@ impl WinitApp {
                         profile_paths: &self.boot.profile_paths,
                         replay_config: &self.boot.profile_config.replay,
                         ir_config: &self.boot.profile_config.ir,
-                        session: &started.running.session,
+                        session: &started.running.gameplay.session,
                         played_at: now_unix_seconds(),
                         applied_arrange: &started.running.applied_arrange,
                         source_ln_profile: started.running.source_ln_profile,

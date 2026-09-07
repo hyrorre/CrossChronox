@@ -177,7 +177,7 @@ impl WinitApp {
                             profile_paths: &self.boot.profile_paths,
                             replay_config: &self.boot.profile_config.replay,
                             ir_config: &self.boot.profile_config.ir,
-                            session: &active_play.running.session,
+                            session: &active_play.running.gameplay.session,
                             played_at: now_unix_seconds(),
                             applied_arrange: &active_play.running.applied_arrange,
                             source_ln_profile: active_play.running.source_ln_profile,
@@ -296,7 +296,7 @@ impl WinitApp {
                 profile_paths: &self.boot.profile_paths,
                 replay_config: &self.boot.profile_config.replay,
                 ir_config: &self.boot.profile_config.ir,
-                session: &active_play.running.session,
+                session: &active_play.running.gameplay.session,
                 played_at: now_unix_seconds(),
                 applied_arrange: &active_play.running.applied_arrange,
                 source_ln_profile: active_play.running.source_ln_profile,
@@ -417,7 +417,7 @@ impl WinitApp {
             return;
         };
         bmz_gameplay::session::drain_pre_ready_visual_inputs(
-            &mut active_play.running.session,
+            &mut active_play.running.gameplay.session,
             play_elapsed_time,
         );
         let start_result = if self.viewer_mode {
@@ -571,7 +571,7 @@ impl WinitApp {
             return;
         };
         bmz_gameplay::session::drain_pre_ready_visual_inputs(
-            &mut active_play.running.session,
+            &mut active_play.running.gameplay.session,
             play_elapsed_time,
         );
         let Some(snapshot) = &mut self.play.last_play_snapshot else {
@@ -599,7 +599,7 @@ impl WinitApp {
             active_play.running.session.hispeed_mode,
         );
         if !apply_play_lane_action_to_session(
-            &mut active_play.running.session,
+            &mut active_play.running.gameplay.session,
             lane_target,
             action,
             speed_locked,

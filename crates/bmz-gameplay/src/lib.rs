@@ -6,5 +6,6 @@ pub mod judge;
 pub mod replay;
 pub mod result;
 pub mod rule;
+pub mod runtime;
 pub mod score;
 pub mod session;

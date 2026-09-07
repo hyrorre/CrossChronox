@@ -7,11 +7,10 @@ use bmz_audio::clock::AudioClock;
 use bmz_audio::command::{AudioCommandQueueDiagnostics, AudioEngineHandle};
 use bmz_audio::engine::AudioEngine;
 use bmz_audio::loader::LoadedSampleReport;
-use bmz_audio::queue::ScheduledSoundQueue;
 use bmz_chart::model::BgaAssetId;
 use bmz_core::ids::SoundId;
 use bmz_core::time::TimeUs;
-use bmz_gameplay::session::GameSession;
+use bmz_gameplay::runtime::GameplayRuntime;
 use std::collections::{HashMap, HashSet};
 
 use crate::config::app_config::{
@@ -102,7 +101,7 @@ pub struct AudioRuntime {
 }
 
 pub struct RunningPlaySession {
-    pub session: GameSession,
+    pub gameplay: GameplayRuntime,
     pub skin_attempt: bmz_render::snapshot::SkinAttemptState,
     pub source_ln_profile: ChartLnProfile,
     /// Duration recorded in `library.db` when this play was preloaded.
@@ -113,8 +112,6 @@ pub struct RunningPlaySession {
     /// Decoded sample lengths used to determine which BGM voices survive a
     /// viewer seek. Durations stay valid if the output source is resampled.
     bgm_sample_duration_us: HashMap<SoundId, i64>,
-    pub pending_audio: ScheduledSoundQueue,
-    pub pending_keysound_volumes: Vec<(bmz_core::ids::SoundId, f32)>,
     pub sample_report: Vec<LoadedSampleReport>,
     pub finished: Option<FinishedPlaySession>,
     pub pending_finished: Option<PendingFinishedPlaySession>,
@@ -140,6 +137,19 @@ pub struct RunningPlaySession {
     pub render_snapshot_cache: PlayRenderSnapshotCache,
     pub video_bga_decoders: HashMap<BgaAssetId, ActiveVideoBgaDecoder>,
     pub failed_video_bga: HashSet<BgaAssetId>,
+}
+
+impl std::ops::Deref for RunningPlaySession {
+    type Target = GameplayRuntime;
+    fn deref(&self) -> &Self::Target {
+        &self.gameplay
+    }
+}
+
+impl std::ops::DerefMut for RunningPlaySession {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.gameplay
+    }
 }
 
 impl AppAudioOutput {
@@ -401,15 +411,13 @@ pub fn open_prepared_play_audio(
 
     RunningPlaySession {
         render_snapshot_cache: prepared.render_snapshot_cache,
-        session,
+        gameplay: GameplayRuntime::new(session),
         skin_attempt: prepared.skin_attempt,
         source_ln_profile: prepared.source_ln_profile,
         chart_length_ms: prepared.chart_length_ms,
         play_duration_ms: None,
         audio,
         bgm_sample_duration_us,
-        pending_audio: ScheduledSoundQueue::new(),
-        pending_keysound_volumes: Vec::new(),
         sample_report: prepared.sample_report,
         finished: None,
         pending_finished: None,

@@ -31,8 +31,9 @@ pub fn update_video_bga_frames(
         return;
     }
 
-    let RunningPlaySession { session, video_bga_decoders, failed_video_bga, bga_frames, .. } =
+    let RunningPlaySession { gameplay, video_bga_decoders, failed_video_bga, bga_frames, .. } =
         running;
+    let session = &gameplay.session;
     let chart = &session.chart;
     let mut active_video_assets = HashSet::new();
 
