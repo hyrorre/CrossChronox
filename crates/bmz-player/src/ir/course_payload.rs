@@ -52,8 +52,6 @@ pub struct IrCourseSubmissionContext {
     pub bms_ir_course_key: Option<String>,
 }
 
-const BMS_IR_DAN_COURSE_KEY_PREFIX: &str = "00000000002000000000000000005190";
-
 pub fn compute_course_hash(definition: &IrCourseDefinition) -> String {
     let canonical = super::device_key::canonical_json_value(&json!({
         "charts": definition.charts,
@@ -76,10 +74,6 @@ pub fn compute_rian_course_hash_v1(title: &str, charts: &[String]) -> String {
     hash_to_hex(&digest.finalize())
 }
 
-fn bms_ir_course_key(md5s: &[String]) -> String {
-    format!("{BMS_IR_DAN_COURSE_KEY_PREFIX}{}", md5s.concat())
-}
-
 fn valid_bms_ir_table_course_key(value: &str, chart_count: usize) -> bool {
     let value = value.trim();
     value.len() == 32 * (chart_count + 1) && value.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -91,7 +85,6 @@ pub fn course_identity_from_stored(
 ) -> Option<IrCourseIdentity> {
     let mut charts = Vec::with_capacity(stored.definition.entries.len());
     let mut chart_sha256s = Vec::with_capacity(stored.definition.entries.len());
-    let mut chart_md5s = Vec::with_capacity(stored.definition.entries.len());
     for entry in &stored.definition.entries {
         let sha = entry.sha256.clone().or_else(|| {
             let md5 = entry.md5.as_ref()?;
@@ -100,21 +93,8 @@ pub fn course_identity_from_stored(
             Some(hash_to_hex(&sha))
         })?;
         let parsed = hex_to_hash::<32>(&sha).ok()?;
-        let md5 = entry
-            .md5
-            .as_deref()
-            .and_then(|value| hex_to_hash::<16>(value).ok())
-            .map(|value| hash_to_hex(&value))
-            .or_else(|| {
-                library_db
-                    .list_charts_by_sha256(parsed)
-                    .ok()?
-                    .first()
-                    .map(|chart| hash_to_hex(&chart.md5))
-            });
         charts.push(sha);
         chart_sha256s.push(parsed);
-        chart_md5s.push(md5);
     }
     let definition = IrCourseDefinition {
         charts,
@@ -129,11 +109,13 @@ pub fn course_identity_from_stored(
     let rian_course_hash_v1 = compute_rian_course_hash_v1(&definition.title, &definition.charts);
     let bms_ir_course_key =
         if stored.source.starts_with(crate::ir::table::BMS_IR_TABLE_SOURCE_PREFIX)
-            && valid_bms_ir_table_course_key(&stored.definition.key, chart_md5s.len())
+            && valid_bms_ir_table_course_key(&stored.definition.key, chart_sha256s.len())
         {
             Some(stored.definition.key.trim().to_ascii_lowercase())
         } else {
-            chart_md5s.into_iter().collect::<Option<Vec<_>>>().map(|md5s| bms_ir_course_key(&md5s))
+            // A locally created course has no assigned LR2 course key. The
+            // header includes legacy metadata, not an encoding of constraints.
+            None
         };
     let constraints_json = super::device_key::canonical_json_value(&definition.constraints).ok()?;
     let chart_sha256s_json =

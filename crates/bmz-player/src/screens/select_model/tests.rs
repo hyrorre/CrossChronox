@@ -254,10 +254,7 @@ fn course_row_looks_up_best_score_with_normalized_ln_policy() {
     let stored = library_db.list_courses().unwrap().pop().unwrap();
     let identity =
         crate::ir::course_payload::course_identity_from_stored(&library_db, &stored).unwrap();
-    assert_eq!(
-        identity.bms_ir_course_key,
-        Some(format!("00000000002000000000000000005190{}", hash_to_hex(&no_ln.identity.file_md5)))
-    );
+    assert_eq!(identity.bms_ir_course_key, None);
     score_db
         .insert_course_score(&crate::storage::score_db::CourseScoreInsert {
             course_hash: identity.course_hash,
