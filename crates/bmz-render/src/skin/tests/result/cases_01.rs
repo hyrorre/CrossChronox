@@ -197,7 +197,7 @@ fn grade_diff_destinations_use_the_fixed_next_rank_in_select_and_result() {
     assert!(destination_ops_match(&destination("RANK_s_MAX", 300), &[], &state));
     assert!(destination_ops_match(&destination("any_other_id", 300), &[], &state));
     assert!(!destination_ops_match(&destination("RANK_s_AAA", 301), &[], &state));
-    assert_eq!(skin_value_number_for_destination(&grade_diff_value(), &state), Some(-100));
+    assert_eq!(skin_value_number_for_destination(&grade_diff_value(), &state), Some(100));
 
     let select = SkinDrawState {
         select_screen: true,
@@ -214,7 +214,7 @@ fn grade_diff_destinations_use_the_fixed_next_rank_in_select_and_result() {
 }
 
 #[test]
-fn next_result_diff_number_uses_the_negative_mimage_row() {
+fn next_result_diff_number_uses_the_positive_mimage_row() {
     let document: SkinDocument = serde_json::from_str(
         r#"
             {
@@ -272,7 +272,7 @@ fn next_result_diff_number_uses_the_negative_mimage_row() {
         _ => None,
     });
 
-    assert_eq!(first_digit_uv.map(|uv| uv.y), Some(0.5));
+    assert_eq!(first_digit_uv.map(|uv| uv.y), Some(0.0));
 }
 
 #[test]

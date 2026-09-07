@@ -42,7 +42,9 @@ pub(in crate::skin) fn ir_total_clear_count(
 }
 
 pub(in crate::skin) fn result_grade_diff_number(state: &SkinDrawState) -> Option<i64> {
-    next_rank_diff(state)
+    // beatoraja NUMBER_DIFF_NEXTRANK (154) is the positive distance to the
+    // next DJ LEVEL border. Keep the signed BMZ extension 1978 separate.
+    Some(score_grade_facts(state)?.next_diff.saturating_neg())
 }
 
 pub(crate) fn result_grade_diff_label(state: &SkinDrawState) -> Option<String> {
@@ -134,10 +136,6 @@ pub(in crate::skin) fn score_grade_facts(state: &SkinDrawState) -> Option<ScoreG
     } else {
         ScoreGradeFacts::new(state.ex_score, state.total_notes)
     }
-}
-
-pub(in crate::skin) fn next_rank_diff(state: &SkinDrawState) -> Option<i64> {
-    Some(score_grade_facts(state)?.next_diff)
 }
 
 /// Computes the forward difference used by WMII PLAY's Lua `next_rank_info`.

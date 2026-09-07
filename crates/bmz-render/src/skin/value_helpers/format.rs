@@ -217,10 +217,10 @@ pub(super) fn display_signed_number_digits_with_row_order(
 }
 
 /// `ref_id` が符号付き表示を要求する Result 系 ref か。
-/// beatoraja の `NUMBER_DIFF_*` 系と次 DJ LEVEL までの差分を対象とする。
+/// beatoraja の `NUMBER_DIFF_*` 系のうち、正負を持つ差分を対象とする。
 #[cfg(test)]
 pub(super) fn ref_id_is_signed(ref_id: i32) -> bool {
-    matches!(ref_id, 152 | 153 | 154 | 172 | 175 | 178 | SKIN_REF_BMZ_SCORE_GRADE_NEAREST_DIFF)
+    matches!(ref_id, 152 | 153 | 172 | 175 | 178 | SKIN_REF_BMZ_SCORE_GRADE_NEAREST_DIFF)
 }
 
 #[cfg(test)]

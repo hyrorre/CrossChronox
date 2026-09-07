@@ -281,9 +281,9 @@ Selectで個数も必要な場合は`ref=351`（通常LN数）と`ref=353`（ロ
 ### BMZ Score Grade Refs
 
 ランク差分の標準表示は固定NEXTとする。`NUMBER_NEXT_RANK_EXSCORE` (`ref=154`) は、
-次の正式な DJ LEVEL 境界との差を `現在のEX SCORE - 次境界` で返すため、未到達時は
-常に負、MAX時は0になる。select / play / result のいずれでも、現在のEX SCOREと譜面
-全体のノート数を使用する。スコアが無いselect行または総ノート数0では値を返さない。
+次の正式な DJ LEVEL 境界までの距離を `次境界 - 現在のEX SCORE` で返すため、未到達時は
+正、MAX時は0になる。select / play / result のいずれでも、現在のEX SCOREと譜面全体の
+ノート数を使用する。スコアが無いselect行または総ノート数0では値を返さない。
 
 総ノート数を `N`、MAX EX SCOREを `M=2N` とし、境界は整数演算で次のように求める。
 
@@ -314,7 +314,7 @@ grade labelを返す。
 | 1975 | number / event index / text | 現在より高い次のgrade。MAX時はMAX |
 | 1976 | number / event index / text | 最も近いgrade |
 | 1977 | number | `EX SCORE - current border` |
-| 1978 | number | `EX SCORE - next border`。`ref=154`と同値 |
+| 1978 | number | `EX SCORE - next border`。符号付き。正値の`ref=154`とは独立 |
 | 1979 | number | `EX SCORE - nearest border`。次側なら負 |
 | 1980 | number | `abs(ref 1979)` |
 | 1981 | option | NEARESTが現在側。完全一致と同距離を含む |

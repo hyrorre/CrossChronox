@@ -113,7 +113,7 @@ pub const SKIN_REF_BMZ_SCORE_GRADE_NEAREST: i32 = 1976;
 /// EX SCORE gained since the current lower grade border.
 pub const SKIN_REF_BMZ_SCORE_GRADE_CURRENT_DIFF: i32 = 1977;
 /// Signed difference from the next higher grade border (`score - border`).
-/// This is an alias of BMZ's exact-border `ref=154` compatibility value.
+/// This remains independent from beatoraja's positive `ref=154` value.
 pub const SKIN_REF_BMZ_SCORE_GRADE_NEXT_DIFF: i32 = 1978;
 /// Signed distance from the nearest border (`score - border`).
 pub const SKIN_REF_BMZ_SCORE_GRADE_NEAREST_DIFF: i32 = 1979;

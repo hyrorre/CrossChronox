@@ -308,8 +308,8 @@ fn next_select_diff_number_renders_next_rank_label() {
     });
 
     let (state, _) = document.select_draw_state(&snapshot, None);
-    assert_eq!(skin_state_number(154, &state), Some(-1002));
-    assert_eq!(first_digit_uv.map(|uv| uv.y), Some(0.5));
+    assert_eq!(skin_state_number(154, &state), Some(1002));
+    assert_eq!(first_digit_uv.map(|uv| uv.y), Some(0.0));
     assert!(items.iter().any(|item| matches!(
         item,
         SkinRenderItem::Image {

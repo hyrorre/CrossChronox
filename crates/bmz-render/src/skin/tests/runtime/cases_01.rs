@@ -838,9 +838,9 @@ fn display_signed_number_digits_uses_sign_cell_and_row_offset() {
         vec![1, 2, 3, 4, 5]
     );
 
-    // NUMBER_DIFF_NEXTRANK (154) も同じ符号セル付き mimage レイアウトを使う。
+    // ref=154 is positive; signed mimage helpers remain available for other refs.
     assert_eq!(display_signed_number_digits(-34, 4, NumberPadding::None, 12), vec![23, 15, 16]);
-    assert!(ref_id_is_signed(154));
+    assert!(!ref_id_is_signed(154));
     assert_eq!(display_signed_number_digits(34, 4, NumberPadding::None, 12), vec![11, 3, 4]);
     assert_eq!(display_signed_number_digits(0, 4, NumberPadding::None, 12), vec![11, 0]);
     assert_eq!(
