@@ -39,7 +39,7 @@ use bmz_gameplay::replay::{ReplayPlayer, ReplayRecorder};
 use bmz_gameplay::rule::RuleMode;
 use bmz_gameplay::score::{ScoreState, scored_note_count};
 use bmz_gameplay::session::{
-    AssistRuntime, BgmScheduler, FloatingPolicy, GameSession, HispeedMode,
+    AssistRuntime, AutoKeysoundScheduler, BgmScheduler, FloatingPolicy, GameSession, HispeedMode,
     InputOffsetAutoAdjustState, PlaySkinOffset, PlayState,
 };
 use std::sync::Arc;
@@ -162,6 +162,8 @@ pub struct PlaySessionOptions {
     pub bms_random_seed: Option<u64>,
     /// Recorded `#RANDOM` decisions, in source order, for exact replay.
     pub bms_random_choices: Option<Vec<i32>>,
+    /// Recorded `#SWITCH` decisions, in source order, for exact replay.
+    pub bms_switch_choices: Option<Vec<u64>>,
     pub arrange_pattern: Option<Vec<u8>>,
     /// When set, overrides the gauge's starting value.  Used to carry the
     /// gauge between charts during a course.
@@ -206,6 +208,7 @@ pub struct BattleOpponentOptions {
     /// is known during preload.
     pub packed_seed: Option<i64>,
     pub bms_random_choices: Option<Vec<i32>>,
+    pub bms_switch_choices: Option<Vec<u64>>,
     pub arrange_pattern: Option<Vec<u8>>,
     pub s_random_scheme: SRandomScheme,
     pub s_random_scheme_2p: Option<SRandomScheme>,
@@ -230,6 +233,8 @@ pub struct AppliedArrange {
     pub h_random_threshold_ms: Option<u32>,
     /// BMS `#RANDOM` decisions applied before the arrange modifier.
     pub bms_random_choices: Vec<i32>,
+    /// BMS `#SWITCH` decisions applied before the arrange modifier.
+    pub bms_switch_choices: Vec<u64>,
     pub pattern: Option<Vec<u8>>,
     /// Key-mode conversion actually applied to the source chart.
     pub key_mode_conversion: KeyModeConversionConfig,
@@ -407,6 +412,7 @@ impl Default for PlaySessionOptions {
             h_random_threshold_ms: None,
             bms_random_seed: None,
             bms_random_choices: None,
+            bms_switch_choices: None,
             arrange_pattern: None,
             initial_gauge_value: None,
             initial_gauge_values: None,

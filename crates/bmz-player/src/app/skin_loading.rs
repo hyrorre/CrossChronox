@@ -15,6 +15,7 @@ pub(super) fn load_initial_skin_textures(
     generation: u64,
     player_name: &str,
     skin: &SkinConfig,
+    load_frontend_skins: bool,
     lua_runtime_mode: bmz_skin::LuaSkinRuntimeMode,
 ) -> (Option<SkinManifest>, HashMap<SkinKind, Vec<ActiveSkinVideoSource>>, bool, bool, bool) {
     // Decide / Result の JSON skin は Select の同期ロードより**前**に decode スレッドを起動して
@@ -27,7 +28,7 @@ pub(super) fn load_initial_skin_textures(
     let decide_trimmed = skin.decide.trim().to_string();
     let result_trimmed = skin.result.trim().to_string();
 
-    {
+    if load_frontend_skins {
         let decide_path = if decide_trimmed.is_empty() {
             default_skin_document_path_from_paths(app_paths, SkinKind::Decide)
         } else {
@@ -73,7 +74,7 @@ pub(super) fn load_initial_skin_textures(
             pending_decide = true;
         }
     }
-    {
+    if load_frontend_skins {
         let result_path = if result_trimmed.is_empty() {
             default_skin_document_path_from_paths(app_paths, SkinKind::Result)
         } else {
@@ -141,7 +142,7 @@ pub(super) fn load_initial_skin_textures(
 
     // Select skin (クリティカルパス: 起動直後に表示される)
     let select_trimmed = skin.select.trim();
-    {
+    if load_frontend_skins {
         let select_path = if select_trimmed.is_empty() {
             Ok(default_skin_document_path_from_paths(app_paths, SkinKind::Select))
         } else {
@@ -191,7 +192,7 @@ pub(super) fn load_initial_skin_textures(
         }
     }
 
-    if !result_trimmed.is_empty() {
+    if load_frontend_skins && !result_trimmed.is_empty() {
         match app_paths.resolve_path_ref(&result_trimmed) {
             Ok(path) if !is_decodable_skin_path(&path) => {
                 tracing::warn!(
@@ -203,7 +204,7 @@ pub(super) fn load_initial_skin_textures(
         }
     }
 
-    if !decide_trimmed.is_empty() {
+    if load_frontend_skins && !decide_trimmed.is_empty() {
         match app_paths.resolve_path_ref(&decide_trimmed) {
             Ok(path) if !is_decodable_skin_path(&path) => {
                 tracing::warn!(

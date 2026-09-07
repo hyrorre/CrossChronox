@@ -88,6 +88,7 @@ impl WinitApp {
             options.s_random_scheme = applied.s_random_scheme;
             options.s_random_scheme_2p = applied.s_random_scheme_2p;
             options.bms_random_choices = Some(applied.bms_random_choices.clone());
+            options.bms_switch_choices = Some(applied.bms_switch_choices.clone());
             options.arrange_pattern = applied.pattern.clone();
         }
         options
@@ -131,6 +132,7 @@ impl WinitApp {
                     options.s_random_scheme = applied.s_random_scheme;
                     options.s_random_scheme_2p = applied.s_random_scheme_2p;
                     options.bms_random_choices = Some(applied.bms_random_choices.clone());
+                    options.bms_switch_choices = Some(applied.bms_switch_choices.clone());
                     options.arrange_pattern = applied.pattern.clone();
                 }
                 ResultRetryMode::DifferentArrange => {

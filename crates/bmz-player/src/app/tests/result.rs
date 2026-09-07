@@ -1,4 +1,7 @@
 use super::*;
+use crate::app::result_flow_ending::{
+    FinishedPlayAction, finished_play_action, play_ending_completion,
+};
 use crate::app::result_flow_timing::{
     play_fadeout_duration_for_skin, practice_play_fadeout_duration_for_skin,
 };
@@ -26,6 +29,22 @@ fn result_skin_signature_changes_when_only_offset_changes() {
     assert_ne!(before, after);
     assert_eq!(after.4.offset_values["Mascot"].x, 12);
     assert_eq!(after.4.offset_id_values[&90].x, 12);
+}
+
+#[test]
+fn finished_play_action_distinguishes_viewer_wait_and_explicit_exit() {
+    assert_eq!(finished_play_action(true, false, false), FinishedPlayAction::ViewerWait);
+    assert_eq!(finished_play_action(true, true, false), FinishedPlayAction::Exit);
+    assert_eq!(finished_play_action(false, true, false), FinishedPlayAction::Exit);
+    assert_eq!(finished_play_action(false, false, false), FinishedPlayAction::ShowResult);
+    assert_eq!(finished_play_action(true, true, true), FinishedPlayAction::ShowResult);
+}
+
+#[test]
+fn viewer_play_ending_freezes_play_instead_of_starting_result_fade() {
+    assert_eq!(play_ending_completion(true, false), PlayEndingCompletion::ViewerWait);
+    assert_eq!(play_ending_completion(true, true), PlayEndingCompletion::Result);
+    assert_eq!(play_ending_completion(false, false), PlayEndingCompletion::Result);
 }
 
 #[test]
@@ -90,6 +109,19 @@ fn pre_play_abort_starts_fadeout_and_returns_to_select_without_result() {
     assert!(ending.finished.is_none());
     assert_eq!(ending.fadeout_started_at, Some(started_at));
     assert!(ending.full_combo_elapsed_at_finish_ms.is_none());
+}
+
+#[test]
+fn viewer_app_exit_uses_the_pre_ready_fade_route() {
+    let started_at = Instant::now();
+    let ending = viewer_exit_ending(started_at);
+
+    assert_eq!(ending.started_at, started_at);
+    assert_eq!(ending.completion, PlayEndingCompletion::ViewerExit);
+    assert_eq!(ending.fadeout_started_at, Some(started_at));
+    assert!(ending.music_end_started_at.is_none());
+    assert!(ending.finished.is_none());
+    assert!(!ending.failed);
 }
 
 #[test]

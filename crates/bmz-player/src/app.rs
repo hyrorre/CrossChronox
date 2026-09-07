@@ -8,7 +8,7 @@ use std::sync::{Arc, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use bmz_chart::model::{BgaAssetRef, PlayableChart};
 use bmz_core::clear::{ClearType, GaugeType};
 use bmz_core::input::{InputKind, ScratchDirection};
@@ -55,6 +55,7 @@ use crate::cli::{
     AUTOPLAY_ON_START_ARG, AppOptions, BOOT_RESULT_SAMPLE_ARG, LUA_SKIN_RUNTIME_ARG,
     SMOKE_EXIT_AFTER_FRAMES_ARG, SMOKE_EXIT_AFTER_PLAY_FRAMES_ARG,
     SMOKE_EXIT_AFTER_RESULT_FRAMES_ARG, SMOKE_EXIT_ON_RESULT_ARG, SMOKE_SCREENSHOT_ARG,
+    VIEWER_BATTLE_ARG,
 };
 use crate::config::app_config::{
     AppConfig, GamepadBackendKind, GlobalInputConfig, InputBackendKind,
@@ -388,13 +389,14 @@ use skin_pipeline::MAX_PENDING_SKIN_UPLOADS;
 
 const SAMPLE_PLAYABLE_TITLE: &str = "BMZ Sample Playable";
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 enum AppUserEvent {
     SkinUpload { sent_at: Instant },
     SystemSoundReady { generation: u64 },
     CourseLinkRepair,
     TableFetch,
     RivalSync,
+    ViewerCommand(crate::viewer_ipc::ViewerCommand),
 }
 
 pub async fn run() -> Result<()> {
@@ -418,8 +420,44 @@ pub async fn run_with_options_log_buffer_and_paths(
     log_buffer: LogBuffer,
     app_paths: AppPaths,
 ) -> Result<()> {
+    run_with_options_log_buffer_paths_and_profile(options, log_buffer, app_paths, None).await
+}
+
+pub async fn run_with_options_log_buffer_paths_and_profile(
+    mut options: AppOptions,
+    log_buffer: LogBuffer,
+    app_paths: AppPaths,
+    profile_id: Option<&str>,
+) -> Result<()> {
     let startup_started_at = Instant::now();
-    let boot = bootstrap::bootstrap_with_paths(app_paths)?;
+    let (mut boot, viewer_cleanup) = if options.viewer_play {
+        let path = options
+            .boot_play_path
+            .as_deref()
+            .map(Path::new)
+            .context("viewer play requires a chart path")?;
+        let bms_random_seed = crate::random_option_seed::fresh_bms_random_seed();
+        let viewer = bootstrap::bootstrap_viewer_with_paths(
+            app_paths,
+            path,
+            options.start_measure.unwrap_or(0),
+            bms_random_seed,
+            profile_id,
+        )?;
+        options.boot_play_path = Some(viewer.chart_path.to_string_lossy().into_owned());
+        options.boot_start_time_us = Some(viewer.start_time.0);
+        options.boot_bms_random_seed = Some(bms_random_seed);
+        tracing::info!(
+            chart_id = viewer.chart_id,
+            path = %viewer.chart_path.display(),
+            start_time_us = viewer.start_time.0,
+            "prepared transient viewer chart"
+        );
+        (viewer.app, Some(viewer.cleanup))
+    } else {
+        (bootstrap::bootstrap_with_paths_profile(app_paths, profile_id)?, None)
+    };
+    prepare_boot_chart_options(&mut boot, &mut options)?;
     tracing::info!(
         startup_elapsed_ms = startup_started_at.elapsed().as_millis(),
         "application bootstrap complete"
@@ -443,6 +481,12 @@ pub async fn run_with_options_log_buffer_and_paths(
     // event loop thread 自体を sleep させず、フレーム待機中も入力イベントを処理する。
     event_loop.set_control_flow(ControlFlow::Wait);
     let event_proxy = event_loop.create_proxy();
+    if options.viewer_play {
+        let viewer_event_proxy = event_proxy.clone();
+        crate::viewer_ipc::start_listener(move |command| {
+            let _ = viewer_event_proxy.send_event(AppUserEvent::ViewerCommand(command));
+        })?;
+    }
 
     // Ctrl-C(SIGINT)で event loop を正常終了させ、cpal/ASIO ストリームの Drop を
     // 走らせる。捕捉しないと既定ハンドラがプロセスを即殺し、ASIO の停止処理が走らず
@@ -458,7 +502,9 @@ pub async fn run_with_options_log_buffer_and_paths(
     }
 
     let (maintenance_select_tx, maintenance_select_rx) = tokio::sync::watch::channel(false);
-    spawn_ir_sync_worker(&boot, maintenance_select_rx);
+    if !options.viewer_play {
+        spawn_ir_sync_worker(&boot, maintenance_select_rx);
+    }
 
     let mut app = Box::new(WinitApp::new(
         boot,
@@ -473,7 +519,53 @@ pub async fn run_with_options_log_buffer_and_paths(
         raw_input_bridge,
     )?);
     tracing::info!("starting winit event loop");
-    event_loop.run_app(app.as_mut()).context("winit event loop failed")
+    let result = event_loop.run_app(app.as_mut()).context("winit event loop failed");
+    drop(app);
+    drop(viewer_cleanup);
+    result
+}
+
+fn prepare_boot_chart_options(
+    boot: &mut bootstrap::BootstrappedApp,
+    options: &mut AppOptions,
+) -> Result<()> {
+    let Some(path) = options.boot_play_path.as_deref().map(Path::new) else {
+        return Ok(());
+    };
+    if !path.is_file() {
+        return Ok(());
+    }
+    let canonical = path
+        .canonicalize()
+        .with_context(|| format!("failed to resolve boot chart: {}", path.display()))?;
+    if !crate::storage::scan::is_chart_file(&canonical) {
+        bail!("unsupported chart extension: {}", canonical.display());
+    }
+    options.boot_play_path = Some(canonical.to_string_lossy().into_owned());
+    let chart_id = match boot.library_db.chart_id_by_chart_file_path(&canonical)? {
+        Some(chart_id) => chart_id,
+        None => {
+            crate::storage::import::import_chart_file(
+                &mut boot.library_db,
+                &canonical,
+                None,
+                None,
+                now_unix_seconds(),
+            )?
+            .chart_id
+        }
+    };
+    if options.boot_start_time_us.is_none()
+        && let Some(measure) = options.start_measure
+    {
+        let chart = crate::screens::play_session::load_source_chart_for_chart(
+            &boot.library_db,
+            chart_id,
+            None,
+        )?;
+        options.boot_start_time_us = Some(bootstrap::viewer_measure_start_time(&chart, measure)?.0);
+    }
+    Ok(())
 }
 
 /// IR スコアジョブをバックグラウンドで定期送信する。
@@ -607,6 +699,17 @@ struct WinitApp {
     /// frame pacing、確定FPS、scene別profile集計をまとめた描画runtime。
     frame: FrameRuntime,
     deferred_boot: Option<DeferredBoot>,
+    /// uBMplay互換の外部ビューワーとして起動したプロセスか。
+    viewer_mode: bool,
+    /// ビューワーの単曲再生が終わり、次のIPC命令を待っている状態。
+    viewer_waiting: bool,
+    /// 現在の外部ビューワー譜面。F5 reload と同じ #RANDOM seed の再利用に使う。
+    viewer_chart_path: Option<PathBuf>,
+    viewer_bms_random_seed: Option<u64>,
+    /// Spaceで停止したviewerの譜面時刻とPlay skin経過時刻を凍結する。
+    viewer_paused: bool,
+    viewer_paused_play_elapsed: Option<TimeUs>,
+    skip_result: bool,
     select: SelectRuntimeState,
     play: PlayRuntimeState,
     result: ResultRuntimeState,
@@ -636,6 +739,8 @@ mod runtime_config;
 mod runtime_helpers;
 #[path = "app/scene_state.rs"]
 mod scene_state;
+#[path = "app/viewer.rs"]
+mod viewer;
 
 use audio_helpers::*;
 use platform::*;

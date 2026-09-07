@@ -170,6 +170,9 @@ Floating無効の設定では緑数字操作を受け付けない。Floating固�
 ref 1918は `0=NORMAL`, `1=CLASSIC`, `2=FLOATING`,
 `3=NORMAL+FLOATING`, `4=CLASSIC+FLOATING`。
 
+E1/E2操作に連動する共通HSパネルには、押下中option `1928`、共通press / hold timer
+`19008`、共通release timer `19009`を使える。詳細は`docs/skin.md`を参照。
+
 ## 実装入口
 
 - Configと段階表: `crates/bmz-player/src/config/profile_config/`, `config/play.rs`

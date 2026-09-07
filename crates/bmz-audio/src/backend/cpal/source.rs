@@ -237,6 +237,10 @@ impl CpalCommandedOutputSource {
         self.clock.pause();
     }
 
+    pub fn pause_at(&mut self, chart_time: TimeUs) {
+        self.clock.pause_at(chart_time);
+    }
+
     pub fn clock(&self) -> AudioClock {
         self.clock.clone()
     }

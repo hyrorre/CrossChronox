@@ -245,7 +245,7 @@ impl BeatorajaReplay {
             lane_shuffle_pattern,
             events,
         )
-        .with_randomization(arrange_seed_2p, self.data.rand.clone())
+        .with_randomization(arrange_seed_2p, self.data.rand.clone(), Vec::new())
         .with_s_random_scheme(SRandomScheme::Legacy40MsV1)
         .with_playback_metadata(
             double_option,

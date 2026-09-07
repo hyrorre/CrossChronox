@@ -15,6 +15,79 @@ fn cached_vector_glyph_uses_supersampled_atlas_pixels() {
 }
 
 #[test]
+fn cached_vector_glyph_distinguishes_horizontal_and_vertical_scale() {
+    let Some(font) = load_default_font() else { return };
+    let mut atlas = TextAtlasCache::new(TEXT_ATLAS_WIDTH);
+    let wide = atlas
+        .cached_vector_glyph(DEFAULT_TEXT_FONT_ID, 'A', PxScale { x: 12.0, y: 24.0 }, &font)
+        .expect("glyph should render");
+    let uniform = atlas
+        .cached_vector_glyph(DEFAULT_TEXT_FONT_ID, 'A', PxScale::from(12.0), &font)
+        .expect("glyph should render");
+
+    assert!(wide.display_height > uniform.display_height);
+    assert_eq!(atlas.glyphs.len(), 2);
+}
+
+#[test]
+fn vector_text_shrink_preserves_height_by_default_and_supports_uniform_mode() {
+    let Some(font) = load_default_font() else { return };
+    let surface = SurfaceSize { width: 100, height: 100 };
+    let render = |overflow| {
+        let plan = DrawPlan {
+            clear: Color::rgb(0.0, 0.0, 0.0),
+            commands: vec![DrawCommand::Text {
+                origin: Point { x: 0.1, y: 0.1 },
+                text: "WWWW".to_string(),
+                caret: Some(TextCaret { byte_index: 4, color: Color::rgb(1.0, 1.0, 1.0) }),
+                post_scale: Point { x: 1.0, y: 1.0 },
+                style: TextStyle {
+                    font_id: None,
+                    size: 0.2,
+                    bitmap_size: None,
+                    color: Color::rgb(1.0, 1.0, 1.0),
+                    layer: crate::plan::TextLayer::Skin,
+                    align: TextAlign::Left,
+                    max_width: 0.2,
+                    overflow,
+                    wrapping: false,
+                    outline: None,
+                    shadow: None,
+                },
+            }],
+        };
+        let mut atlas = TextAtlasCache::new(TEXT_ATLAS_WIDTH);
+        let frame = build_text_frame_with_cache(
+            &plan,
+            &font,
+            &HashMap::new(),
+            &HashMap::new(),
+            surface,
+            &mut atlas,
+        );
+        assert!(frame.instances.len() >= TEXT_INSTANCE_BYTES);
+        let quad_y = f32::from_le_bytes(frame.instances[4..8].try_into().unwrap());
+        let quad_width = f32::from_le_bytes(frame.instances[8..12].try_into().unwrap());
+        let quad_height = f32::from_le_bytes(frame.instances[12..16].try_into().unwrap());
+        let caret = frame.command_caret_rects[0].expect("caret should be laid out");
+        (quad_y, quad_width, quad_height, caret.rect.y, caret.rect.height)
+    };
+
+    let natural = render(TextOverflow::Overflow);
+    let horizontal = render(TextOverflow::Shrink);
+    let uniform = render(TextOverflow::ShrinkUniform);
+
+    assert!(horizontal.1 < natural.1);
+    assert_approx(horizontal.0, natural.0);
+    assert_approx(horizontal.2, natural.2);
+    assert_approx(horizontal.3, natural.3);
+    assert_approx(horizontal.4, natural.4);
+    assert!(uniform.2 < horizontal.2);
+    assert!(uniform.4 < horizontal.4);
+    assert!(uniform.3 > horizontal.3);
+}
+
+#[test]
 fn text_atlas_resets_when_height_reaches_limit() {
     let mut atlas = TextAtlasCache::new(TEXT_ATLAS_WIDTH);
     // 上限を超える行を積み、アトラス高さを限界まで成長させる。
@@ -460,7 +533,7 @@ fn bitmap_glyph_non_integer_scale_uses_interpolated_alpha() {
         page: 0,
     };
 
-    let pixels = rasterized_bitmap_glyph_pixels(glyph, &page, 1.5, 3, 1);
+    let pixels = rasterized_bitmap_glyph_pixels(glyph, &page, PxScale::from(1.5), 3, 1);
     let middle_alpha = pixels[7];
 
     assert!(middle_alpha > 0 && middle_alpha < 255);
@@ -542,7 +615,7 @@ fn bitmap_font_text_positions_glyphs_from_destination_baseline() {
 }
 
 #[test]
-fn bitmap_font_shrink_keeps_text_vertically_centered_in_destination() {
+fn bitmap_font_shrink_selects_horizontal_or_uniform_scaling() {
     let Some(default_font) = load_default_font() else { return };
     let surface = SurfaceSize { width: 100, height: 100 };
     let mut pages = HashMap::new();
@@ -587,33 +660,57 @@ fn bitmap_font_shrink_keeps_text_vertically_centered_in_destination() {
             glyphs,
         },
     );
-    let plan = DrawPlan {
-        clear: Color::rgb(0.0, 0.0, 0.0),
-        commands: vec![DrawCommand::Text {
-            origin: Point { x: 0.1, y: 0.1 },
-            text: "AAAA".to_string(),
-            caret: None,
-            post_scale: Point { x: 1.0, y: 1.0 },
-            style: TextStyle {
-                font_id: Some("bitmap".to_string()),
-                size: 0.2,
-                bitmap_size: None,
-                color: Color::rgb(1.0, 1.0, 1.0),
-                layer: crate::plan::TextLayer::Skin,
-                align: TextAlign::Left,
-                max_width: 0.4,
-                overflow: TextOverflow::Shrink,
-                wrapping: false,
-                outline: None,
-                shadow: None,
-            },
-        }],
+    let render = |overflow| {
+        let plan = DrawPlan {
+            clear: Color::rgb(0.0, 0.0, 0.0),
+            commands: vec![DrawCommand::Text {
+                origin: Point { x: 0.1, y: 0.1 },
+                text: "AAAA".to_string(),
+                caret: Some(TextCaret { byte_index: 4, color: Color::rgb(1.0, 1.0, 1.0) }),
+                post_scale: Point { x: 1.0, y: 1.0 },
+                style: TextStyle {
+                    font_id: Some("bitmap".to_string()),
+                    size: 0.2,
+                    bitmap_size: None,
+                    color: Color::rgb(1.0, 1.0, 1.0),
+                    layer: crate::plan::TextLayer::Skin,
+                    align: TextAlign::Left,
+                    max_width: 0.4,
+                    overflow,
+                    wrapping: false,
+                    outline: None,
+                    shadow: None,
+                },
+            }],
+        };
+        let mut atlas = TextAtlasCache::new(TEXT_ATLAS_WIDTH);
+        let frame = build_text_frame_with_cache(
+            &plan,
+            &default_font,
+            &HashMap::new(),
+            &bitmap_fonts,
+            surface,
+            &mut atlas,
+        );
+        let y = f32::from_le_bytes(frame.instances[4..8].try_into().unwrap());
+        let width = f32::from_le_bytes(frame.instances[8..12].try_into().unwrap());
+        let height = f32::from_le_bytes(frame.instances[12..16].try_into().unwrap());
+        let caret = frame.command_caret_rects[0].expect("caret should be laid out");
+        (y, width, height, caret.rect.y, caret.rect.height)
     };
 
-    let frame = build_text_frame(&plan, &default_font, &HashMap::new(), &bitmap_fonts, surface);
-    let y = f32::from_le_bytes(frame.instances[4..8].try_into().unwrap());
+    let natural = render(TextOverflow::Overflow);
+    let horizontal = render(TextOverflow::Shrink);
+    let uniform = render(TextOverflow::ShrinkUniform);
 
-    assert!((y - 0.15).abs() < f32::EPSILON);
+    assert!(horizontal.1 < natural.1);
+    assert_approx(horizontal.0, natural.0);
+    assert_approx(horizontal.2, natural.2);
+    assert_approx(horizontal.3, natural.3);
+    assert_approx(horizontal.4, natural.4);
+    assert_approx(uniform.0, 0.15);
+    assert!(uniform.2 < horizontal.2);
+    assert!(uniform.4 < horizontal.4);
 }
 
 #[test]

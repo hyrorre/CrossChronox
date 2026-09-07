@@ -59,8 +59,11 @@ pub fn load_game_session_for_chart_with_input_backend(
 }
 
 pub(super) fn bms_random_source_for_chart(options: &PlaySessionOptions) -> BmsRandomSource {
-    if let Some(choices) = &options.bms_random_choices {
-        BmsRandomSource::Choices(choices.clone())
+    if options.bms_random_choices.is_some() || options.bms_switch_choices.is_some() {
+        BmsRandomSource::Choices {
+            random: options.bms_random_choices.clone().unwrap_or_default(),
+            switches: options.bms_switch_choices.clone().unwrap_or_default(),
+        }
     } else if options.legacy_arrange_seed {
         // Replay v3 and older derived `#RANDOM` from the shared arrange seed.
         BmsRandomSource::Seed(options.arrange_seed.map(|seed| seed as u64))
@@ -197,6 +200,7 @@ pub fn preload_play_session_for_chart_with_callbacks(
             opponent_options.arrange_seed_2p = seeds.p2.map(|seed| i64::from(seed.value()));
         }
         opponent_options.bms_random_choices = opponent.bms_random_choices.clone();
+        opponent_options.bms_switch_choices = opponent.bms_switch_choices.clone();
         opponent_options.arrange_pattern = opponent.arrange_pattern.clone();
         opponent_options.s_random_scheme = opponent.s_random_scheme;
         opponent_options.s_random_scheme_2p = opponent.s_random_scheme_2p;
@@ -544,6 +548,7 @@ pub(super) fn load_transformed_chart_for_play(
     }
     applied_arrange.double_option = applied_double_option;
     applied_arrange.bms_random_choices = import.bms_random_choices;
+    applied_arrange.bms_switch_choices = import.bms_switch_choices;
     applied_arrange.key_mode_conversion = key_mode_conversion;
     applied_arrange.seven_to_nine_pattern = options.seven_to_nine_pattern;
     applied_arrange.seven_to_nine_type = options.seven_to_nine_type;

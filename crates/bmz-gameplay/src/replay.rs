@@ -44,6 +44,10 @@ impl ReplayPlayer {
         }
         out
     }
+
+    pub fn skip_before(&mut self, start_time: TimeUs) {
+        self.next_index = self.events.partition_point(|event| event.time < start_time);
+    }
 }
 
 #[cfg(test)]
@@ -73,5 +77,32 @@ mod tests {
         assert_eq!(replayed.len(), 1);
         assert_eq!(replayed[0].source, InputSource::Replay);
         assert_eq!(replayed[0].scratch_direction, Some(ScratchDirection::Up));
+    }
+
+    #[test]
+    fn player_skip_before_keeps_boundary_event() {
+        let mut player = ReplayPlayer {
+            events: vec![
+                ReplayEvent {
+                    lane: bmz_core::lane::Lane::Key1,
+                    kind: InputKind::Press,
+                    time: TimeUs(1),
+                    device_kind: InputDeviceKind::Keyboard,
+                    scratch_direction: None,
+                },
+                ReplayEvent {
+                    lane: bmz_core::lane::Lane::Key1,
+                    kind: InputKind::Release,
+                    time: TimeUs(2),
+                    device_kind: InputDeviceKind::Keyboard,
+                    scratch_direction: None,
+                },
+            ],
+            next_index: 0,
+        };
+
+        player.skip_before(TimeUs(2));
+
+        assert_eq!(player.poll_until(TimeUs(2)).len(), 1);
     }
 }

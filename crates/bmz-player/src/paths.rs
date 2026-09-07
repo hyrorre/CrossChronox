@@ -54,25 +54,27 @@ pub fn resolve_app_paths() -> Result<AppPaths> {
     let current_dir = env::current_dir().context("failed to resolve current directory")?;
     let exe_path = env::current_exe().ok();
     let exe_dir = exe_path.as_ref().and_then(|path| path.parent()).map(Path::to_path_buf);
+    let development_data_dir = development_workspace_data_dir(exe_path.as_deref());
 
     let resource_dir = env_path("BMZ_RESOURCE_DIR").unwrap_or_else(|| {
-        default_resource_dir(&current_dir, exe_path.as_deref(), exe_dir.as_deref())
-    });
-    let data_dir_overridden = env_path("BMZ_DATA_DIR");
-    let data_dir = data_dir_overridden
-        .clone()
-        .unwrap_or_else(|| default_data_dir(&current_dir, exe_dir.as_deref()));
-    let cache_dir = env_path("BMZ_CACHE_DIR").unwrap_or_else(|| {
-        default_cache_dir(
+        default_resource_dir(
             &current_dir,
+            exe_path.as_deref(),
             exe_dir.as_deref(),
-            &data_dir,
-            data_dir_overridden.is_some(),
+            development_data_dir.as_deref(),
         )
     });
-    let logs_dir = env_path("BMZ_LOGS_DIR").unwrap_or_else(|| {
-        default_logs_dir(&current_dir, exe_dir.as_deref(), &data_dir, data_dir_overridden.is_some())
-    });
+    let ResolvedDataDir { path: data_dir, keep_auxiliary_dirs_with_data } =
+        match env_path("BMZ_DATA_DIR") {
+            Some(path) => ResolvedDataDir { path, keep_auxiliary_dirs_with_data: true },
+            None => {
+                default_data_dir(&current_dir, exe_dir.as_deref(), development_data_dir.as_deref())
+            }
+        };
+    let cache_dir = env_path("BMZ_CACHE_DIR")
+        .unwrap_or_else(|| default_cache_dir(&data_dir, keep_auxiliary_dirs_with_data));
+    let logs_dir = env_path("BMZ_LOGS_DIR")
+        .unwrap_or_else(|| default_logs_dir(&data_dir, keep_auxiliary_dirs_with_data));
 
     Ok(AppPaths::from_dirs(resource_dir, data_dir, cache_dir, logs_dir))
 }
@@ -225,10 +227,17 @@ fn env_path(name: &str) -> Option<PathBuf> {
     env::var_os(name).filter(|value| !value.is_empty()).map(PathBuf::from)
 }
 
+#[derive(Debug)]
+struct ResolvedDataDir {
+    path: PathBuf,
+    keep_auxiliary_dirs_with_data: bool,
+}
+
 fn default_resource_dir(
     current_dir: &Path,
     exe_path: Option<&Path>,
     exe_dir: Option<&Path>,
+    development_data_dir: Option<&Path>,
 ) -> PathBuf {
     if let Some(resources) = macos_app_resource_dir(exe_path).filter(|path| path.exists()) {
         return resources;
@@ -237,9 +246,8 @@ fn default_resource_dir(
         return resources;
     }
 
-    let repo_data = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
-    if repo_data.exists() {
-        return repo_data;
+    if let Some(data_dir) = development_data_dir {
+        return data_dir.to_path_buf();
     }
 
     let current_data = current_dir.join("data");
@@ -252,48 +260,105 @@ fn default_resource_dir(
         .unwrap_or(current_data)
 }
 
-fn default_data_dir(current_dir: &Path, exe_dir: Option<&Path>) -> PathBuf {
+fn default_data_dir(
+    current_dir: &Path,
+    exe_dir: Option<&Path>,
+    development_data_dir: Option<&Path>,
+) -> ResolvedDataDir {
     if let Some(data_dir) = exe_dir.map(|dir| dir.join("data")).filter(|path| path.exists()) {
-        return data_dir;
+        return ResolvedDataDir { path: data_dir, keep_auxiliary_dirs_with_data: true };
+    }
+
+    if let Some(data_dir) = development_data_dir {
+        return ResolvedDataDir {
+            path: data_dir.to_path_buf(),
+            keep_auxiliary_dirs_with_data: true,
+        };
     }
 
     let current_data = current_dir.join("data");
     if current_data.exists() {
-        return current_data;
+        return ResolvedDataDir { path: current_data, keep_auxiliary_dirs_with_data: true };
     }
 
-    platform_data_dir().unwrap_or(current_data)
+    match platform_data_dir() {
+        Some(path) => ResolvedDataDir { path, keep_auxiliary_dirs_with_data: false },
+        None => ResolvedDataDir { path: current_data, keep_auxiliary_dirs_with_data: true },
+    }
 }
 
-fn default_cache_dir(
-    current_dir: &Path,
-    exe_dir: Option<&Path>,
-    data_dir: &Path,
-    data_dir_overridden: bool,
-) -> PathBuf {
-    if data_dir_overridden || is_portable_data_dir(current_dir, exe_dir, data_dir) {
+fn default_cache_dir(data_dir: &Path, keep_auxiliary_dirs_with_data: bool) -> PathBuf {
+    if keep_auxiliary_dirs_with_data {
         return data_dir.join("cache");
     }
     platform_cache_dir().unwrap_or_else(|| data_dir.join("cache"))
 }
 
-fn default_logs_dir(
-    current_dir: &Path,
-    exe_dir: Option<&Path>,
-    data_dir: &Path,
-    data_dir_overridden: bool,
-) -> PathBuf {
-    if data_dir_overridden || is_portable_data_dir(current_dir, exe_dir, data_dir) {
+fn default_logs_dir(data_dir: &Path, keep_auxiliary_dirs_with_data: bool) -> PathBuf {
+    if keep_auxiliary_dirs_with_data {
         return data_dir.join("logs");
     }
     platform_logs_dir().unwrap_or_else(|| data_dir.join("logs"))
 }
 
-fn is_portable_data_dir(current_dir: &Path, exe_dir: Option<&Path>, data_dir: &Path) -> bool {
-    if data_dir == current_dir.join("data") {
-        return true;
+/// Cargo がこのワークスペースへ直接出力した開発用実行ファイルだけに、
+/// ソースツリー内の data を結び付ける。
+///
+/// ビルド元の絶対パスだけを信用すると、別の場所へコピーした実行ファイルまで
+/// 元のソースツリーを読み書きしてしまうため、実行ファイル自身が同じ
+/// `target/debug`、`target/release`、またはその `deps` にある同crateのテスト成果物で
+/// あることも正規化後のパスで確認する。
+fn development_workspace_data_dir(exe_path: Option<&Path>) -> Option<PathBuf> {
+    development_workspace_data_dir_from(
+        exe_path?,
+        Path::new(env!("CARGO_MANIFEST_DIR")),
+        env!("CARGO_PKG_NAME"),
+    )
+}
+
+fn development_workspace_data_dir_from(
+    exe_path: &Path,
+    manifest_dir: &Path,
+    package_name: &str,
+) -> Option<PathBuf> {
+    let workspace_dir = manifest_dir.parent()?.parent()?;
+    let canonical_workspace_dir = workspace_dir.canonicalize().ok()?;
+    let exe_path = exe_path.canonicalize().ok()?;
+    let exe_stem = exe_path.file_stem()?.to_str()?;
+    let exe_dir = exe_path.parent()?;
+    let (profile_dir, is_test_artifact) = if exe_dir.file_name()?.to_str()? == "deps" {
+        (exe_dir.parent()?, true)
+    } else {
+        (exe_dir, false)
+    };
+    let profile_name = profile_dir.file_name()?.to_str()?;
+    if profile_name != "debug" && profile_name != "release" {
+        return None;
     }
-    exe_dir.map(|dir| dir.join("data")).is_some_and(|path| path == data_dir)
+
+    if is_test_artifact {
+        let crate_stem = package_name.replace('-', "_");
+        if exe_stem != crate_stem && !exe_stem.starts_with(&format!("{crate_stem}-")) {
+            return None;
+        }
+    } else if exe_stem != package_name {
+        return None;
+    }
+
+    let expected_profile_dir =
+        canonical_workspace_dir.join("target").join(profile_name).canonicalize().ok()?;
+    if profile_dir != expected_profile_dir {
+        return None;
+    }
+
+    let workspace_manifest = workspace_dir.join("Cargo.toml");
+    let package_manifest = manifest_dir.join("Cargo.toml");
+    let data_dir = workspace_dir.join("data");
+    if !workspace_manifest.is_file() || !package_manifest.is_file() || !data_dir.is_dir() {
+        return None;
+    }
+
+    Some(data_dir)
 }
 
 fn same_path(a: &Path, b: &Path) -> bool {
@@ -434,6 +499,91 @@ mod tests {
         assert_eq!(normalize_library_path(r"\\?\C:\Users\player\songs"), "C:/Users/player/songs");
         assert_eq!(normalize_library_path("//?/C:/Users/player/songs"), "C:/Users/player/songs");
         assert_eq!(normalize_library_path(r"\\?\UNC\server\share\songs"), "//server/share/songs");
+    }
+
+    fn temporary_path_root(label: &str) -> PathBuf {
+        let stamp =
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        env::temp_dir().join(format!("bmz-player-paths-{label}-{}-{stamp}", std::process::id()))
+    }
+
+    fn create_development_workspace(root: &Path) -> PathBuf {
+        let manifest_dir = root.join("crates/bmz-player");
+        std::fs::create_dir_all(root.join("target/release")).unwrap();
+        std::fs::create_dir_all(root.join("data")).unwrap();
+        std::fs::create_dir_all(&manifest_dir).unwrap();
+        std::fs::write(root.join("Cargo.toml"), b"[workspace]\n").unwrap();
+        std::fs::write(manifest_dir.join("Cargo.toml"), b"[package]\nname = \"bmz-player\"\n")
+            .unwrap();
+        manifest_dir
+    }
+
+    #[test]
+    fn development_workspace_data_is_used_for_its_release_binary() {
+        let root = temporary_path_root("development-release");
+        let manifest_dir = create_development_workspace(&root);
+        let exe_path = root.join("target/release/bmz-player.exe");
+        std::fs::write(&exe_path, b"").unwrap();
+
+        let resolved = development_workspace_data_dir_from(&exe_path, &manifest_dir, "bmz-player");
+
+        assert_eq!(resolved, Some(root.join("data")));
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn development_workspace_data_is_used_for_its_cargo_test_binary() {
+        let root = temporary_path_root("development-test");
+        let manifest_dir = create_development_workspace(&root);
+        let exe_path = root.join("target/release/deps/bmz_player-a1b2c3.exe");
+        std::fs::create_dir_all(exe_path.parent().unwrap()).unwrap();
+        std::fs::write(&exe_path, b"").unwrap();
+
+        let resolved = development_workspace_data_dir_from(&exe_path, &manifest_dir, "bmz-player");
+
+        assert_eq!(resolved, Some(root.join("data")));
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn copied_release_binary_does_not_reuse_build_workspace_data() {
+        let root = temporary_path_root("copied-release");
+        let manifest_dir = create_development_workspace(&root);
+        let copied_exe = root.join("copied/target/release/bmz-player.exe");
+        std::fs::create_dir_all(copied_exe.parent().unwrap()).unwrap();
+        std::fs::write(&copied_exe, b"").unwrap();
+
+        assert_eq!(
+            development_workspace_data_dir_from(&copied_exe, &manifest_dir, "bmz-player"),
+            None
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn development_data_precedes_current_directory_but_not_portable_data() {
+        let root = temporary_path_root("development-priority");
+        let current_dir = root.join("working");
+        let exe_dir = root.join("target/release");
+        let development_data = root.join("data");
+        std::fs::create_dir_all(current_dir.join("data")).unwrap();
+        std::fs::create_dir_all(exe_dir.join("data")).unwrap();
+        std::fs::create_dir_all(&development_data).unwrap();
+
+        let portable = default_data_dir(&current_dir, Some(&exe_dir), Some(&development_data));
+        assert_eq!(portable.path, exe_dir.join("data"));
+        assert!(portable.keep_auxiliary_dirs_with_data);
+
+        let development = default_data_dir(
+            &current_dir,
+            Some(&root.join("without-data")),
+            Some(&development_data),
+        );
+        assert_eq!(development.path, development_data);
+        assert!(development.keep_auxiliary_dirs_with_data);
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     fn test_app_paths() -> AppPaths {

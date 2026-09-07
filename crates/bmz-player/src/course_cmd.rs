@@ -17,11 +17,21 @@ pub fn run_course_command(cmd: CourseCommand) -> Result<()> {
 }
 
 pub fn run_course_command_with_paths(cmd: CourseCommand, app_paths: &AppPaths) -> Result<()> {
+    run_course_command_with_paths_and_profile(cmd, app_paths, None)
+}
+
+pub fn run_course_command_with_paths_and_profile(
+    cmd: CourseCommand,
+    app_paths: &AppPaths,
+    profile_id: Option<&str>,
+) -> Result<()> {
     match cmd {
         CourseCommand::Import { path } => import_courses(app_paths, Path::new(&path)),
         CourseCommand::List => list_courses(app_paths),
-        CourseCommand::History { course_id, limit } => course_history(app_paths, course_id, limit),
-        CourseCommand::Attempt { score_id } => course_attempt(app_paths, score_id),
+        CourseCommand::History { course_id, limit } => {
+            course_history(app_paths, profile_id, course_id, limit)
+        }
+        CourseCommand::Attempt { score_id } => course_attempt(app_paths, profile_id, score_id),
     }
 }
 
@@ -93,10 +103,15 @@ fn list_courses(app_paths: &AppPaths) -> Result<()> {
     Ok(())
 }
 
-fn course_history(app_paths: &AppPaths, course_id: i64, limit: u32) -> Result<()> {
+fn course_history(
+    app_paths: &AppPaths,
+    profile_id: Option<&str>,
+    course_id: i64,
+    limit: u32,
+) -> Result<()> {
     migrate_library_db(&app_paths.library_db)?;
     let library_db = LibraryDatabase::open(&app_paths.library_db)?;
-    let score_db = open_active_score_db(app_paths)?;
+    let score_db = open_score_db(app_paths, profile_id)?;
 
     let course = library_db
         .course_by_id(course_id)?
@@ -149,8 +164,8 @@ fn course_history(app_paths: &AppPaths, course_id: i64, limit: u32) -> Result<()
     Ok(())
 }
 
-fn course_attempt(app_paths: &AppPaths, score_id: i64) -> Result<()> {
-    let score_db = open_active_score_db(app_paths)?;
+fn course_attempt(app_paths: &AppPaths, profile_id: Option<&str>, score_id: i64) -> Result<()> {
+    let score_db = open_score_db(app_paths, profile_id)?;
 
     let entry = score_db
         .course_score_entry_by_id(score_id)?
@@ -221,14 +236,19 @@ fn course_attempt(app_paths: &AppPaths, score_id: i64) -> Result<()> {
     Ok(())
 }
 
-fn open_active_score_db(app_paths: &AppPaths) -> Result<ScoreDatabase> {
+fn open_score_db(app_paths: &AppPaths, profile_id: Option<&str>) -> Result<ScoreDatabase> {
     let app_config = if app_paths.config_toml.exists() {
         load_app_config(&app_paths.config_toml)
             .with_context(|| format!("failed to load {}", app_paths.config_toml.display()))?
     } else {
         AppConfig::default()
     };
-    let profile_paths = resolve_profile_paths(app_paths, &app_config.active_profile)?;
+    let profile_override = profile_id;
+    let profile_id = profile_override.unwrap_or(&app_config.active_profile);
+    let profile_paths = resolve_profile_paths(app_paths, profile_id)?;
+    if profile_override.is_some() && !profile_paths.profile_toml.is_file() {
+        bail!("profile not found: {profile_id}");
+    }
     profile_paths.ensure_dirs()?;
     migrate_score_db(&profile_paths.score_db)?;
     ScoreDatabase::open(&profile_paths.score_db)

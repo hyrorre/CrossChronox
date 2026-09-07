@@ -214,6 +214,10 @@ pub(in crate::app) fn play_exit_should_leave_practice(
     practice_phase == Some(PracticePhase::Config)
 }
 
+pub(in crate::app) const fn play_exit_chord_pressed(e2_held: bool, e3_held: bool) -> bool {
+    e2_held && e3_held
+}
+
 pub(in crate::app) fn should_begin_play_fadeout_after_final_notes(
     control: &str,
     bindings: &SelectKeyBindings,

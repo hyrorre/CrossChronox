@@ -17,15 +17,24 @@ pub fn run_replay_command(command: ReplayCommand) -> Result<()> {
 }
 
 pub fn run_replay_command_with_paths(command: ReplayCommand, app_paths: &AppPaths) -> Result<()> {
+    run_replay_command_with_paths_and_profile(command, app_paths, None)
+}
+
+pub fn run_replay_command_with_paths_and_profile(
+    command: ReplayCommand,
+    app_paths: &AppPaths,
+    profile_id: Option<&str>,
+) -> Result<()> {
     match command {
         ReplayCommand::Import { path, overwrite, controller } => {
-            import_replays(app_paths, &path, overwrite, controller)
+            import_replays(app_paths, profile_id, &path, overwrite, controller)
         }
     }
 }
 
 fn import_replays(
     app_paths: &AppPaths,
+    profile_id: Option<&str>,
     path: &str,
     overwrite: bool,
     controller: bool,
@@ -37,7 +46,12 @@ fn import_replays(
     } else {
         AppConfig::default()
     };
-    let profile_paths = resolve_profile_paths(app_paths, &app_config.active_profile)?;
+    let profile_override = profile_id;
+    let profile_id = profile_override.unwrap_or(&app_config.active_profile);
+    let profile_paths = resolve_profile_paths(app_paths, profile_id)?;
+    if profile_override.is_some() && !profile_paths.profile_toml.is_file() {
+        anyhow::bail!("profile not found: {profile_id}");
+    }
     profile_paths.ensure_dirs()?;
     migrate_library_db(&app_paths.library_db)?;
     migrate_score_db(&profile_paths.score_db)?;

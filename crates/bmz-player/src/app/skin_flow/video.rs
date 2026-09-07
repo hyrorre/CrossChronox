@@ -149,6 +149,7 @@ impl WinitApp {
                     snapshot,
                     play_skin_document.map(|document| document.h),
                     play_skin_document.and_then(|document| document.primary_note_lane_height_px()),
+                    play_skin_document.map_or(0, |document| document.input),
                 ))
             }
             SkinKind::Result => {

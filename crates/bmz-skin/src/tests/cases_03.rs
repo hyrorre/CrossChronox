@@ -1,6 +1,31 @@
 use super::*;
 
 #[test]
+fn lua_skin_preserves_text_shrink_mode() {
+    let root = unique_test_dir("bmz-skin-text-shrink-mode");
+    fs::create_dir_all(&root).unwrap();
+    let path = root.join("select.luaskin");
+    fs::write(
+        &path,
+        r#"
+            return {
+                type = 0,
+                text = {
+                    { id = "title", size = 24, overflow = 1, shrinkMode = 1 }
+                }
+            }
+            "#,
+    )
+    .unwrap();
+
+    let loaded =
+        load_lua_skin(&path, SkinKind::Select, &BTreeMap::new(), &BTreeMap::new()).unwrap();
+
+    assert_eq!(loaded.document.text[0].overflow, 1);
+    assert_eq!(loaded.document.text[0].shrink_mode, 1);
+}
+
+#[test]
 fn lua_skin_luajava_stub_loads_legacy_sound_helper() {
     let root = unique_test_dir("bmz-skin-lua");
     fs::create_dir_all(&root).unwrap();

@@ -181,6 +181,7 @@ pub struct PlayStartOptions {
     pub h_random_threshold_ms: Option<u32>,
     pub bms_random_seed: Option<u64>,
     pub bms_random_choices: Option<Vec<i32>>,
+    pub bms_switch_choices: Option<Vec<u64>>,
     pub arrange_pattern: Option<Vec<u8>>,
     /// Override the starting gauge value (used to carry the gauge between
     /// charts in a course).  None means use the gauge's default `init`.
@@ -254,12 +255,13 @@ pub fn play_session_options_from_start(
         .unwrap_or_default();
     let battle_opponent = start_options.battle_target.as_ref().map(|target| {
         let arrangement = target.playback.arrangement();
-        let (replay_player, bms_random_choices) = match &target.playback {
+        let (replay_player, bms_random_choices, bms_switch_choices) = match &target.playback {
             BattleTargetPlayback::Replay(replay) => (
                 Some(ReplayPlayer { events: replay.events.clone(), next_index: 0 }),
                 replay.bms_random_choices.clone(),
+                replay.bms_switch_choices.clone(),
             ),
-            BattleTargetPlayback::Seed { .. } => (None, None),
+            BattleTargetPlayback::Seed { .. } => (None, None, None),
         };
         BattleOpponentOptions {
             replay_player,
@@ -272,6 +274,7 @@ pub fn play_session_options_from_start(
             legacy_arrange_seed: arrangement.legacy_arrange_seed,
             packed_seed: arrangement.packed_seed,
             bms_random_choices,
+            bms_switch_choices,
             arrange_pattern: arrangement.arrange_pattern,
             s_random_scheme: arrangement.s_random_scheme,
             s_random_scheme_2p: arrangement.s_random_scheme_2p,
@@ -325,6 +328,7 @@ pub fn play_session_options_from_start(
         h_random_threshold_ms: start_options.h_random_threshold_ms,
         bms_random_seed: start_options.bms_random_seed,
         bms_random_choices: start_options.bms_random_choices,
+        bms_switch_choices: start_options.bms_switch_choices,
         arrange_pattern: start_options.arrange_pattern,
         initial_gauge_value: start_options.initial_gauge_value,
         initial_gauge_values: start_options.initial_gauge_values,
@@ -622,6 +626,7 @@ pub fn apply_arrange_override(
     options.s_random_scheme_2p = arrange.s_random_scheme_2p;
     options.h_random_threshold_ms = arrange.h_random_threshold_ms;
     options.bms_random_choices = Some(arrange.bms_random_choices.clone());
+    options.bms_switch_choices = Some(arrange.bms_switch_choices.clone());
     options.arrange_pattern = arrange.pattern.clone();
     options.key_mode_conversion = arrange.key_mode_conversion;
     options.seven_to_nine_pattern = arrange.seven_to_nine_pattern;
@@ -648,6 +653,7 @@ pub fn apply_queued_replay(
     options.h_random_threshold_ms = replay.replay.h_random_threshold_ms;
     options.replay_gauge_override = replay.replay.recorded_gauge_type();
     options.bms_random_choices = replay.replay.bms_random_choices.clone();
+    options.bms_switch_choices = replay.replay.bms_switch_choices.clone();
     options.arrange_pattern = replay.replay.lane_shuffle_pattern.clone();
     // Replays of past plays were recorded by a human; never autoplay them.
     options.autoplay = false;
@@ -680,6 +686,7 @@ mod tests {
             s_random_scheme_2p: Some(SRandomScheme::Lm120HzV1),
             h_random_threshold_ms: Some(125),
             bms_random_choices: vec![2],
+            bms_switch_choices: vec![2_000_000_000_000],
             pattern: Some(vec![3, 1, 2, 0]),
             key_mode_conversion: KeyModeConversionConfig::SevenToSix,
             seven_to_nine_pattern: SevenToNinePattern::default(),
@@ -712,7 +719,7 @@ mod tests {
             Some(vec![2, 0, 1]),
             Vec::new(),
         )
-        .with_randomization(Some(24), Vec::new())
+        .with_randomization(Some(24), Vec::new(), Vec::new())
         .with_seed_scheme(crate::storage::replay::SEED_SCHEME_LEGACY_SHARED_V3)
         .with_s_random_schemes(SRandomScheme::Legacy40MsV1, Some(SRandomScheme::Lm120HzV1));
 

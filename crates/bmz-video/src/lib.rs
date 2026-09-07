@@ -48,6 +48,7 @@ struct SelectedVideoStream {
     index: usize,
     time_base_num: i64,
     time_base_den: i64,
+    start_time_raw: Option<i64>,
     codec_params: ffmpeg_next::codec::Parameters,
 }
 
@@ -58,6 +59,10 @@ struct VideoTimestampNormalizer {
 }
 
 impl VideoTimestampNormalizer {
+    fn with_origin_raw(origin_raw: Option<i64>) -> Self {
+        Self { origin_raw, last_us: 0 }
+    }
+
     fn frame_pts_us(
         &mut self,
         decoded: &ffmpeg_next::frame::Video,
@@ -228,6 +233,15 @@ impl VideoBgaDecoder {
     /// Keeps the decode thread and ffmpeg input open (beatoraja `stop`/`play` style).
     /// Channel mode signals the worker to rewind; clocked mode rewinds via playback target.
     pub fn restart(&mut self) {
+        self.restart_at(0);
+    }
+
+    /// Seek directly to the keyframe at or before `video_offset_us`, then decode forward.
+    ///
+    /// Channel mode uses FFmpeg seek on the existing input. Clocked mode keeps its existing
+    /// rewind-and-rebase behavior because it is used by looping skin movie sources.
+    pub fn restart_at(&mut self, video_offset_us: i64) {
+        let video_offset_us = video_offset_us.max(0);
         if !self.follow_playback_time {
             // receiver drain と worker の blocked send は並行するため、古い pass の frame が
             // drain 直後に 1 枚だけ到着し得る。generation を先に進めて poll 側で捨てる。
@@ -237,7 +251,7 @@ impl VideoBgaDecoder {
         self.current = None;
         self.finished = false;
         self.pass_finished.store(false, Ordering::Release);
-        self.playback_target_us.store(0, Ordering::Release);
+        self.playback_target_us.store(video_offset_us, Ordering::Release);
 
         if self.follow_playback_time {
             if let Some(frames) = self.clocked_frames.as_ref()
@@ -408,6 +422,12 @@ enum ChannelDecodePassEnd {
     Stop,
     Restart,
     Eof,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ChannelDecodePassStart {
+    generation: u64,
+    direct_seeked: bool,
 }
 
 struct ChannelFrameCatchUp<T> {

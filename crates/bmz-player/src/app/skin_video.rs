@@ -34,6 +34,7 @@ pub(super) fn play_skin_video_draw_state(
     snapshot: &RenderSnapshot,
     skin_height: Option<u32>,
     note_lane_height_px: Option<i32>,
+    skin_input_ms: i32,
 ) -> bmz_render::skin::SkinDrawState {
     let play_elapsed_ms = time_us_to_skin_ms(snapshot.play_elapsed_time);
     let skin_height = skin_height.unwrap_or(1080).max(1) as f32;
@@ -49,6 +50,11 @@ pub(super) fn play_skin_video_draw_state(
         (snapshot.hidden_cover.clamp(0.0, 1.0) * visible_lane_height).round() as i32;
     bmz_render::skin::SkinDrawState {
         elapsed_ms: play_elapsed_ms,
+        start_input_ms: if snapshot.seamless_play_entry {
+            bmz_render::skin::skin_start_input_elapsed_ms(play_elapsed_ms, skin_input_ms)
+        } else {
+            None
+        },
         operating_time_ms: snapshot.operating_time_ms,
         ready_timer_ms: snapshot.ready_elapsed_time.map(time_us_to_skin_ms),
         play_timer_ms: (snapshot.time.0 >= 0).then_some(time_us_to_skin_ms(snapshot.time)),
@@ -127,7 +133,7 @@ pub(super) fn play_skin_video_draw_state(
         course_stage: snapshot.course_stage,
         hit_error_ring: snapshot.hit_error_ring.values,
         hit_error_ring_index: snapshot.hit_error_ring.index,
-        skin_loaded: snapshot.ready_elapsed_time.is_some(),
+        skin_loaded: snapshot.seamless_play_entry || snapshot.ready_elapsed_time.is_some(),
         resource_load_progress: snapshot.resource_load_progress,
         ..bmz_render::skin::SkinDrawState::default()
     }

@@ -405,12 +405,14 @@ fn skin_document_resolves_static_text_destinations() {
                 "text": [
                     { "id": "title", "font": "main", "size": 8, "align": 1, "wrapping": true, "outlineColor": "ff000080", "outlineWidth": 1, "shadowColor": "00000080", "shadowOffsetX": 2, "shadowOffsetY": 3, "ref": 12 },
                     { "id": "genre", "size": 6, "align": 2, "overflow": 1, "ref": 13 },
+                    { "id": "uniform", "size": 6, "overflow": 1, "shrinkMode": 1, "ref": 13 },
                     { "id": "constant", "size": 5, "constantText": "READY" },
                     { "id": "numeric-constant", "size": 5, "constantText": 1 }
                 ],
                 "destination": [
                     { "id": "title", "dst": [{ "x": 10, "y": 20, "w": 50, "h": 10, "r": 128, "g": 200, "b": 255 }] },
                     { "id": "genre", "dst": [{ "x": 10, "y": 40, "w": 40, "h": 6 }] },
+                    { "id": "uniform", "dst": [{ "x": 10, "y": 50, "w": 40, "h": 6 }] },
                     { "id": "constant", "dst": [{ "x": 10, "y": 60, "h": 5, "a": 128 }] },
                     { "id": "numeric-constant", "dst": [{ "x": 10, "y": 70, "h": 5 }] }
                 ]
@@ -430,7 +432,7 @@ fn skin_document_resolves_static_text_destinations() {
         },
     );
 
-    assert_eq!(items.len(), 4);
+    assert_eq!(items.len(), 5);
     assert!(matches!(&items[0], SkinRenderItem::Text {
                 origin: Point { x, y },
                 text,
@@ -457,10 +459,14 @@ fn skin_document_resolves_static_text_destinations() {
                     && style.align == TextAlign::Right
                     && style.overflow == TextOverflow::Shrink
                     && approx_eq(style.max_width, 0.4)));
+    assert!(matches!(&items[2], SkinRenderItem::Text { text, style, .. }
+                if text == "Techno"
+                    && style.overflow == TextOverflow::ShrinkUniform
+                    && approx_eq(style.max_width, 0.4)));
     assert!(
-        matches!(&items[2], SkinRenderItem::Text { text, style, .. } if text == "READY" && approx_eq(style.color.a, 128.0 / 255.0))
+        matches!(&items[3], SkinRenderItem::Text { text, style, .. } if text == "READY" && approx_eq(style.color.a, 128.0 / 255.0))
     );
-    assert!(matches!(&items[3], SkinRenderItem::Text { text, .. } if text == "1"));
+    assert!(matches!(&items[4], SkinRenderItem::Text { text, .. } if text == "1"));
 }
 
 #[test]

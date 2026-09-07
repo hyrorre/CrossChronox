@@ -180,7 +180,8 @@ pub(super) struct TextGlyphKey {
     kind: TextGlyphKind,
     pub(super) font_id: String,
     pub(super) ch: char,
-    scale_bits: u32,
+    scale_x_bits: u32,
+    scale_y_bits: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -339,7 +340,8 @@ impl TextAtlasCache {
             kind: TextGlyphKind::Vector,
             font_id: font_id.to_string(),
             ch,
-            scale_bits: scale.x.to_bits(),
+            scale_x_bits: scale.x.to_bits(),
+            scale_y_bits: scale.y.to_bits(),
         };
         if let Some(glyph) = self.glyphs.get(&key) {
             return Some(glyph.clone());
@@ -394,20 +396,21 @@ impl TextAtlasCache {
         glyph: crate::bitmap_font::BitmapFontGlyph,
         page: &crate::bitmap_font::BitmapFontPage,
         font: &BitmapFont,
-        scale: f32,
+        scale: PxScale,
     ) -> CachedGlyph {
         let key = TextGlyphKey {
             kind: TextGlyphKind::Bitmap,
             font_id: font_id.to_string(),
             ch,
-            scale_bits: scale.to_bits(),
+            scale_x_bits: scale.x.to_bits(),
+            scale_y_bits: scale.y.to_bits(),
         };
         if let Some(glyph) = self.glyphs.get(&key) {
             return glyph.clone();
         }
 
-        let width = (glyph.width as f32 * scale).ceil().max(1.0) as u32;
-        let height = (glyph.height as f32 * scale).ceil().max(1.0) as u32;
+        let width = (glyph.width as f32 * scale.x).ceil().max(1.0) as u32;
+        let height = (glyph.height as f32 * scale.y).ceil().max(1.0) as u32;
         let pixels = rasterized_bitmap_glyph_pixels(glyph, page, scale, width, height);
 
         self.insert_glyph_pixels(
@@ -416,8 +419,8 @@ impl TextAtlasCache {
             height,
             width as f32,
             height as f32,
-            glyph.xoffset as f32 * scale,
-            (glyph.yoffset as f32 - font.ascent) * scale,
+            glyph.xoffset as f32 * scale.x,
+            (glyph.yoffset as f32 - font.ascent) * scale.y,
             pixels,
         )
     }
@@ -539,5 +542,6 @@ pub(super) fn text_overflow_key(overflow: TextOverflow) -> u8 {
         TextOverflow::Overflow => 0,
         TextOverflow::Shrink => 1,
         TextOverflow::Truncate => 2,
+        TextOverflow::ShrinkUniform => 3,
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::{Result, bail};
 use bmz_core::course::CourseDefinition;
 use serde::Deserialize;
@@ -33,13 +35,22 @@ struct HeaderJson {
     name: String,
     symbol: String,
     #[serde(default)]
+    tag: Option<String>,
+    #[serde(default)]
     data_url: DataUrl,
+    /// Per-data-file level remapping used when multiple tables are merged.
+    #[serde(default)]
+    data_rule: Vec<HashMap<String, String>>,
     #[serde(default, deserialize_with = "deserialize_level_order")]
     level_order: Vec<String>,
     /// Embedded course definitions in beatoraja table format.
-    /// Stored as raw JSON to reuse `parse_beatoraja_course_json`.
+    /// Kept as raw JSON because both one- and two-dimensional arrays are used.
     #[serde(default)]
     course: Option<serde_json::Value>,
+    /// Legacy jbmstable-parser course field. Entries implicitly use
+    /// grade_mirror and gauge_lr2 constraints.
+    #[serde(default)]
+    grade: Option<serde_json::Value>,
 }
 
 /// Deserializes `level_order`, tolerating entries that are numbers or strings.
@@ -156,6 +167,7 @@ pub(crate) async fn fetch_difficulty_table_with_client(
 
     let header_body = client.get(&head_url).send().await?.text().await?;
     let header: HeaderJson = serde_json::from_str(strip_bom(&header_body))?;
+    let symbol = table_level_symbol(&header);
 
     let data_urls: Vec<String> =
         header.data_url.into_vec().into_iter().map(|u| resolve_url(&head_url, &u)).collect();
@@ -167,9 +179,10 @@ pub(crate) async fn fetch_difficulty_table_with_client(
     let mut entries = Vec::new();
     let mut level_order = header.level_order;
 
-    for data_url in &data_urls {
+    for (data_index, data_url) in data_urls.iter().enumerate() {
         let data_body = client.get(data_url).send().await?.text().await?;
         let data: Vec<DataEntry> = serde_json::from_str(strip_bom(&data_body))?;
+        let data_rule = header.data_rule.get(data_index);
 
         for entry in data {
             let md5 = entry.md5.unwrap_or_default().to_lowercase();
@@ -181,6 +194,9 @@ pub(crate) async fn fetch_difficulty_table_with_client(
                 Some(serde_json::Value::String(s)) => s,
                 Some(serde_json::Value::Number(n)) => n.to_string(),
                 Some(_) | None => continue,
+            };
+            let Some(level) = map_merged_level(level, data_rule) else {
+                continue;
             };
             if !level_order.contains(&level) {
                 level_order.push(level.clone());
@@ -200,18 +216,38 @@ pub(crate) async fn fetch_difficulty_table_with_client(
         }
     }
 
-    let courses = parse_courses_from_header(source_url, &header.course);
-
+    let courses = match &header.course {
+        Some(_) => parse_courses_from_header(source_url, &header.course),
+        None => parse_legacy_grades_from_header(source_url, &header.grade),
+    };
     Ok(FetchedDifficultyTable {
         source_url: source_url.to_string(),
         head_url,
         name: header.name,
-        symbol: header.symbol,
+        symbol,
         level_order,
         entries,
         courses,
         fetched_at,
     })
+}
+
+fn table_level_symbol(header: &HeaderJson) -> String {
+    header
+        .tag
+        .as_deref()
+        .map(str::trim)
+        .filter(|tag| !tag.is_empty())
+        .unwrap_or(&header.symbol)
+        .to_string()
+}
+
+fn map_merged_level(level: String, data_rule: Option<&HashMap<String, String>>) -> Option<String> {
+    match data_rule.and_then(|rule| rule.get(&level)) {
+        Some(mapped) if mapped.is_empty() => None,
+        Some(mapped) => Some(mapped.clone()),
+        None => Some(level),
+    }
 }
 
 fn trimmed_or_default(value: Option<String>) -> String {
@@ -226,35 +262,73 @@ fn parse_courses_from_header(
         return Vec::new();
     };
 
+    parse_course_values(source_url, flatten_course_values(value), false)
+}
+
+fn parse_legacy_grades_from_header(
+    source_url: &str,
+    grade_json: &Option<serde_json::Value>,
+) -> Vec<CourseDefinition> {
+    let Some(value) = grade_json else {
+        return Vec::new();
+    };
+
+    parse_course_values(source_url, flatten_course_values(value), true)
+}
+
+fn flatten_course_values(value: &serde_json::Value) -> Vec<serde_json::Value> {
     // Some tables (e.g. Stella) wrap the courses in an extra outer array: [[c1, c2, ...]]
-    // Flatten one level so that parse_beatoraja_course_json always receives [c1, c2, ...].
-    let flat = match value {
+    // Flatten one level to match jbmstable-parser's Course[][] handling.
+    match value {
         serde_json::Value::Array(outer) => {
             let all_inner_arrays = outer.iter().all(|v| v.is_array());
             if all_inner_arrays {
                 // Flatten [[c1, c2], [c3, c4]] → [c1, c2, c3, c4]
-                let flat: Vec<serde_json::Value> =
-                    outer.iter().flat_map(|v| v.as_array().cloned().unwrap_or_default()).collect();
-                serde_json::Value::Array(flat)
+                outer.iter().flat_map(|v| v.as_array().cloned().unwrap_or_default()).collect()
             } else {
-                value.clone()
+                outer.clone()
             }
         }
-        other => other.clone(),
-    };
-
-    let json_str = match serde_json::to_string(&flat) {
-        Ok(s) => s,
-        Err(_) => return Vec::new(),
-    };
-    let source = format!("table:{source_url}");
-    match crate::course::parse_beatoraja_course_json(&source, &json_str) {
-        Ok(courses) => courses,
-        Err(err) => {
-            tracing::warn!(%err, %source_url, "failed to parse courses from difficulty table header");
-            Vec::new()
-        }
+        other => vec![other.clone()],
     }
+}
+
+fn parse_course_values(
+    source_url: &str,
+    values: Vec<serde_json::Value>,
+    legacy_grade: bool,
+) -> Vec<CourseDefinition> {
+    let source = format!("table:{source_url}");
+    values
+        .into_iter()
+        .enumerate()
+        .filter_map(|(index, mut value)| {
+            let name = value
+                .get("name")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("No Course Title")
+                .to_string();
+            if legacy_grade && let Some(object) = value.as_object_mut() {
+                object.insert(
+                    "constraint".to_string(),
+                    serde_json::json!(["grade_mirror", "gauge_lr2"]),
+                );
+            }
+            match crate::course::parse_beatoraja_course_value(&source, index, value) {
+                Ok(course) => Some(course),
+                Err(err) => {
+                    tracing::warn!(
+                        %err,
+                        %source_url,
+                        course_index = index,
+                        course_name = %name,
+                        "failed to parse course from difficulty table header"
+                    );
+                    None
+                }
+            }
+        })
+        .collect()
 }
 
 /// Test-visible wrapper for `parse_courses_from_header`.
@@ -343,6 +417,28 @@ mod tests {
         let header: HeaderJson =
             serde_json::from_str(body).expect("mixed numeric/string level_order should parse");
         assert_eq!(header.level_order, vec!["1", "2", "3", "???"]);
+    }
+
+    #[test]
+    fn table_level_symbol_prefers_tag_and_falls_back_to_symbol() {
+        let tagged: HeaderJson =
+            serde_json::from_str(r#"{"name":"X","symbol":"★","tag":"st","data_url":"score.json"}"#)
+                .unwrap();
+        let untagged: HeaderJson =
+            serde_json::from_str(r#"{"name":"X","symbol":"★","data_url":"score.json"}"#).unwrap();
+
+        assert_eq!(table_level_symbol(&tagged), "st");
+        assert_eq!(table_level_symbol(&untagged), "★");
+    }
+
+    #[test]
+    fn data_rule_remaps_and_excludes_levels() {
+        let rule =
+            HashMap::from([("1".to_string(), "10".to_string()), ("2".to_string(), String::new())]);
+
+        assert_eq!(map_merged_level("1".to_string(), Some(&rule)), Some("10".to_string()));
+        assert_eq!(map_merged_level("2".to_string(), Some(&rule)), None);
+        assert_eq!(map_merged_level("3".to_string(), Some(&rule)), Some("3".to_string()));
     }
 
     #[test]
@@ -458,5 +554,90 @@ mod tests {
         assert_eq!(courses[0].title, "Stella Skill Simulator 4th st0");
         assert_eq!(courses[0].entries.len(), 4);
         assert_eq!(courses[0].entries[0].md5.as_deref(), Some("349bc491ec40d5595412637d8a4c8d2e"));
+    }
+
+    #[test]
+    fn parse_dpdelta_charts_course_extracts_sha256_entries() {
+        let value = serde_json::json!([[
+            {
+                "name": "GENOSIDE 2018 DP段位認定 初段",
+                "constraint": ["grade_random", "gauge_lr2"],
+                "trophy": [],
+                "charts": [
+                    {
+                        "title": "f.alive",
+                        "artist": "Is-m",
+                        "sha256": "e6c65d09e9e2caf078efd7a1471886a1c916350dde05606a82e00448e988a09d"
+                    }
+                ]
+            }
+        ]]);
+
+        let courses = parse_courses_from_header(
+            "https://deltabms.yaruki0.net/table/data/dpdelta_head.json",
+            &Some(value),
+        );
+
+        assert_eq!(courses.len(), 1);
+        assert_eq!(courses[0].entries[0].title_hint, "f.alive");
+        assert_eq!(
+            courses[0].entries[0].sha256.as_deref(),
+            Some("e6c65d09e9e2caf078efd7a1471886a1c916350dde05606a82e00448e988a09d")
+        );
+    }
+
+    #[test]
+    fn mixed_md5_and_charts_courses_skip_only_invalid_course() {
+        let value = serde_json::json!([[
+            {
+                "name": "MD5 course",
+                "constraint": ["grade_mirror"],
+                "md5": ["349bc491ec40d5595412637d8a4c8d2e"]
+            },
+            {
+                "name": "Invalid course"
+            },
+            {
+                "name": "Charts course",
+                "constraint": ["grade_mirror"],
+                "charts": [
+                    {
+                        "title": "Spectacles Bridge",
+                        "md5": "97e192275ca1f8295caf2d7db8145049"
+                    }
+                ]
+            }
+        ]]);
+
+        let courses =
+            parse_courses_from_header("https://rattoto10.jounin.jp/table.html", &Some(value));
+
+        assert_eq!(courses.len(), 2);
+        assert_eq!(courses[0].title, "MD5 course");
+        assert!(courses[0].key.ends_with("#0"));
+        assert_eq!(courses[1].title, "Charts course");
+        assert!(courses[1].key.ends_with("#2"));
+        assert_eq!(courses[1].entries[0].title_hint, "Spectacles Bridge");
+    }
+
+    #[test]
+    fn legacy_grade_header_uses_beatoraja_constraints() {
+        let value = serde_json::json!([
+            {
+                "name": "Legacy Grade",
+                "md5": ["349bc491ec40d5595412637d8a4c8d2e"]
+            }
+        ]);
+
+        let courses =
+            parse_legacy_grades_from_header("https://example.com/legacy/table.html", &Some(value));
+
+        assert_eq!(courses.len(), 1);
+        assert_eq!(courses[0].kind, bmz_core::course::CourseKind::Dan);
+        assert_eq!(
+            courses[0].constraints.class,
+            bmz_core::course::CourseClassConstraint::GradeMirrorAllowed
+        );
+        assert_eq!(courses[0].constraints.gauge, bmz_core::course::CourseGaugeConstraint::Lr2);
     }
 }

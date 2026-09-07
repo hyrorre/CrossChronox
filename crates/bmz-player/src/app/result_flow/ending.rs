@@ -5,6 +5,10 @@ impl WinitApp {
         let Some(ending) = &self.play.play_ending else {
             return;
         };
+        if ending.completion == PlayEndingCompletion::ViewerWait {
+            self.finish_play_ending();
+            return;
+        }
         if ending.failed {
             if ending.started_at.elapsed() >= self.play_close_duration() {
                 self.finish_play_ending();
@@ -45,6 +49,17 @@ impl WinitApp {
             return;
         };
         match ending.completion {
+            PlayEndingCompletion::ViewerWait => {
+                tracing::info!("viewer play finished; keeping Play scene for the next command");
+                self.stop_viewer_playback();
+                self.request_redraw();
+                return;
+            }
+            PlayEndingCompletion::ViewerExit => {
+                tracing::info!("viewer fadeout completed; exiting app");
+                self.finish_viewer_exit("viewer fadeout completed");
+                return;
+            }
             PlayEndingCompletion::Select => {
                 tracing::info!("play fadeout before chart start completed; returning to select");
                 self.abort_pending_play_start();
@@ -127,6 +142,31 @@ impl WinitApp {
                 }
             }
         };
+        match finished_play_action(
+            self.viewer_mode,
+            self.skip_result,
+            self.play.active_course.is_some(),
+        ) {
+            FinishedPlayAction::ViewerWait => {
+                tracing::info!("viewer play finished; waiting for the next command");
+                drop(finished);
+                self.play.active_play = Some(started);
+                self.stop_viewer_playback();
+                self.request_redraw();
+                return;
+            }
+            FinishedPlayAction::Exit => {
+                tracing::info!("result screen skipped by CLI option");
+                drop(started);
+                drop(finished);
+                self.play.last_play_snapshot = None;
+                self.clear_play_meta_image_state();
+                self.shutdown_requested.store(true, Ordering::SeqCst);
+                self.request_redraw();
+                return;
+            }
+            FinishedPlayAction::ShowResult => {}
+        }
         self.select.score_refresh.mark_score_data_changed(finished.score_data_changed);
         if let Some(chart_id) = self.play.last_started_chart_id {
             self.capture_play_media_cache_from_running(chart_id, &mut started.running);
@@ -310,5 +350,39 @@ impl WinitApp {
             fade_out_frames,
         );
         self.start_audio_output_stream();
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum FinishedPlayAction {
+    ShowResult,
+    ViewerWait,
+    Exit,
+}
+
+pub(super) const fn finished_play_action(
+    viewer_mode: bool,
+    skip_result: bool,
+    has_active_course: bool,
+) -> FinishedPlayAction {
+    if has_active_course {
+        FinishedPlayAction::ShowResult
+    } else if viewer_mode && !skip_result {
+        FinishedPlayAction::ViewerWait
+    } else if skip_result {
+        FinishedPlayAction::Exit
+    } else {
+        FinishedPlayAction::ShowResult
+    }
+}
+
+pub(super) const fn play_ending_completion(
+    viewer_mode: bool,
+    skip_result: bool,
+) -> PlayEndingCompletion {
+    if viewer_mode && !skip_result {
+        PlayEndingCompletion::ViewerWait
+    } else {
+        PlayEndingCompletion::Result
     }
 }

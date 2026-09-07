@@ -9,6 +9,7 @@ pub struct AudioEngine {
     pub queue: ScheduledSoundQueue,
     pub mixer: MixerState,
     pub samples: SampleBank,
+    paused_at_output_frame: Option<u64>,
 }
 
 impl AudioEngine {
@@ -17,6 +18,7 @@ impl AudioEngine {
             queue: ScheduledSoundQueue::new(),
             mixer: MixerState::new(output_sample_rate),
             samples: SampleBank::default(),
+            paused_at_output_frame: None,
         }
     }
 
@@ -26,6 +28,7 @@ impl AudioEngine {
             queue: ScheduledSoundQueue::new(),
             mixer: MixerState::new(output_sample_rate),
             samples,
+            paused_at_output_frame: None,
         }
     }
 
@@ -93,6 +96,34 @@ impl AudioEngine {
         self.mixer.stop_sound_with_fade_out(id, fade_out_frames);
     }
 
+    /// デコード済み sample bank を維持したまま、再生待ちと再生中の音だけを破棄する。
+    /// Viewer のシークでは filesystem / decode をやり直さず、同じ譜面音源を新しい
+    /// output-frame 基準へ差し替えるために使う。
+    pub fn clear_playback(&mut self) {
+        self.queue.clear();
+        self.mixer.voices.clear();
+        self.mixer.master_gain = 1.0;
+    }
+
+    /// callbackの出力frameを基準に、予約音と再生中voiceを同じ位置で凍結する。
+    /// 再開時は停止中に進んだhardware frame分だけ絶対frameを後ろへずらす。
+    pub fn set_playback_paused(&mut self, paused: bool, output_frame: u64) {
+        match (paused, self.paused_at_output_frame) {
+            (true, None) => self.paused_at_output_frame = Some(output_frame),
+            (false, Some(paused_at)) => {
+                let paused_frames = output_frame.saturating_sub(paused_at);
+                self.queue.shift_output_frames(paused_frames);
+                self.mixer.shift_output_frames(paused_frames);
+                self.paused_at_output_frame = None;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn playback_paused(&self) -> bool {
+        self.paused_at_output_frame.is_some()
+    }
+
     /// 出力全体に掛かるマスターゲインを設定する。リザルト退出時に残響を
     /// フェードアウトさせる用途で、毎フレーム 1.0 → 0.0 へ更新する。
     pub fn set_master_gain(&mut self, gain: f32) {
@@ -131,6 +162,7 @@ impl AudioEngine {
     ) {
         self.schedule(ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id,
             volume: volume.clamp(0.0, 1.0),
             pan: 0.0,
@@ -150,6 +182,7 @@ impl AudioEngine {
     ) {
         self.schedule(ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id,
             volume: volume.clamp(0.0, 1.0),
             pan: 0.0,
@@ -171,6 +204,7 @@ impl AudioEngine {
         let voice_start = self.mixer.voices.len();
         self.mixer.push_scheduled([ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id,
             volume: volume.clamp(0.0, 1.0),
             pan: 0.0,
@@ -195,6 +229,9 @@ impl AudioEngine {
 
     pub fn render_stereo(&mut self, output_start_frame: u64, output: &mut [f32]) {
         output.fill(0.0);
+        if self.playback_paused() {
+            return;
+        }
         let frame_count = output.len() / 2;
         let output_end_frame = output_start_frame + frame_count.saturating_sub(1) as u64;
         // 中間 Vec を確保せず、期日到来分を直接 mixer へ流し込む(RT 安全)。
@@ -230,6 +267,7 @@ mod tests {
         );
         engine.schedule(ScheduledSound {
             start_frame: 2,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,
@@ -246,6 +284,26 @@ mod tests {
     }
 
     #[test]
+    fn clear_playback_keeps_samples_but_discards_queue_and_voices() {
+        let mut engine = AudioEngine::new(48_000);
+        engine.insert_sample(
+            SoundId(1),
+            DecodedSample { channels: 1, sample_rate: 48_000, frames: vec![1.0; 16] },
+        );
+        engine.play_now(SoundId(1), 1.0, false);
+        engine.schedule(ScheduledSound::one_shot(100, SoundId(1), 1.0, 0.0));
+        let mut output = vec![0.0; 2];
+        engine.render_stereo(0, &mut output);
+        assert!(!engine.mixer.voices.is_empty());
+
+        engine.clear_playback();
+
+        assert!(engine.queue.is_empty());
+        assert!(engine.mixer.voices.is_empty());
+        assert!(engine.samples.get(SoundId(1)).is_some());
+    }
+
+    #[test]
     fn restart_policy_applies_within_render_buffer() {
         let mut engine = AudioEngine::default();
         engine.insert_sample(
@@ -254,6 +312,7 @@ mod tests {
         );
         engine.schedule(ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,
@@ -264,6 +323,7 @@ mod tests {
         });
         engine.schedule(ScheduledSound {
             start_frame: 2,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,
@@ -322,6 +382,7 @@ mod tests {
         engine.schedule_all([
             ScheduledSound {
                 start_frame: 0,
+                sample_offset_frames: 0,
                 sound_id: SoundId(1),
                 volume: 1.0,
                 pan: 0.0,
@@ -332,6 +393,7 @@ mod tests {
             },
             ScheduledSound {
                 start_frame: 2,
+                sample_offset_frames: 0,
                 sound_id: SoundId(2),
                 volume: 1.0,
                 pan: 0.0,
@@ -387,6 +449,7 @@ mod tests {
         engine.schedule_all([
             ScheduledSound {
                 start_frame: 20,
+                sample_offset_frames: 0,
                 sound_id: SoundId(2),
                 volume: 1.0,
                 pan: 0.0,
@@ -397,6 +460,7 @@ mod tests {
             },
             ScheduledSound {
                 start_frame: 10,
+                sample_offset_frames: 0,
                 sound_id: SoundId(1),
                 volume: 1.0,
                 pan: 0.0,
@@ -448,6 +512,7 @@ mod tests {
         );
         source.schedule(ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,
@@ -528,6 +593,7 @@ mod tests {
         );
         engine.schedule(ScheduledSound {
             start_frame: 2,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,
@@ -564,6 +630,7 @@ mod tests {
         );
         engine.schedule(ScheduledSound {
             start_frame: 0,
+            sample_offset_frames: 0,
             sound_id: SoundId(1),
             volume: 1.0,
             pan: 0.0,

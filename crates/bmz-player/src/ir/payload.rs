@@ -37,6 +37,7 @@ pub struct IrSubmissionContext {
     /// Provider-neutral seed semantics. Providers decide which options/schemes they accept.
     pub seed_scheme: String,
     pub bms_random_choices: Vec<i32>,
+    pub bms_switch_choices: Vec<u64>,
     pub rule_mode: String,
     /// コース/Dan進行中の単曲結果。IRごとの互換lamp制約に使う。
     pub course_stage: bool,
@@ -88,6 +89,12 @@ pub fn build_score_submission(
         play_options.insert(
             "bms_random_choices".to_string(),
             serde_json::json!(context.bms_random_choices),
+        );
+    }
+    if !context.bms_switch_choices.is_empty() {
+        play_options.insert(
+            "bms_switch_choices".to_string(),
+            serde_json::json!(context.bms_switch_choices),
         );
     }
     if !context.rule_mode.is_empty() {
@@ -377,6 +384,7 @@ mod tests {
                 random_seed: Some(42),
                 seed_scheme: "beatoraja_24bit_v1".to_string(),
                 bms_random_choices: vec![2, 1],
+                bms_switch_choices: vec![2_000_000_000_000],
                 rule_mode: "Beatoraja".to_string(),
                 course_stage: false,
                 replay_hash: Some("ab".repeat(32)),
@@ -431,6 +439,10 @@ mod tests {
         assert_eq!(
             payload.play_options.get("bms_random_choices"),
             Some(&serde_json::json!([2, 1]))
+        );
+        assert_eq!(
+            payload.play_options.get("bms_switch_choices"),
+            Some(&serde_json::json!([2_000_000_000_000_u64]))
         );
         let replay = payload.replay.expect("replay payload");
         assert_eq!(replay.hash, "ab".repeat(32));

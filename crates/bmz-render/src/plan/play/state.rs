@@ -195,7 +195,7 @@ pub(in crate::plan) fn build_play_skin_state(
         hit_error_ring: snapshot.hit_error_ring.values,
         hit_error_ring_index: snapshot.hit_error_ring.index,
         // op 80/81 はリソースロード状態ではなく PRELOAD state を表す。
-        skin_loaded: snapshot.ready_elapsed_time.is_some(),
+        skin_loaded: snapshot.seamless_play_entry || snapshot.ready_elapsed_time.is_some(),
         resource_load_progress: snapshot.resource_load_progress,
         ..crate::skin::SkinDrawState::default()
     }

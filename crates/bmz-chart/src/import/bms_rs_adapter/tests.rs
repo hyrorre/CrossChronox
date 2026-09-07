@@ -168,6 +168,29 @@ fn import_bms_text_with_warnings(text: &str) -> (IntermediateChart, Vec<ImportWa
     (chart, warnings)
 }
 
+fn import_bms_text_with_control_choices(
+    text: &str,
+    random: Vec<i32>,
+    switches: Vec<u64>,
+) -> (IntermediateChart, Vec<ImportWarning>, Vec<i32>, Vec<u64>) {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("test.bms");
+    std::fs::write(&path, text).unwrap();
+    std::fs::write(dir.path().join("key.wav"), b"wav").unwrap();
+    let mut warnings = Vec::new();
+    let mut applied_random = Vec::new();
+    let mut applied_switches = Vec::new();
+    let chart = import_bms_to_intermediate_with_random_source(
+        &path,
+        &BmsRandomSource::Choices { random, switches },
+        &mut applied_random,
+        &mut applied_switches,
+        &mut warnings,
+    )
+    .unwrap();
+    (chart, warnings, applied_random, applied_switches)
+}
+
 const BMS_HEADER: &str = "\
 #TITLE BMS Test
 #ARTIST Tester
@@ -480,6 +503,106 @@ fn bms_random_sections_set_has_bms_random_metadata() {
 
     assert!(with_random.metadata.has_bms_random);
     assert!(!without_random.metadata.has_bms_random);
+}
+
+#[test]
+fn bms_switch_large_range_is_flattened_before_bms_rs() {
+    let text = "\
+#TITLE Large Switch
+#BPM 120
+#TOTAL 200
+#WAV01 key.wav
+#SWITCH 2000000000000
+#CASE 1
+#00111:01
+#SKIP
+#CASE21
+#00212:01
+#SKIP
+#DEF
+#00313:01
+#ENDSW
+";
+    let (chart, warnings, random, switches) =
+        import_bms_text_with_control_choices(text, Vec::new(), vec![2_000_000_000_000]);
+
+    assert_eq!(note_lanes(&chart), vec![Lane::Key3]);
+    assert!(warnings.is_empty(), "warnings: {warnings:?}");
+    assert!(random.is_empty());
+    assert_eq!(switches, vec![2_000_000_000_000]);
+    assert!(chart.metadata.has_bms_random);
+}
+
+#[test]
+fn bms_switch_parses_case_value_without_space() {
+    let text = "\
+#TITLE Direct Case
+#BPM 120
+#TOTAL 200
+#WAV01 key.wav
+#SWITCH 2000000000000
+#CASE 1
+#00111:01
+#SKIP
+#CASE21
+#00212:01
+#SKIP
+#DEF
+#00313:01
+#ENDSW
+";
+    let (chart, warnings, _, switches) =
+        import_bms_text_with_control_choices(text, Vec::new(), vec![21]);
+
+    assert_eq!(note_lanes(&chart), vec![Lane::Key2]);
+    assert!(warnings.is_empty(), "warnings: {warnings:?}");
+    assert_eq!(switches, vec![21]);
+}
+
+#[test]
+fn bms_setswitch_falls_through_until_skip_without_recording_choice() {
+    let text = "\
+#TITLE Set Switch
+#BPM 120
+#TOTAL 200
+#WAV01 key.wav
+#SETSWITCH 1
+#CASE 1
+#00111:01
+#CASE 2
+#00212:01
+#SKIP
+#DEF
+#00313:01
+#ENDSW
+";
+    let (chart, warnings, random, switches) =
+        import_bms_text_with_control_choices(text, Vec::new(), Vec::new());
+
+    assert_eq!(note_lanes(&chart), vec![Lane::Key1, Lane::Key2]);
+    assert!(warnings.is_empty(), "warnings: {warnings:?}");
+    assert!(random.is_empty());
+    assert!(switches.is_empty());
+}
+
+#[test]
+fn bms_random_parses_if_value_without_space() {
+    let (chart, warnings) = import_bms_text_with_warnings(
+        "\
+#TITLE Direct If
+#BPM 120
+#TOTAL 200
+#WAV01 key.wav
+#SETRANDOM 21
+#IF21
+#00111:01
+#ENDIF
+#ENDRANDOM
+",
+    );
+
+    assert_eq!(note_lanes(&chart), vec![Lane::Key1]);
+    assert!(warnings.is_empty(), "warnings: {warnings:?}");
 }
 
 #[test]

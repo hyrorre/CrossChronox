@@ -248,6 +248,9 @@ fn play_skin_ready_timer_starts_after_load_timers() {
                     {"id": "panel", "op": [80], "dst": [
                         {"time": 0, "x": 80, "y": 0, "w": 10, "h": 10}
                     ]},
+                    {"id": "panel", "op": [81], "dst": [
+                        {"time": 0, "x": 60, "y": 0, "w": 10, "h": 10}
+                    ]},
                     {"id": "panel", "timer": 40, "dst": [
                         {"time": 0, "x": 0, "y": 0, "w": 10, "h": 10},
                         {"time": 1000, "x": 50, "y": 0, "w": 10, "h": 10}
@@ -276,6 +279,14 @@ fn play_skin_ready_timer_starts_after_load_timers() {
         resources_loaded: true,
         ..Default::default()
     };
+    let seamless = RenderSnapshot {
+        time: TimeUs(12_000_000),
+        play_elapsed_time: TimeUs(4_000_000),
+        ready_elapsed_time: None,
+        seamless_play_entry: true,
+        resources_loaded: true,
+        ..Default::default()
+    };
 
     let mut dynamic_timers = crate::skin::DynamicTimerRuntime::default();
     let before_plan = DrawPlan::from_scene_with_skin(
@@ -285,6 +296,11 @@ fn play_skin_ready_timer_starts_after_load_timers() {
     );
     let after_plan = DrawPlan::from_scene_with_skin(
         &AppSceneSnapshot::Play(after_ready),
+        &skin,
+        &mut dynamic_timers,
+    );
+    let seamless_plan = DrawPlan::from_scene_with_skin(
+        &AppSceneSnapshot::Play(seamless),
         &skin,
         &mut dynamic_timers,
     );
@@ -303,6 +319,73 @@ fn play_skin_ready_timer_starts_after_load_timers() {
         command,
         DrawCommand::Image { texture, rect, .. }
             if *texture == TextureId(99) && approx_eq(rect.x, 0.8)
+    )));
+    assert!(seamless_plan.commands.iter().any(|command| matches!(
+        command,
+        DrawCommand::Image { texture, rect, .. }
+            if *texture == TextureId(99) && approx_eq(rect.x, 0.6)
+    )));
+    assert!(!seamless_plan.commands.iter().any(|command| matches!(
+        command,
+        DrawCommand::Image { texture, rect, .. }
+            if *texture == TextureId(99) && (approx_eq(rect.x, 0.8) || approx_eq(rect.x, 0.0))
+    )));
+}
+
+#[test]
+fn seamless_play_entry_does_not_restart_start_input_animation() {
+    let document: crate::skin::SkinDocument = serde_json::from_str(
+        r#"{
+                "type": 7,
+                "w": 100,
+                "h": 100,
+                "input": 1000,
+                "source": [{"id": 1, "path": "panel.png"}],
+                "image": [{"id": "panel", "src": 1, "x": 0, "y": 0, "w": 10, "h": 10}],
+                "destination": [{"id": "panel", "timer": 1, "loop": 1000, "dst": [
+                    {"time": 0, "x": 0, "y": 0, "w": 10, "h": 10},
+                    {"time": 1000, "x": 50}
+                ]}]
+            }"#,
+    )
+    .unwrap();
+    let source_texture = crate::skin::SkinDocumentTexture {
+        source_id: "1".to_string(),
+        texture: SkinTextureId(99),
+        source_size: crate::skin::SkinImageSize { width: 10.0, height: 10.0 },
+    };
+    let skin = SkinContext::from_manifest_and_document(
+        SkinManifest::default(),
+        document,
+        [source_texture],
+    );
+    let normal = RenderSnapshot { play_elapsed_time: TimeUs(5_000_000), ..Default::default() };
+    let seamless = RenderSnapshot {
+        play_elapsed_time: TimeUs(5_000_000),
+        seamless_play_entry: true,
+        ..Default::default()
+    };
+
+    let normal_plan = DrawPlan::from_scene_with_skin(
+        &AppSceneSnapshot::Play(normal),
+        &skin,
+        &mut crate::skin::DynamicTimerRuntime::default(),
+    );
+    let seamless_plan = DrawPlan::from_scene_with_skin(
+        &AppSceneSnapshot::Play(seamless),
+        &skin,
+        &mut crate::skin::DynamicTimerRuntime::default(),
+    );
+
+    assert!(normal_plan.commands.iter().any(|command| matches!(
+        command,
+        DrawCommand::Image { texture, rect, .. }
+            if *texture == TextureId(99) && approx_eq(rect.x, 0.0)
+    )));
+    assert!(seamless_plan.commands.iter().any(|command| matches!(
+        command,
+        DrawCommand::Image { texture, rect, .. }
+            if *texture == TextureId(99) && approx_eq(rect.x, 0.5)
     )));
 }
 

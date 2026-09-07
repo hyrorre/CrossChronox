@@ -144,7 +144,9 @@ fn push_bpm_guide_label(
             layer: TextLayer::Skin,
             align: TextAlign::Left,
             max_width: board.width,
-            overflow: TextOverflow::Shrink,
+            // This is BMZ fallback UI rather than skin text, so preserve its
+            // existing uniform-shrink presentation.
+            overflow: TextOverflow::ShrinkUniform,
             wrapping: false,
             outline: Some(TextOutline { color: Color::rgba(0.0, 0.0, 0.0, 0.9), width: 1.0 }),
             shadow: None,

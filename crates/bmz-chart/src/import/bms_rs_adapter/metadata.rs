@@ -134,13 +134,15 @@ pub(super) fn append_url_from_headers(headers: &BTreeMap<String, String>) -> Str
 
 pub(super) fn source_text_has_bms_random(text: &str) -> bool {
     text.lines().any(|line| {
-        let trimmed = line.trim_start();
-        if !trimmed.starts_with('#') {
-            return false;
-        }
-        let body = trimmed.strip_prefix('#').unwrap_or(trimmed).trim_start();
-        let head = body.split_whitespace().next().unwrap_or("");
-        head.eq_ignore_ascii_case("RANDOM") || head.eq_ignore_ascii_case("SETRANDOM")
+        matches!(
+            beatoraja_random_control_line(line),
+            Some(
+                BeatorajaRandomControl::Random(_)
+                    | BeatorajaRandomControl::SetRandom(_)
+                    | BeatorajaRandomControl::Switch(_)
+                    | BeatorajaRandomControl::SetSwitch(_)
+            )
+        )
     })
 }
 

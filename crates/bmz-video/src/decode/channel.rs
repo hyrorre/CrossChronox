@@ -10,7 +10,7 @@ pub(crate) fn decode_video_restartable(
     decode_generation: Arc<AtomicU64>,
 ) -> Result<()> {
     let mut ictx = ffmpeg_next::format::input(path)?;
-    let selected = select_video_stream(&ictx)?;
+    let mut selected = select_video_stream(&ictx)?;
     let mut decoder = open_video_decoder(&selected)?;
     let mut scaler = None;
     let mut decoded = ffmpeg_next::frame::Video::empty();
@@ -21,11 +21,36 @@ pub(crate) fn decode_video_restartable(
             return Ok(());
         }
 
-        if !first_pass {
-            rewind_video_decoder(&mut ictx, &mut decoder)?;
+        let restart_was_requested = restart_decode.swap(false, Ordering::AcqRel);
+        let target_us = playback_target_us.load(Ordering::Acquire).max(0);
+        let mut direct_seeked = false;
+        if !first_pass || restart_was_requested {
+            if target_us > 0 {
+                match seek_video_decoder(&mut ictx, &mut decoder, &selected, target_us) {
+                    Ok(()) => {
+                        direct_seeked = true;
+                        tracing::debug!(target_us, path = %path.display(), "direct-seeked video decoder");
+                    }
+                    Err(error) => {
+                        tracing::warn!(
+                            target_us,
+                            path = %path.display(),
+                            %error,
+                            "video direct seek failed; falling back to decode from start"
+                        );
+                        // A failed avformat seek may leave the input context latched at EOF.
+                        // Reopen both demuxer and decoder so the sequential fallback is reliable.
+                        ictx = ffmpeg_next::format::input(path)?;
+                        selected = select_video_stream(&ictx)?;
+                        decoder = open_video_decoder(&selected)?;
+                        scaler = None;
+                    }
+                }
+            } else {
+                rewind_video_decoder(&mut ictx, &mut decoder)?;
+            }
         }
         first_pass = false;
-        restart_decode.store(false, Ordering::Release);
         pass_finished.store(false, Ordering::Release);
         let generation = decode_generation.load(Ordering::Acquire);
 
@@ -39,7 +64,7 @@ pub(crate) fn decode_video_restartable(
             &stop_decode,
             &restart_decode,
             &playback_target_us,
-            generation,
+            ChannelDecodePassStart { generation, direct_seeked },
         )?;
 
         match pass_end {
@@ -71,10 +96,23 @@ pub(crate) fn decode_video_channel_pass(
     stop_decode: &AtomicBool,
     restart_decode: &AtomicBool,
     playback_target_us: &AtomicI64,
-    generation: u64,
+    start: ChannelDecodePassStart,
 ) -> Result<ChannelDecodePassEnd> {
-    let mut timestamp_normalizer = VideoTimestampNormalizer::default();
-    let mut catch_up = ChannelFrameCatchUp::default();
+    let generation = start.generation;
+    let timestamp_origin_raw = if start.direct_seeked {
+        // When stream start_time is unavailable, raw timestamps in seeked packets are still
+        // absolute on the stream timeline. Using zero avoids rebasing the keyframe to video 0.
+        selected.start_time_raw.or(Some(0))
+    } else {
+        selected.start_time_raw
+    };
+    let mut timestamp_normalizer = VideoTimestampNormalizer::with_origin_raw(timestamp_origin_raw);
+    let mut catch_up = ChannelFrameCatchUp {
+        // A direct seek lands on an earlier keyframe. Do not publish it as the target frame;
+        // decode forward and keep only the final frame at/before the requested position.
+        published_any: start.direct_seeked,
+        last_skipped: None,
+    };
 
     for (stream, packet) in ictx.packets() {
         if stop_decode.load(Ordering::Acquire) {

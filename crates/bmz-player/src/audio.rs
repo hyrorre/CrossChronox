@@ -9,6 +9,7 @@ use bmz_audio::engine::AudioEngine;
 use bmz_audio::loader::LoadedSampleReport;
 use bmz_audio::queue::ScheduledSoundQueue;
 use bmz_chart::model::BgaAssetId;
+use bmz_core::ids::SoundId;
 use bmz_core::time::TimeUs;
 use bmz_gameplay::session::GameSession;
 use std::collections::{HashMap, HashSet};
@@ -109,6 +110,9 @@ pub struct RunningPlaySession {
     /// Frozen hardware-clock duration from chart time zero to the first terminal state.
     pub play_duration_ms: Option<u64>,
     pub audio: AppAudioOutput,
+    /// Decoded sample lengths used to determine which BGM voices survive a
+    /// viewer seek. Durations stay valid if the output source is resampled.
+    bgm_sample_duration_us: HashMap<SoundId, i64>,
     pub pending_audio: ScheduledSoundQueue,
     pub pending_keysound_volumes: Vec<(bmz_core::ids::SoundId, f32)>,
     pub sample_report: Vec<LoadedSampleReport>,
@@ -164,6 +168,22 @@ impl AppAudioOutput {
         Ok(())
     }
 
+    pub fn pause_playback_at(&mut self, chart_time: TimeUs) -> Result<()> {
+        if !self.engine.set_playback_paused(true) {
+            bail!("playback pause was dropped by the audio command queue");
+        }
+        self.source.pause_at(chart_time);
+        Ok(())
+    }
+
+    pub fn resume_playback(&mut self, chart_time: TimeUs) -> Result<()> {
+        if !self.engine.set_playback_paused(false) {
+            bail!("playback resume was dropped by the audio command queue");
+        }
+        self.source.play(chart_time);
+        Ok(())
+    }
+
     pub fn play(&mut self, chart_zero_time: TimeUs) -> Result<()> {
         self.source.play(chart_zero_time);
         self.runtime.play().context("failed to start audio output stream")?;
@@ -184,6 +204,56 @@ impl RunningPlaySession {
 
     pub fn start(&mut self, chart_zero_time: TimeUs) -> Result<()> {
         self.audio.play(chart_zero_time)?;
+        self.session.audio_clock = self.audio.clock();
+        Ok(())
+    }
+
+    pub fn start_viewer_seek(
+        &mut self,
+        chart_zero_time: TimeUs,
+        remain_paused: bool,
+    ) -> Result<usize> {
+        bmz_gameplay::session::prepare_viewer_seek(&mut self.session, chart_zero_time);
+        self.start(chart_zero_time)?;
+        if remain_paused {
+            self.audio.source.pause_at(chart_zero_time);
+            self.session.audio_clock = self.audio.clock();
+        }
+        let bgm_volume = self.session.audio_mix.master_volume
+            * self.session.audio_mix.effective_normalization_gain()
+            * self.session.audio_mix.bgm_volume;
+        let (scheduler, carryover) =
+            bmz_gameplay::session::BgmScheduler::starting_at_with_carryover(
+                &self.session.chart,
+                chart_zero_time,
+                &self.session.audio_clock,
+                bgm_volume,
+                |sound_id| self.bgm_sample_duration_us.get(&sound_id).copied(),
+            );
+        self.session.bgm_scheduler = scheduler;
+        let carryover_count = carryover.len();
+        let replaced = if remain_paused {
+            self.audio.engine.replace_playback_paused(carryover)
+        } else {
+            self.audio.engine.replace_playback(carryover)
+        };
+        if !replaced {
+            bail!(
+                "viewer seek audio replacement was dropped ({carryover_count} carry-over voices)"
+            );
+        }
+        Ok(carryover_count)
+    }
+
+    pub fn pause_viewer_playback(&mut self, chart_time: TimeUs) -> Result<()> {
+        self.audio.pause_playback_at(chart_time)?;
+        self.session.audio_clock = self.audio.clock();
+        Ok(())
+    }
+
+    pub fn resume_viewer_playback(&mut self) -> Result<()> {
+        let chart_time = self.session.audio_clock.now();
+        self.audio.resume_playback(chart_time)?;
         self.session.audio_clock = self.audio.clock();
         Ok(())
     }
@@ -300,6 +370,25 @@ pub fn open_prepared_play_audio(
     prepared: PreparedPlaySession,
     score_key: ScoreKey,
 ) -> RunningPlaySession {
+    let bgm_sample_duration_us = prepared
+        .session
+        .chart
+        .bgm_events
+        .iter()
+        .filter_map(|event| {
+            let sample = prepared.audio.samples.get(event.sound)?;
+            let sample_rate = sample.sample_rate();
+            if sample_rate == 0 {
+                return None;
+            }
+            let sample_rate = u128::from(sample_rate);
+            let duration_us = (sample.frame_count() as u128 * 1_000_000)
+                .saturating_add(sample_rate - 1)
+                / sample_rate;
+            let duration_us = duration_us.min(i64::MAX as u128) as i64;
+            Some((event.sound, duration_us))
+        })
+        .collect();
     let mut audio = open_app_audio_output(runtime, prepared.audio);
     audio.set_playback_rate_percent(prepared.playback_rate_percent);
     let mut session = prepared.session;
@@ -318,6 +407,7 @@ pub fn open_prepared_play_audio(
         chart_length_ms: prepared.chart_length_ms,
         play_duration_ms: None,
         audio,
+        bgm_sample_duration_us,
         pending_audio: ScheduledSoundQueue::new(),
         pending_keysound_volumes: Vec::new(),
         sample_report: prepared.sample_report,

@@ -393,7 +393,10 @@ fn recorded_bms_random_choices_replay_the_same_branch() {
     let seeded = import_bms_chart(&path, Some(1), false).unwrap();
     let replayed = import_bms_chart_with_random_source(
         &path,
-        BmsRandomSource::Choices(seeded.bms_random_choices.clone()),
+        BmsRandomSource::Choices {
+            random: seeded.bms_random_choices.clone(),
+            switches: seeded.bms_switch_choices.clone(),
+        },
         false,
     )
     .unwrap();
@@ -415,6 +418,51 @@ fn recorded_bms_random_choices_replay_the_same_branch() {
 }
 
 #[test]
+fn recorded_bms_switch_choices_replay_large_switch_branch() {
+    let text = "\
+#TITLE Switch Replay
+#BPM 120
+#TOTAL 200
+#SWITCH 2000000000000
+#CASE 1
+#00111:01
+#SKIP
+#CASE21
+#00112:01
+#SKIP
+#DEF
+#00113:01
+#ENDSW
+";
+    let path = write_temp_bms(text);
+    let selected = import_bms_chart_with_random_source(
+        &path,
+        BmsRandomSource::Choices { random: Vec::new(), switches: vec![21] },
+        false,
+    )
+    .unwrap();
+    let replayed = import_bms_chart_with_random_source(
+        &path,
+        BmsRandomSource::Choices {
+            random: selected.bms_random_choices.clone(),
+            switches: selected.bms_switch_choices.clone(),
+        },
+        false,
+    )
+    .unwrap();
+
+    assert!(selected.bms_random_choices.is_empty());
+    assert_eq!(selected.bms_switch_choices, vec![21]);
+    assert_eq!(selected.chart.notes_for_lane(Lane::Key1).len(), 0);
+    assert_eq!(selected.chart.notes_for_lane(Lane::Key2).len(), 1);
+    assert_eq!(selected.chart.notes_for_lane(Lane::Key3).len(), 0);
+    assert_eq!(replayed.bms_switch_choices, selected.bms_switch_choices);
+    assert_eq!(replayed.chart.notes_for_lane(Lane::Key2).len(), 1);
+
+    std::fs::remove_file(&path).unwrap();
+}
+
+#[test]
 fn invalid_bms_random_choice_is_clamped_with_a_warning() {
     let text = "\
 #TITLE Invalid Random Choice
@@ -430,9 +478,12 @@ fn invalid_bms_random_choice_is_clamped_with_a_warning() {
 #ENDRANDOM
 ";
     let path = write_temp_bms(text);
-    let result =
-        import_bms_chart_with_random_source(&path, BmsRandomSource::Choices(vec![99]), false)
-            .unwrap();
+    let result = import_bms_chart_with_random_source(
+        &path,
+        BmsRandomSource::Choices { random: vec![99], switches: Vec::new() },
+        false,
+    )
+    .unwrap();
 
     assert_eq!(result.bms_random_choices, vec![2]);
     assert_eq!(result.chart.notes_for_lane(Lane::Key1).len(), 0);

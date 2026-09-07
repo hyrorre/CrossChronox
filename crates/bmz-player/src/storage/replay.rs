@@ -12,7 +12,7 @@ use crate::ln_policy::LnScorePolicy;
 use crate::screens::play_session::SRandomScheme;
 use crate::select_options::{ArrangeOption, DoubleOption, DoubleOptionScoreBucket};
 
-pub const REPLAY_FILE_VERSION: u32 = 6;
+pub const REPLAY_FILE_VERSION: u32 = 7;
 pub const SEED_SCHEME_BEATORAJA_24BIT_V1: &str = "beatoraja_24bit_v1";
 pub const SEED_SCHEME_LEGACY_SHARED_V3: &str = "legacy_shared_v3";
 pub const S_RANDOM_SCHEME_LEGACY_40MS_V1: &str = SRandomScheme::LEGACY_40MS_V1;
@@ -50,6 +50,8 @@ pub struct ReplayFile {
     pub arrange_seed_2p: Option<i64>,
     #[serde(default)]
     pub bms_random_choices: Option<Vec<i32>>,
+    #[serde(default)]
+    pub bms_switch_choices: Option<Vec<u64>>,
     #[serde(default)]
     pub seed_scheme: String,
     #[serde(default)]
@@ -124,6 +126,7 @@ impl ReplayFile {
             arrange_seed,
             arrange_seed_2p: None,
             bms_random_choices: Some(Vec::new()),
+            bms_switch_choices: Some(Vec::new()),
             seed_scheme: SEED_SCHEME_BEATORAJA_24BIT_V1.to_string(),
             s_random_scheme: S_RANDOM_SCHEME_LM_120HZ_V1.to_string(),
             s_random_scheme_2p: String::new(),
@@ -136,9 +139,11 @@ impl ReplayFile {
         mut self,
         arrange_seed_2p: Option<i64>,
         bms_random_choices: Vec<i32>,
+        bms_switch_choices: Vec<u64>,
     ) -> Self {
         self.arrange_seed_2p = arrange_seed_2p;
         self.bms_random_choices = Some(bms_random_choices);
+        self.bms_switch_choices = Some(bms_switch_choices);
         self
     }
 
@@ -554,7 +559,7 @@ mod tests {
     }
 
     #[test]
-    fn replay_v6_round_trip_preserves_playback_metadata_and_scratch_direction() {
+    fn replay_v7_round_trip_preserves_playback_metadata_and_scratch_direction() {
         let replay = ReplayFile::new_with_policy(
             [9; 32],
             LnScorePolicy::ForceHcn,
@@ -578,7 +583,7 @@ mod tests {
         let text = toml::to_string(&replay).unwrap();
         let loaded: ReplayFile = toml::from_str(&text).unwrap();
 
-        assert_eq!(loaded.version, 6);
+        assert_eq!(loaded.version, REPLAY_FILE_VERSION);
         assert_eq!(loaded.double_option_bucket(), DoubleOptionScoreBucket::Off);
         assert_eq!(loaded.double_option(), DoubleOption::Flip);
         assert_eq!(loaded.recorded_gauge_type(), Some(GaugeType::Hard));
@@ -773,7 +778,7 @@ events = []
             Some(pattern.clone()),
             Vec::new(),
         )
-        .with_randomization(Some(1234), vec![2, 1])
+        .with_randomization(Some(1234), vec![2, 1], vec![2_000_000_000_000])
         .with_seed_scheme(SEED_SCHEME_LEGACY_SHARED_V3);
 
         save_replay(&path, &replay).unwrap();
@@ -784,6 +789,7 @@ events = []
         assert_eq!(loaded.arrange_seed, Some(7777));
         assert_eq!(loaded.arrange_seed_2p, Some(1234));
         assert_eq!(loaded.bms_random_choices, Some(vec![2, 1]));
+        assert_eq!(loaded.bms_switch_choices, Some(vec![2_000_000_000_000]));
         assert_eq!(loaded.effective_seed_scheme(), SEED_SCHEME_LEGACY_SHARED_V3);
         assert_eq!(loaded.lane_shuffle_pattern, Some(pattern));
 
@@ -808,6 +814,7 @@ events = []
         assert_eq!(loaded.random_seed, None);
         assert_eq!(loaded.arrange_seed_2p, None);
         assert_eq!(loaded.bms_random_choices, None);
+        assert_eq!(loaded.bms_switch_choices, None);
         assert_eq!(loaded.effective_seed_scheme(), SEED_SCHEME_LEGACY_SHARED_V3);
         assert_eq!(loaded.effective_s_random_scheme().unwrap(), SRandomScheme::Legacy40MsV1);
         assert_eq!(loaded.events.len(), 0);

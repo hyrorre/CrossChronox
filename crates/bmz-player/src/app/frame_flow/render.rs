@@ -14,7 +14,7 @@ impl WinitApp {
             && tracing::enabled!(target: "bmz_player::play_profile", tracing::Level::DEBUG);
         let profiling_result = result_view
             && tracing::enabled!(target: "bmz_player::result_profile", tracing::Level::DEBUG);
-        if select_view {
+        if select_view && !self.viewer_waiting {
             self.refresh_visible_select_folder_summaries();
             self.poll_select_asset_loads();
             self.sync_select_stage_texture();

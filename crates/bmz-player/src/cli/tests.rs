@@ -18,9 +18,169 @@ fn app_options_parse_beatoraja_style_boot_path() {
     let options =
         AppOptions::parse_args(["--renderer", "vulkan", "-a", "-r1", "/music/song.bms"]).unwrap();
     assert_eq!(options.renderer, Some(RendererBackend::Vulkan));
-    assert!(options.autoplay_on_start);
+    assert!(!options.autoplay_on_start);
     assert_eq!(options.boot_replay_slot, Some(0));
     assert_eq!(options.boot_play_path.as_deref(), Some("/music/song.bms"));
+}
+
+#[test]
+fn app_options_parse_ubmplay_viewer_arguments() {
+    let attached = AppOptions::parse_args(["-P", "-N12", "_temp.bms"]).unwrap();
+    assert!(attached.viewer_play);
+    assert!(attached.autoplay_on_start);
+    assert!(attached.skip_decide);
+    assert!(!attached.skip_result);
+    assert!(!attached.battle_on_start);
+    assert_eq!(attached.start_measure, Some(12));
+    assert_eq!(attached.boot_play_path.as_deref(), Some("_temp.bms"));
+
+    let separated = AppOptions::parse_args(["--viewer-play", "-N", "7", "song.bmson"]).unwrap();
+    assert_eq!(separated.start_measure, Some(7));
+    assert_eq!(separated.boot_play_path.as_deref(), Some("song.bmson"));
+
+    let exit_after_play = AppOptions::parse_args(["-P", "--skip-result", "song.bms"]).unwrap();
+    assert!(exit_after_play.skip_result);
+
+    let battle = AppOptions::parse_args(["-P", "-B", "song.bms"]).unwrap();
+    assert!(battle.battle_on_start);
+
+    let invocation =
+        parse_cli_command(["--viewer-play", "--battle", "--profile=alt", "song.bms"]).unwrap();
+    assert_eq!(invocation.profile_id.as_deref(), Some("alt"));
+    let Command::Run(equals) = invocation.command else { panic!("expected run command") };
+    assert!(equals.battle_on_start);
+    assert!(equals.requires_fresh_viewer_process(invocation.profile_id.is_some()));
+
+    let long =
+        AppOptions::parse_args(["-P", "--start-measure=3", "--skip-decide", "song.bms"]).unwrap();
+    assert_eq!(long.start_measure, Some(3));
+    assert!(long.skip_decide);
+}
+
+#[test]
+fn app_options_parse_viewer_stop_as_standalone_command() {
+    let options = AppOptions::parse_args(["-S"]).unwrap();
+    assert!(options.viewer_stop);
+    assert!(!options.viewer_play);
+
+    assert!(AppOptions::parse_args(["-S", "song.bms"]).is_ok());
+    assert!(AppOptions::parse_args(["-P"]).is_err());
+    assert!(AppOptions::parse_args(["-Nbad", "song.bms"]).is_err());
+    assert!(AppOptions::parse_args(["-B", "song.bms"]).is_ok());
+    assert!(parse_cli_command(["--profile", "alt", "song.bms"]).is_ok());
+    assert!(parse_cli_command(["-P", "--profile", "../alt", "song.bms"]).is_err());
+    assert!(parse_cli_command(["-P", "--profile=", "song.bms"]).is_err());
+}
+
+#[test]
+fn conflicting_mode_options_use_the_later_option_and_warn() {
+    let viewer_then_practice = parse_cli_command(["-P", "-p"]).unwrap();
+    let Command::Run(options) = viewer_then_practice.command else {
+        panic!("expected run command");
+    };
+    assert!(!options.viewer_play);
+    assert!(options.boot_practice);
+    assert!(!viewer_then_practice.warnings.is_empty());
+
+    let practice_then_viewer = parse_cli_command(["-p", "-P", "song.bms"]).unwrap();
+    let Command::Run(options) = practice_then_viewer.command else {
+        panic!("expected run command");
+    };
+    assert!(options.viewer_play);
+    assert!(options.autoplay_on_start);
+    assert!(!options.boot_practice);
+    assert!(!practice_then_viewer.warnings.is_empty());
+
+    let autoplay_then_replay = parse_cli_command(["-a", "-r2", "song.bms"]).unwrap();
+    let Command::Run(options) = autoplay_then_replay.command else {
+        panic!("expected run command");
+    };
+    assert!(!options.autoplay_on_start);
+    assert_eq!(options.boot_replay_slot, Some(1));
+    assert!(!autoplay_then_replay.warnings.is_empty());
+
+    let replay_then_autoplay = parse_cli_command(["-r2", "-a", "song.bms"]).unwrap();
+    let Command::Run(options) = replay_then_autoplay.command else {
+        panic!("expected run command");
+    };
+    assert!(options.autoplay_on_start);
+    assert_eq!(options.boot_replay_slot, None);
+    assert!(!replay_then_autoplay.warnings.is_empty());
+}
+
+#[test]
+fn battle_combines_with_autoplay_and_viewer_but_overrides_practice_or_replay_by_order() {
+    let autoplay_battle = parse_cli_command(["-a", "-B", "song.bms"]).unwrap();
+    let Command::Run(options) = autoplay_battle.command else {
+        panic!("expected run command");
+    };
+    assert!(options.autoplay_on_start);
+    assert!(options.battle_on_start);
+    assert!(autoplay_battle.warnings.is_empty());
+
+    let viewer_replay = parse_cli_command(["-P", "-r3", "song.bms"]).unwrap();
+    let Command::Run(options) = viewer_replay.command else {
+        panic!("expected run command");
+    };
+    assert!(options.viewer_play);
+    assert!(options.autoplay_on_start);
+    assert_eq!(options.boot_replay_slot, Some(2));
+    assert!(viewer_replay.warnings.is_empty());
+
+    let battle_then_practice = parse_cli_command(["-B", "-p", "song.bms"]).unwrap();
+    let Command::Run(options) = battle_then_practice.command else {
+        panic!("expected run command");
+    };
+    assert!(options.boot_practice);
+    assert!(!options.battle_on_start);
+    assert!(!battle_then_practice.warnings.is_empty());
+
+    let practice_then_battle = parse_cli_command(["-p", "-B", "song.bms"]).unwrap();
+    let Command::Run(options) = practice_then_battle.command else {
+        panic!("expected run command");
+    };
+    assert!(!options.boot_practice);
+    assert!(options.battle_on_start);
+    assert!(!practice_then_battle.warnings.is_empty());
+}
+
+#[test]
+fn start_measure_is_viewer_only_and_replay_viewer_ignores_it() {
+    let normal = parse_cli_command(["-N12", "song.bms"]).unwrap();
+    let Command::Run(options) = normal.command else { panic!("expected run command") };
+    assert_eq!(options.start_measure, None);
+    assert!(!normal.warnings.is_empty());
+
+    let viewer = parse_cli_command(["-P", "-N12", "song.bms"]).unwrap();
+    let Command::Run(options) = viewer.command else { panic!("expected run command") };
+    assert_eq!(options.start_measure, Some(12));
+    assert!(viewer.warnings.is_empty());
+
+    let replay_viewer = parse_cli_command(["-P", "-r1", "-N12", "song.bms"]).unwrap();
+    let Command::Run(options) = replay_viewer.command else { panic!("expected run command") };
+    assert_eq!(options.start_measure, None);
+    assert!(!replay_viewer.warnings.is_empty());
+}
+
+#[test]
+fn profile_is_global_order_independent_and_last_value_wins() {
+    let before = parse_cli_command(["--profile", "alt", "ir", "status"]).unwrap();
+    assert_eq!(before.profile_id.as_deref(), Some("alt"));
+    assert!(matches!(before.command, Command::Ir(IrCommand::Status)));
+    assert!(before.warnings.is_empty());
+
+    let after = parse_cli_command(["course", "history", "42", "--profile=playtest"]).unwrap();
+    assert_eq!(after.profile_id.as_deref(), Some("playtest"));
+    assert!(matches!(after.command, Command::Course(CourseCommand::History { .. })));
+
+    let repeated =
+        parse_cli_command(["--profile", "alt", "song.bms", "--profile=playtest"]).unwrap();
+    assert_eq!(repeated.profile_id.as_deref(), Some("playtest"));
+    assert_eq!(repeated.warnings.len(), 1);
+
+    let unused = parse_cli_command(["table", "list", "--profile", "alt"]).unwrap();
+    assert_eq!(unused.profile_id.as_deref(), Some("alt"));
+    assert_eq!(unused.warnings.len(), 1);
 }
 
 #[test]
@@ -161,6 +321,13 @@ fn help_text_lists_supported_options() {
     assert!(help.contains("--boot-play-sample"));
     assert!(help.contains("--boot-result-sample"));
     assert!(help.contains("--autoplay-on-start"));
+    assert!(help.contains("-P | --viewer-play"));
+    assert!(help.contains("-B | --battle"));
+    assert!(help.contains("--profile <ID>"));
+    assert!(help.contains("-N<N> | -N <N> | --start-measure <N>"));
+    assert!(help.contains("-S | --viewer-stop"));
+    assert!(help.contains("--skip-decide"));
+    assert!(help.contains("--skip-result"));
     assert!(help.contains("--lua-skin-runtime <auto|compat>"));
     assert!(help.contains("--smoke-exit-after-frames"));
     assert!(help.contains("--smoke-exit-after-play-frames"));

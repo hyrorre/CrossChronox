@@ -497,6 +497,14 @@ fn play_exit_hold_timer_uses_beatoraja_default_duration() {
 }
 
 #[test]
+fn play_exit_chord_requires_e2_and_e3() {
+    assert!(play_exit_chord_pressed(true, true));
+    assert!(!play_exit_chord_pressed(true, false));
+    assert!(!play_exit_chord_pressed(false, true));
+    assert!(!play_exit_chord_pressed(false, false));
+}
+
+#[test]
 fn decide_control_action_skips_with_1p_and_2p_decide_keys() {
     let keys = select_keys_with_full_2p_bindings();
 

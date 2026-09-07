@@ -276,7 +276,7 @@ fn course_contents_preserve_stage_order_and_missing_download_metadata() {
 }
 
 #[test]
-fn table_level_folder_items_returns_folder_per_level() {
+fn table_level_folder_items_hide_undefined_levels_but_keep_unowned_levels() {
     let (mut library_db, score_db) = open_in_memory_dbs();
     let chart_a = chart("A");
     use crate::difficulty_table::{FetchedDifficultyTable, FetchedTableEntry};
@@ -309,13 +309,12 @@ fn table_level_folder_items_returns_folder_per_level() {
     )
     .unwrap();
 
-    assert_eq!(items.len(), 3);
+    assert_eq!(items.len(), 1);
     assert!(matches!(
         &items[0],
         SelectItem::Folder { path, name, kind, .. }
-        if name == "★1" && path == "bmz-table:https://example.com/insane/\n1" && *kind == SelectRowKind::TableFolder
+        if name == "★2" && path == "bmz-table:https://example.com/insane/\n2" && *kind == SelectRowKind::TableFolder
     ));
-    assert!(matches!(&items[2], SelectItem::Folder { name, .. } if name == "★25"));
 }
 
 #[test]

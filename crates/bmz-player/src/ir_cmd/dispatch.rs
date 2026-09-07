@@ -4,7 +4,15 @@ pub async fn run_ir_command(cmd: IrCommand) -> Result<()> {
 }
 
 pub async fn run_ir_command_with_paths(cmd: IrCommand, app_paths: &AppPaths) -> Result<()> {
-    let (profile_paths, mut profile) = load_active_profile_with_paths(app_paths)?;
+    run_ir_command_with_paths_and_profile(cmd, app_paths, None).await
+}
+
+pub async fn run_ir_command_with_paths_and_profile(
+    cmd: IrCommand,
+    app_paths: &AppPaths,
+    profile_id: Option<&str>,
+) -> Result<()> {
+    let (profile_paths, mut profile) = load_active_profile_with_paths(app_paths, profile_id)?;
     match cmd {
         IrCommand::Login { email, password, base_url, provider } => {
             login(&profile_paths, &mut profile, &provider, &email, password, base_url).await

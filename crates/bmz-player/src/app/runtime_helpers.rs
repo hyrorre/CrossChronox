@@ -98,7 +98,14 @@ pub(super) fn deferred_boot_action(
                 end_time_ms: options.practice_end_ms,
             });
         }
-        return Some(DeferredBoot::Chart { chart_id, replay_slot: options.boot_replay_slot });
+        return Some(DeferredBoot::Chart {
+            chart_id,
+            replay_slot: options.boot_replay_slot,
+            skip_decide: options.skip_decide,
+            score_save_disabled: options.viewer_play,
+            start_time_us: options.boot_start_time_us,
+            bms_random_seed: options.boot_bms_random_seed,
+        });
     }
     if let Some(path) = options.boot_replay_file.clone() {
         return Some(DeferredBoot::ReplayFile { path });
@@ -156,6 +163,9 @@ pub(super) fn log_startup_options(options: &AppOptions) {
     }
     if options.autoplay_on_start {
         tracing::info!(arg = AUTOPLAY_ON_START_ARG, "autoplay enabled for started charts");
+    }
+    if options.battle_on_start {
+        tracing::info!(arg = VIEWER_BATTLE_ARG, "battle mode enabled");
     }
     if let Some(frames) = options.smoke_exit_after_frames {
         tracing::info!(arg = SMOKE_EXIT_AFTER_FRAMES_ARG, frames, "smoke auto-exit enabled");

@@ -45,9 +45,14 @@ pub const SKIN_OPTION_BMZ_DOUBLE_PLAY: i32 = 1915;
 pub const SKIN_OPTION_BMZ_INPUT_BASE: i32 = 1920;
 pub const SKIN_OPTION_BMZ_INPUT_LAST: i32 = 1927;
 pub const SKIN_BMZ_INPUT_COUNT: usize = 8;
+/// BMZ extension: E1/E2 aggregate held option for shared control panels.
+pub const SKIN_OPTION_BMZ_E1_E2_HELD: i32 = 1928;
 /// BMZ extension: matching press-edge timers.
 pub const SKIN_TIMER_BMZ_INPUT_BASE: i32 = 19_000;
 pub const SKIN_TIMER_BMZ_INPUT_LAST: i32 = 19_007;
+/// BMZ extension: mutually exclusive E1/E2 aggregate press/hold and release timers.
+pub const SKIN_TIMER_BMZ_E1_E2_PRESS: i32 = 19_008;
+pub const SKIN_TIMER_BMZ_E1_E2_RELEASE: i32 = 19_009;
 /// BMZ extension: latest judgement timers split by judge region and lane kind.
 /// Slots are region 0 Scratch/Keys, region 1 Scratch/Keys, region 2 Scratch/Keys.
 pub const SKIN_TIMER_BMZ_JUDGE_LANE_BASE: i32 = 19_010;

@@ -36,15 +36,17 @@ pub struct ImportResult {
     pub warnings: Vec<ImportWarning>,
     /// BMS `#RANDOM` ごとの実際の選択値。BMSON では常に空。
     pub bms_random_choices: Vec<i32>,
+    /// BMS `#SWITCH` ごとの実際の選択値。BMSON では常に空。
+    pub bms_switch_choices: Vec<u64>,
 }
 
-/// BMS の `#RANDOM` 分岐を選ぶ方法。
+/// BMS の `#RANDOM` / `#SWITCH` 分岐を選ぶ方法。
 ///
 /// `Choices` はリプレイ時に、記録済みの選択値を出現順に強制するために使う。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BmsRandomSource {
     Seed(Option<u64>),
-    Choices(Vec<i32>),
+    Choices { random: Vec<i32>, switches: Vec<u64> },
 }
 
 /// 拡張子に応じて BMS / BMSON を import する。
@@ -68,6 +70,7 @@ pub fn import_chart_with_random_source(
 ) -> Result<ImportResult, ImportError> {
     let mut warnings = Vec::new();
     let mut bms_random_choices = Vec::new();
+    let mut bms_switch_choices = Vec::new();
     let file_format = chart_file_format(path);
     let intermediate = match file_format {
         ChartFileFormat::Bmson => bmson_adapter::import_bmson_to_intermediate(path, &mut warnings)?,
@@ -75,19 +78,21 @@ pub fn import_chart_with_random_source(
             path,
             &random_source,
             &mut bms_random_choices,
+            &mut bms_switch_choices,
             &mut warnings,
         )?,
         ChartFileFormat::Pms => bms_rs_adapter::import_pms_to_intermediate_with_random_source(
             path,
             &random_source,
             &mut bms_random_choices,
+            &mut bms_switch_choices,
             &mut warnings,
         )?,
     };
     let mut chart =
         normalize::normalize_chart(path, intermediate, &mut warnings, check_resource_existence)?;
     chart.metadata.source_format = file_format.source_format();
-    Ok(ImportResult { chart, warnings, bms_random_choices })
+    Ok(ImportResult { chart, warnings, bms_random_choices, bms_switch_choices })
 }
 
 pub fn import_bms_chart(

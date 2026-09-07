@@ -147,6 +147,48 @@ fn build_render_snapshot_reports_gauge_skin_timer_elapsed() {
 }
 
 #[test]
+fn build_render_snapshot_reports_independent_opponent_skin_timers() {
+    let profile = ProfileConfig::new_default("default", "Default", 1);
+    let mut session = build_game_session(
+        Arc::new(chart()),
+        &profile,
+        PlaySessionOptions {
+            session_mode: SessionMode::GBattle,
+            battle_opponent: Some(BattleOpponentOptions {
+                replay_player: None,
+                gauge: None,
+                arrange: ArrangeOption::Normal,
+                arrange_2p: ArrangeOption::Normal,
+                double_option: DoubleOption::Off,
+                arrange_seed: None,
+                arrange_seed_2p: None,
+                legacy_arrange_seed: false,
+                packed_seed: None,
+                bms_random_choices: None,
+                bms_switch_choices: None,
+                arrange_pattern: None,
+                s_random_scheme: SRandomScheme::default(),
+                s_random_scheme_2p: None,
+                h_random_threshold_ms: None,
+            }),
+            opponent_chart: Some(Arc::new(chart())),
+            ..PlaySessionOptions::default()
+        },
+    );
+    let opponent = session.battle_opponent.as_mut().unwrap();
+    opponent.full_combo_started_at = Some(TimeUs(100_000));
+    opponent.gauge_increase_started_at = Some(TimeUs(150_000));
+    opponent.gauge_max_started_at = Some(TimeUs(250_000));
+
+    let snapshot = build_render_snapshot(&session, TimeUs(400_000), &[], None);
+    let opponent = snapshot.opponent.as_ref().unwrap();
+
+    assert_eq!(opponent.full_combo_elapsed_ms, Some(300));
+    assert_eq!(opponent.gauge_increase_elapsed_ms, Some(250));
+    assert_eq!(opponent.gauge_max_elapsed_ms, Some(150));
+}
+
+#[test]
 fn update_render_snapshot_play_options_refreshes_ready_snapshot_values() {
     let profile = ProfileConfig::new_default("default", "Default", 1);
     let mut session =

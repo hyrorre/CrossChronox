@@ -1,3 +1,5 @@
+use super::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlayState {
     Ready,
@@ -47,6 +49,15 @@ pub struct PlayAudioMix {
     pub normalize_chart_volume: bool,
     pub key_volume: f32,
     pub bgm_volume: f32,
+    /// キー音自動再生モード。ON なら押鍵時のキー音を鳴らさず、譜面の生タイミング
+    /// (入力オフセット・表示オフセットの影響を受けない `NoteEvent.time`) で
+    /// キー音を自動再生する。音量は `key_volume` を使う。
+    pub auto_keysound: bool,
+    /// `auto_keysound` 有効時、空押し (判定候補が無かった押下) の代替キー音も
+    /// 鳴らすかどうか。
+    pub auto_keysound_fallback: bool,
+    /// `auto_keysound` 有効時、地雷命中時の譜面指定キー音も鳴らすかどうか。
+    pub auto_keysound_mine: bool,
 }
 
 impl PlayAudioMix {
@@ -79,6 +90,13 @@ pub struct FrameTimes {
 #[derive(Debug, Clone, Default)]
 pub struct BgmScheduler {
     pub next_index: usize,
+}
+
+/// キー音自動再生用のレーン別カーソル。押下有無に関わらず、譜面の生タイミング
+/// (入力オフセット・表示オフセットの影響を受けない `NoteEvent.time`) でキー音を鳴らす。
+#[derive(Debug, Clone, Default)]
+pub struct AutoKeysoundScheduler {
+    pub next_note_index: [usize; LANE_COUNT],
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord)]
@@ -220,6 +238,7 @@ pub struct GameSession {
     pub full_combo_started_at: Option<TimeUs>,
     pub opponent_full_combo_started_at: Option<TimeUs>,
     pub bgm_scheduler: BgmScheduler,
+    pub auto_keysound_scheduler: AutoKeysoundScheduler,
     pub offsets: PlayOffsets,
     pub input_offset_auto_adjust_enabled: bool,
     pub input_offset_auto_adjust: Option<InputOffsetAutoAdjustState>,
@@ -302,6 +321,11 @@ pub struct BattleOpponentSession {
     /// Normal mode still advances the opponent score for comparison, but its
     /// single-player judgement/combo presentation must remain primary-only.
     pub publish_display_judgements: bool,
+    /// Skin timer 43/45/49 state owned by the independent opponent rather than
+    /// the legacy display-only 2P path on `GameSession`.
+    pub gauge_increase_started_at: Option<TimeUs>,
+    pub gauge_max_started_at: Option<TimeUs>,
+    pub full_combo_started_at: Option<TimeUs>,
     pub lane_keyon_started_at: [Option<TimeUs>; LANE_COUNT],
 }
 
@@ -363,6 +387,70 @@ pub enum SkinRuntimeEventKind {
 }
 
 impl BgmScheduler {
+    /// Starts scheduling at `start_time` without recreating BGM events that
+    /// have already passed. Events exactly on the boundary remain playable.
+    pub fn starting_at(chart: &PlayableChart, start_time: TimeUs) -> Self {
+        Self { next_index: chart.bgm_events.partition_point(|event| event.time < start_time) }
+    }
+
+    /// Starts scheduling at `start_time` and recreates only BGM voices that
+    /// began earlier but whose decoded sample still spans the seek position.
+    ///
+    /// BGM events use `StopSameSound`, so only the latest past event for each
+    /// sound ID can still be active. A later short event therefore prevents an
+    /// older long event with the same ID from being resurrected.
+    pub fn starting_at_with_carryover(
+        chart: &PlayableChart,
+        start_time: TimeUs,
+        clock: &AudioClock,
+        volume: f32,
+        mut sample_duration_us: impl FnMut(SoundId) -> Option<i64>,
+    ) -> (Self, Vec<ScheduledSound>) {
+        let scheduler = Self::starting_at(chart, start_time);
+        // A boundary event restarts the same sound at the requested position,
+        // so its pre-seek voice must not be heard even for the first callback.
+        let mut seen_sounds = chart.bgm_events[scheduler.next_index..]
+            .iter()
+            .take_while(|event| event.time == start_time)
+            .map(|event| event.sound)
+            .collect::<std::collections::HashSet<_>>();
+        let mut carryover = chart.bgm_events[..scheduler.next_index]
+            .iter()
+            .rev()
+            .filter(|event| seen_sounds.insert(event.sound))
+            .filter_map(|event| {
+                let duration_us = sample_duration_us(event.sound)?.max(0);
+                let elapsed_us = start_time.0.saturating_sub(event.time.0);
+                if duration_us <= elapsed_us {
+                    return None;
+                }
+                let sample_offset_frames = (u128::try_from(elapsed_us).unwrap_or(0)
+                    * u128::from(clock.sample_rate)
+                    / 1_000_000)
+                    .min(u128::from(u64::MAX)) as u64;
+                let chart_volume = bmz_chart::volume::chart_channel_volume_factor(
+                    bmz_chart::volume::chart_volume_at_time(&chart.bgm_volume_events, event.time),
+                );
+                Some((
+                    event.time,
+                    ScheduledSound {
+                        start_frame: clock.start_output_frame,
+                        sample_offset_frames,
+                        sound_id: event.sound,
+                        volume: (volume * chart_volume).clamp(0.0, 1.0),
+                        pan: 0.0,
+                        loop_playback: false,
+                        fade_in_frames: 0,
+                        catch_up: true,
+                        restart_policy: RestartPolicy::StopSameSound,
+                    },
+                ))
+            })
+            .collect::<Vec<_>>();
+        carryover.sort_by_key(|(time, _)| *time);
+        (scheduler, carryover.into_iter().map(|(_, sound)| sound).collect())
+    }
+
     pub fn schedule_until(
         &mut self,
         chart: &PlayableChart,
@@ -381,6 +469,7 @@ impl BgmScheduler {
             );
             audio.schedule(ScheduledSound {
                 start_frame: clock.time_to_output_frame(event.time),
+                sample_offset_frames: 0,
                 sound_id: event.sound,
                 volume: (volume * chart_volume).clamp(0.0, 1.0),
                 pan: 0.0,
@@ -396,6 +485,53 @@ impl BgmScheduler {
 
     pub fn is_done(&self, chart: &PlayableChart) -> bool {
         self.next_index >= chart.bgm_events.len()
+    }
+}
+
+impl AutoKeysoundScheduler {
+    pub fn schedule_until(
+        &mut self,
+        chart: &PlayableChart,
+        display_only_lane_mask: &[bool; LANE_COUNT],
+        clock: &AudioClock,
+        until: TimeUs,
+        volume: f32,
+        audio: &mut dyn AudioScheduler,
+    ) {
+        for lane in Lane::ALL {
+            let lane_index = lane.index();
+            if display_only_lane_mask[lane_index] {
+                continue;
+            }
+            let notes = chart.notes_for_lane(lane);
+            while let Some(note) = notes.get(self.next_note_index[lane_index]) {
+                if note.time > until {
+                    break;
+                }
+                self.next_note_index[lane_index] += 1;
+
+                if !matches!(note.kind, NoteKind::Tap | NoteKind::LongStart | NoteKind::LongEnd) {
+                    continue;
+                }
+
+                let chart_volume = bmz_chart::volume::chart_channel_volume_factor(
+                    bmz_chart::volume::chart_volume_at_time(&chart.key_volume_events, note.time),
+                );
+                for sound_id in note.sounds() {
+                    audio.schedule(ScheduledSound {
+                        start_frame: clock.time_to_output_frame(note.time),
+                        sample_offset_frames: 0,
+                        sound_id,
+                        volume: (volume * chart_volume).clamp(0.0, 1.0),
+                        pan: 0.0,
+                        loop_playback: false,
+                        fade_in_frames: 0,
+                        catch_up: true,
+                        restart_policy: RestartPolicy::StopSameSound,
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -422,4 +558,3 @@ mod frame_time_tests {
         assert_eq!(audio_schedule_ahead_us(300), 300_000);
     }
 }
-use super::*;

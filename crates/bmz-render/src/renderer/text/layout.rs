@@ -20,22 +20,22 @@ pub(super) fn fallback_text_width_px(text: &str, fonts: VectorFontSet<'_>, scale
     text.chars().map(|ch| fallback_char_advance(ch, fonts, scale)).sum()
 }
 
-pub(super) fn bitmap_text_width_px(text: &str, font: &BitmapFont, scale: f32) -> f32 {
+pub(super) fn bitmap_text_width_px(text: &str, font: &BitmapFont, scale: PxScale) -> f32 {
     text.chars()
         .filter_map(|ch| font.glyphs.get(&ch))
-        .map(|glyph| glyph.xadvance as f32 * scale)
+        .map(|glyph| glyph.xadvance as f32 * scale.x)
         .sum()
 }
 
 pub(super) fn rasterized_bitmap_glyph_pixels(
     glyph: crate::bitmap_font::BitmapFontGlyph,
     page: &crate::bitmap_font::BitmapFontPage,
-    scale: f32,
+    scale: PxScale,
     width: u32,
     height: u32,
 ) -> Vec<u8> {
     let mut pixels = vec![0; (width * height * 4) as usize];
-    let nearest = is_integer_scale(scale);
+    let nearest = is_integer_scale(scale.x) && is_integer_scale(scale.y);
     for dst_y in 0..height {
         for dst_x in 0..width {
             let color = if nearest {
@@ -63,10 +63,10 @@ pub(super) fn sample_bitmap_glyph_nearest(
     page: &crate::bitmap_font::BitmapFontPage,
     dst_x: u32,
     dst_y: u32,
-    scale: f32,
+    scale: PxScale,
 ) -> [u8; 4] {
-    let local_x = (dst_x as f32 / scale).floor() as i32;
-    let local_y = (dst_y as f32 / scale).floor() as i32;
+    let local_x = (dst_x as f32 / scale.x).floor() as i32;
+    let local_y = (dst_y as f32 / scale.y).floor() as i32;
     bitmap_glyph_pixel(glyph, page, local_x, local_y)
 }
 
@@ -75,12 +75,12 @@ pub(super) fn sample_bitmap_glyph_bilinear(
     page: &crate::bitmap_font::BitmapFontPage,
     dst_x: u32,
     dst_y: u32,
-    scale: f32,
+    scale: PxScale,
 ) -> [u8; 4] {
     let max_x = glyph.width.saturating_sub(1) as f32;
     let max_y = glyph.height.saturating_sub(1) as f32;
-    let src_x = ((dst_x as f32 + 0.5) / scale - 0.5).clamp(0.0, max_x);
-    let src_y = ((dst_y as f32 + 0.5) / scale - 0.5).clamp(0.0, max_y);
+    let src_x = ((dst_x as f32 + 0.5) / scale.x - 0.5).clamp(0.0, max_x);
+    let src_y = ((dst_y as f32 + 0.5) / scale.y - 0.5).clamp(0.0, max_y);
     let x0 = src_x.floor() as i32;
     let y0 = src_y.floor() as i32;
     let x1 = (x0 + 1).min(max_x as i32);
@@ -167,19 +167,23 @@ pub(super) fn vector_text_caret_rect(
     if style.wrapping || !surface.is_drawable() {
         return None;
     }
-    let mut px_size = (style.size * surface.height as f32).max(1.0);
-    let original_px_size = px_size;
+    let px_size = (style.size * surface.height as f32).max(1.0);
     let max_width = style.max_width.max(0.0) * surface.width as f32;
     let mut visible = Cow::Borrowed(text);
     let mut scale = PxScale::from(px_size);
+    let original_scale = scale;
     let mut scaled_font = font.as_scaled(scale);
     let mut text_width = text_width_px(&visible, font, &scaled_font);
     if max_width > 0.0 && text_width > max_width {
         match style.overflow {
             TextOverflow::Overflow => {}
             TextOverflow::Shrink => {
-                px_size = (px_size * max_width / text_width).max(1.0);
-                scale = PxScale::from(px_size);
+                scale.x = (scale.x * max_width / text_width).max(0.01);
+                scaled_font = font.as_scaled(scale);
+                text_width = text_width_px(&visible, font, &scaled_font);
+            }
+            TextOverflow::ShrinkUniform => {
+                scale = PxScale::from((scale.x * max_width / text_width).max(1.0));
                 scaled_font = font.as_scaled(scale);
                 text_width = text_width_px(&visible, font, &scaled_font);
             }
@@ -194,8 +198,8 @@ pub(super) fn vector_text_caret_rect(
     let cursor = clamp_text_byte_index(&visible, caret.byte_index);
     let prefix_width = text_width_px(&visible[..cursor], font, &scaled_font);
     let shrink_offset_y =
-        if matches!(style.overflow, TextOverflow::Shrink) && px_size < original_px_size {
-            (original_px_size - px_size) / 2.0
+        if matches!(style.overflow, TextOverflow::ShrinkUniform) && scale.y < original_scale.y {
+            (original_scale.y - scale.y) / 2.0
         } else {
             0.0
         };
@@ -206,7 +210,7 @@ pub(super) fn vector_text_caret_rect(
             x,
             y,
             width: (2.0 / surface.width as f32).max(0.001),
-            height: (px_size / surface.height as f32).max(0.001),
+            height: (scale.y / surface.height as f32).max(0.001),
         },
         color: caret.color,
     })
@@ -223,18 +227,21 @@ pub(super) fn vector_text_caret_rect_with_fallback(
     if style.wrapping || !surface.is_drawable() || fonts.primary().is_none() {
         return None;
     }
-    let mut px_size = (style.size * surface.height as f32).max(1.0);
-    let original_px_size = px_size;
+    let px_size = (style.size * surface.height as f32).max(1.0);
     let max_width = style.max_width.max(0.0) * surface.width as f32;
     let mut visible = Cow::Borrowed(text);
     let mut scale = PxScale::from(px_size);
+    let original_scale = scale;
     let mut text_width = fallback_text_width_px(&visible, fonts, scale);
     if max_width > 0.0 && text_width > max_width {
         match style.overflow {
             TextOverflow::Overflow => {}
             TextOverflow::Shrink => {
-                px_size = (px_size * max_width / text_width).max(1.0);
-                scale = PxScale::from(px_size);
+                scale.x = (scale.x * max_width / text_width).max(0.01);
+                text_width = fallback_text_width_px(&visible, fonts, scale);
+            }
+            TextOverflow::ShrinkUniform => {
+                scale = PxScale::from((scale.x * max_width / text_width).max(1.0));
                 text_width = fallback_text_width_px(&visible, fonts, scale);
             }
             TextOverflow::Truncate => {
@@ -248,8 +255,8 @@ pub(super) fn vector_text_caret_rect_with_fallback(
     let cursor = clamp_text_byte_index(&visible, caret.byte_index);
     let prefix_width = fallback_text_width_px(&visible[..cursor], fonts, scale);
     let shrink_offset_y =
-        if matches!(style.overflow, TextOverflow::Shrink) && px_size < original_px_size {
-            (original_px_size - px_size) / 2.0
+        if matches!(style.overflow, TextOverflow::ShrinkUniform) && scale.y < original_scale.y {
+            (original_scale.y - scale.y) / 2.0
         } else {
             0.0
         };
@@ -260,7 +267,7 @@ pub(super) fn vector_text_caret_rect_with_fallback(
             x,
             y,
             width: (2.0 / surface.width as f32).max(0.001),
-            height: (px_size / surface.height as f32).max(0.001),
+            height: (scale.y / surface.height as f32).max(0.001),
         },
         color: caret.color,
     })
@@ -279,7 +286,8 @@ pub(super) fn bitmap_text_caret_rect(
     }
     let design_size = if font.size > 0 { font.size } else { font.line_height.max(1) };
     let bitmap_size = style.bitmap_size.unwrap_or(style.size);
-    let mut scale = (bitmap_size * surface.height as f32 / design_size as f32).max(0.01);
+    let mut scale =
+        PxScale::from((bitmap_size * surface.height as f32 / design_size as f32).max(0.01));
     let original_scale = scale;
     let max_width = style.max_width.max(0.0) * surface.width as f32;
     let mut text_width = bitmap_text_width_px(text, font, scale);
@@ -287,7 +295,11 @@ pub(super) fn bitmap_text_caret_rect(
         match style.overflow {
             TextOverflow::Overflow => Cow::Borrowed(text),
             TextOverflow::Shrink => {
-                scale = (scale * max_width / text_width).max(0.01);
+                scale.x = (scale.x * max_width / text_width).max(0.01);
+                Cow::Borrowed(text)
+            }
+            TextOverflow::ShrinkUniform => {
+                scale = PxScale::from((scale.x * max_width / text_width).max(0.01));
                 Cow::Borrowed(text)
             }
             TextOverflow::Truncate => {
@@ -302,12 +314,12 @@ pub(super) fn bitmap_text_caret_rect(
     let cursor = clamp_text_byte_index(&visible, caret.byte_index);
     let prefix_width = bitmap_text_width_px(&visible[..cursor], font, scale);
     let shrink_offset_y =
-        if matches!(style.overflow, TextOverflow::Shrink) && scale < original_scale {
-            (design_size as f32 * (original_scale - scale)) / 2.0
+        if matches!(style.overflow, TextOverflow::ShrinkUniform) && scale.y < original_scale.y {
+            (design_size as f32 * (original_scale.y - scale.y)) / 2.0
         } else {
             0.0
         };
-    let caret_height = design_size as f32 * scale;
+    let caret_height = design_size as f32 * scale.y;
     let x = (origin.x * surface.width as f32 + align_offset + prefix_width) / surface.width as f32;
     let y = (origin.y * surface.height as f32 + shrink_offset_y) / surface.height as f32;
     Some(RectCommand {
@@ -333,7 +345,7 @@ pub(super) fn truncate_bitmap_text_to_width(
     text: &str,
     font: &BitmapFont,
     max_width: f32,
-    scale: f32,
+    scale: PxScale,
 ) -> String {
     let mut width = 0.0;
     let mut result = String::new();
@@ -341,7 +353,7 @@ pub(super) fn truncate_bitmap_text_to_width(
         let Some(glyph) = font.glyphs.get(&ch) else {
             continue;
         };
-        let advance = glyph.xadvance as f32 * scale;
+        let advance = glyph.xadvance as f32 * scale.x;
         if width + advance > max_width {
             break;
         }

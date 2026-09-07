@@ -184,9 +184,31 @@ pub(super) fn spawn_result_ir_task_for_target(
                     });
                 }
 
-                // primary provider の今回分を優先した後、従来どおり残りの pending
-                // job も送る。primary の送信応答は上で確保済みなので、バッチ順や
-                // 上限によって通常ランキング取得へ誤ってフォールバックしない。
+                // primary provider だけでなく、今回の Result attempt に紐づく全
+                // provider/account の job を古い backlog より先に送る。generic batch
+                // の上限が古い job で埋まっても、Result の送信待ちをtimeoutさせない。
+                let secondary_processed = match sync_current_secondary_submissions(
+                    &network_db_path,
+                    &score_db_path,
+                    &submit_query.profile_root,
+                    &logs_dir,
+                    &ir_config,
+                    &submit_query,
+                    &submission_targets_for_task,
+                )
+                .await
+                {
+                    Ok(processed) => processed,
+                    Err(error) => {
+                        tracing::warn!(%error, "failed to sync current secondary IR submissions from Result");
+                        0
+                    }
+                };
+                let current_processed = primary_processed.saturating_add(secondary_processed);
+
+                // 今回分を全providerについて優先した後、残りの枠で従来どおり
+                // pending backlogを送る。primaryの送信応答は上で確保済みなので、
+                // バッチ順や上限によって通常ランキング取得へ誤ってフォールバックしない。
                 let remaining_outcome = async {
                     let mut network_db =
                         crate::storage::network_db::NetworkDatabase::open(&network_db_path)?;
@@ -197,7 +219,7 @@ pub(super) fn spawn_result_ir_task_for_target(
                         &logs_dir,
                         &ir_config,
                         now_unix_seconds(),
-                        IR_SYNC_BATCH_LIMIT.saturating_sub(primary_processed),
+                        IR_SYNC_BATCH_LIMIT.saturating_sub(current_processed),
                         false,
                         IrSyncThrottle::rate_limited(),
                     )
@@ -267,6 +289,68 @@ pub(super) fn spawn_result_ir_task_for_target(
         state.self_and_rivals = RankingLoadState::Loading;
     }
     Some(state)
+}
+
+async fn sync_current_secondary_submissions(
+    network_db_path: &std::path::Path,
+    score_db_path: &std::path::Path,
+    profile_root: &std::path::Path,
+    logs_dir: &std::path::Path,
+    ir_config: &IrConfig,
+    query: &ResultIrTaskQuery,
+    targets: &[ResultIrSubmissionTarget],
+) -> anyhow::Result<u32> {
+    let secondary_targets = current_secondary_submission_targets(query, targets);
+    if secondary_targets.is_empty() {
+        return Ok(0);
+    }
+
+    let mut network_db = crate::storage::network_db::NetworkDatabase::open(network_db_path)?;
+    let (kind, local_score_id) = query.target.submission_job();
+    let mut processed = 0u32;
+    for target in secondary_targets {
+        match sync_pending_ir_jobs_filtered(
+            &mut network_db,
+            score_db_path,
+            profile_root,
+            logs_dir,
+            ir_config,
+            IrSyncJobFilter {
+                provider_key: &target.provider,
+                account_id: &target.account_id,
+                kind,
+                local_score_id: Some(local_score_id),
+            },
+            now_unix_seconds(),
+            1,
+            false,
+            IrSyncThrottle::none(),
+        )
+        .await
+        {
+            Ok(report) => {
+                processed =
+                    processed.saturating_add(report.submitted.saturating_add(report.failed));
+            }
+            Err(error) => tracing::warn!(
+                %error,
+                provider = target.provider,
+                account_id = target.account_id,
+                "failed to sync current secondary IR submission from Result",
+            ),
+        }
+    }
+    Ok(processed)
+}
+
+fn current_secondary_submission_targets<'a>(
+    query: &ResultIrTaskQuery,
+    targets: &'a [ResultIrSubmissionTarget],
+) -> Vec<&'a ResultIrSubmissionTarget> {
+    targets
+        .iter()
+        .filter(|target| target.provider != query.provider || target.account_id != query.account_id)
+        .collect()
 }
 
 /// 常駐同期との claim race があっても、今回の attempt の provider 別終端状態を待つ。
@@ -624,4 +708,53 @@ pub(super) fn now_unix_seconds() -> i64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn current_attempt_selects_every_secondary_provider_and_account_before_backlog() {
+        let query = ResultIrTaskQuery {
+            profile_root: PathBuf::new(),
+            provider: "bmz-official".to_string(),
+            account_id: "primary-account".to_string(),
+            base_url: "https://ir.example.test".to_string(),
+            target: ResultIrTarget::Chart {
+                local_score_id: 42,
+                chart_sha256_hex: "chart".to_string(),
+                ln_policy: LnScorePolicy::AutoLn,
+                double_option: DoubleOptionScoreBucket::Off,
+                rule_mode: RuleMode::Beatoraja,
+            },
+        };
+        let targets = vec![
+            ResultIrSubmissionTarget {
+                provider: "bmz-official".to_string(),
+                account_id: "primary-account".to_string(),
+            },
+            ResultIrSubmissionTarget {
+                provider: "bmz-official".to_string(),
+                account_id: "secondary-account".to_string(),
+            },
+            ResultIrSubmissionTarget {
+                provider: crate::ir::rian_ir::RIAN_IR_PROVIDER.to_string(),
+                account_id: "rian-account".to_string(),
+            },
+        ];
+
+        let selected = current_secondary_submission_targets(&query, &targets)
+            .into_iter()
+            .map(|target| (target.provider.as_str(), target.account_id.as_str()))
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            selected,
+            vec![
+                ("bmz-official", "secondary-account"),
+                (crate::ir::rian_ir::RIAN_IR_PROVIDER, "rian-account"),
+            ]
+        );
+    }
 }

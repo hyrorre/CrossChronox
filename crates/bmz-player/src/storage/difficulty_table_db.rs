@@ -202,6 +202,18 @@ pub(super) fn list_table_entries_at_level(
     query_table_entries(conn, sql, params![source_url, level])
 }
 
+/// Lists levels that have at least one entry in the table definition.
+pub(super) fn list_table_entry_levels(conn: &Connection, source_url: &str) -> Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT DISTINCT dte.level
+         FROM difficulty_table_entries dte
+         JOIN difficulty_tables dt ON dt.id = dte.table_id
+         WHERE dt.source_url = ?1",
+    )?;
+    let rows = stmt.query_map(params![source_url], |row| row.get(0))?;
+    rows.collect::<std::result::Result<Vec<_>, _>>().map_err(Into::into)
+}
+
 /// Finds download metadata for one course entry in its source difficulty table.
 pub(super) fn find_table_entry_by_hash(
     conn: &Connection,

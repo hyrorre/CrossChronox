@@ -9,19 +9,36 @@ pub(super) enum BeatorajaRandomControl<'a> {
     ElseIf,
     EndIf,
     EndRandom,
+    Switch(&'a str),
+    SetSwitch(&'a str),
+    Case(&'a str),
+    Skip,
+    Def,
+    EndSwitch,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SwitchControlState {
+    selected: u64,
+    matched: bool,
+    branch_active: bool,
+    skipped: bool,
 }
 
 pub(super) fn apply_beatoraja_random_control(
     text: &str,
     random_source: &BmsRandomSource,
     bms_random_choices: &mut Vec<i32>,
+    bms_switch_choices: &mut Vec<u64>,
     warnings: &mut Vec<ImportWarning>,
 ) -> String {
     let mut rewritten = String::with_capacity(text.len());
     let mut rng = JavaRandom::new(random_source_seed(random_source) as i64);
-    let mut choice_index = 0;
+    let mut random_choice_index = 0;
+    let mut switch_choice_index = 0;
     let mut random_stack = Vec::new();
     let mut skip_stack = Vec::new();
+    let mut switch_stack: Vec<SwitchControlState> = Vec::new();
 
     for (line_index, line) in text.lines().enumerate() {
         let line_number = line_index + 1;
@@ -44,10 +61,10 @@ pub(super) fn apply_beatoraja_random_control(
                     };
                     let selected = match random_source {
                         BmsRandomSource::Seed(_) => rng.next_int_bound(max) + 1,
-                        BmsRandomSource::Choices(choices) => {
-                            let current_index = choice_index;
-                            choice_index += 1;
-                            match choices.get(current_index).copied() {
+                        BmsRandomSource::Choices { random, .. } => {
+                            let current_index = random_choice_index;
+                            random_choice_index += 1;
+                            match random.get(current_index).copied() {
                                 None => {
                                     warnings.push(ImportWarning::ParserDiagnostic {
                                         code: "BmsRandomChoiceMissing".to_string(),
@@ -131,6 +148,126 @@ pub(super) fn apply_beatoraja_random_control(
                     });
                 }
             }
+            Some(BeatorajaRandomControl::Switch(args)) => {
+                let mut max = parse_beatoraja_control_u64(args, line_number, "#SWITCH", warnings)
+                    .unwrap_or(1);
+                if max == 0 {
+                    warnings.push(ImportWarning::ParserDiagnostic {
+                        code: "SwitchZeroClamped".to_string(),
+                        message: format!("line {line_number} #SWITCH 0 is treated as #SWITCH 1"),
+                    });
+                    max = 1;
+                }
+                let selected = match random_source {
+                    BmsRandomSource::Seed(_) => select_switch_value(&mut rng, max),
+                    BmsRandomSource::Choices { switches, .. } => {
+                        let current_index = switch_choice_index;
+                        switch_choice_index += 1;
+                        match switches.get(current_index).copied() {
+                            None => {
+                                warnings.push(ImportWarning::ParserDiagnostic {
+                                    code: "BmsSwitchChoiceMissing".to_string(),
+                                    message: format!(
+                                        "line {line_number} #SWITCH {max} has no recorded choice at index {current_index}; using deterministic fallback"
+                                    ),
+                                });
+                                select_switch_value(&mut rng, max)
+                            }
+                            Some(choice) if !(1..=max).contains(&choice) => {
+                                let clamped = choice.clamp(1, max);
+                                warnings.push(ImportWarning::ParserDiagnostic {
+                                    code: "BmsSwitchChoiceOutOfRange".to_string(),
+                                    message: format!(
+                                        "line {line_number} #SWITCH {max} cannot use recorded choice {choice} at index {current_index}; clamping to {clamped}"
+                                    ),
+                                });
+                                clamped
+                            }
+                            Some(choice) => choice,
+                        }
+                    }
+                };
+                bms_switch_choices.push(selected);
+                switch_stack.push(SwitchControlState {
+                    selected,
+                    matched: false,
+                    branch_active: false,
+                    skipped: false,
+                });
+            }
+            Some(BeatorajaRandomControl::SetSwitch(args)) => {
+                let selected =
+                    parse_beatoraja_control_u64(args, line_number, "#SETSWITCH", warnings)
+                        .unwrap_or(0);
+                switch_stack.push(SwitchControlState {
+                    selected,
+                    matched: false,
+                    branch_active: false,
+                    skipped: false,
+                });
+            }
+            Some(BeatorajaRandomControl::Case(args)) => {
+                let condition = parse_beatoraja_control_u64(args, line_number, "#CASE", warnings);
+                if let Some(state) = switch_stack.last_mut() {
+                    if state.skipped {
+                        state.branch_active = false;
+                    } else if state.branch_active {
+                        // `#SKIP` がない CASE は次の CASE へ fallthrough する。
+                    } else if !state.matched {
+                        state.branch_active = condition == Some(state.selected);
+                        state.matched = state.branch_active;
+                    }
+                } else {
+                    warnings.push(ImportWarning::ParserDiagnostic {
+                        code: "BmsSwitchCaseWithoutSwitch".to_string(),
+                        message: format!(
+                            "line {line_number} #CASE has no active #SWITCH; continuing safely"
+                        ),
+                    });
+                }
+            }
+            Some(BeatorajaRandomControl::Skip) => {
+                if let Some(state) = switch_stack.last_mut() {
+                    if state.branch_active {
+                        state.skipped = true;
+                        state.branch_active = false;
+                    }
+                } else {
+                    warnings.push(ImportWarning::ParserDiagnostic {
+                        code: "BmsSwitchSkipWithoutSwitch".to_string(),
+                        message: format!(
+                            "line {line_number} #SKIP has no active #SWITCH; continuing safely"
+                        ),
+                    });
+                }
+            }
+            Some(BeatorajaRandomControl::Def) => {
+                if let Some(state) = switch_stack.last_mut() {
+                    if state.skipped {
+                        state.branch_active = false;
+                    } else if !state.branch_active && !state.matched {
+                        state.branch_active = true;
+                        state.matched = true;
+                    }
+                } else {
+                    warnings.push(ImportWarning::ParserDiagnostic {
+                        code: "BmsSwitchDefWithoutSwitch".to_string(),
+                        message: format!(
+                            "line {line_number} #DEF has no active #SWITCH; continuing safely"
+                        ),
+                    });
+                }
+            }
+            Some(BeatorajaRandomControl::EndSwitch) => {
+                if switch_stack.pop().is_none() {
+                    warnings.push(ImportWarning::ParserDiagnostic {
+                        code: "BmsSwitchEndWithoutSwitch".to_string(),
+                        message: format!(
+                            "line {line_number} #ENDSW has no active #SWITCH; continuing safely"
+                        ),
+                    });
+                }
+            }
             None => {
                 if let Some(command) = bms_rs_random_typo_control_line(line) {
                     warnings.push(ImportWarning::ParserDiagnostic {
@@ -139,7 +276,9 @@ pub(super) fn apply_beatoraja_random_control(
                             "line {line_number} {command} is ignored for beatoraja compatibility"
                         ),
                     });
-                } else if !skip_stack.last().copied().unwrap_or(false) {
+                } else if !skip_stack.last().copied().unwrap_or(false)
+                    && switch_stack.iter().all(|state| state.branch_active)
+                {
                     rewritten.push_str(line);
                 }
             }
@@ -148,16 +287,25 @@ pub(super) fn apply_beatoraja_random_control(
         rewritten.push('\n');
     }
 
-    if let BmsRandomSource::Choices(choices) = random_source
-        && choice_index < choices.len()
-    {
-        warnings.push(ImportWarning::ParserDiagnostic {
-            code: "BmsRandomChoiceExtra".to_string(),
-            message: format!(
-                "{} recorded BMS #RANDOM choice(s) were unused",
-                choices.len() - choice_index
-            ),
-        });
+    if let BmsRandomSource::Choices { random, switches } = random_source {
+        if random_choice_index < random.len() {
+            warnings.push(ImportWarning::ParserDiagnostic {
+                code: "BmsRandomChoiceExtra".to_string(),
+                message: format!(
+                    "{} recorded BMS #RANDOM choice(s) were unused",
+                    random.len() - random_choice_index
+                ),
+            });
+        }
+        if switch_choice_index < switches.len() {
+            warnings.push(ImportWarning::ParserDiagnostic {
+                code: "BmsSwitchChoiceExtra".to_string(),
+                message: format!(
+                    "{} recorded BMS #SWITCH choice(s) were unused",
+                    switches.len() - switch_choice_index
+                ),
+            });
+        }
     }
 
     rewritten
@@ -166,32 +314,57 @@ pub(super) fn apply_beatoraja_random_control(
 pub(super) fn random_source_seed(random_source: &BmsRandomSource) -> u64 {
     match random_source {
         BmsRandomSource::Seed(seed) => seed.unwrap_or(0),
-        BmsRandomSource::Choices(_) => 0,
+        BmsRandomSource::Choices { .. } => 0,
     }
 }
 
+fn select_switch_value(rng: &mut JavaRandom, max: u64) -> u64 {
+    if max <= i32::MAX as u64 {
+        return (rng.next_int_bound(max as i32) + 1) as u64;
+    }
+    bms_rs::bms::rng::Rng::generate(rng, 1u64.into()..=max.into()).try_into().unwrap_or(max)
+}
+
 pub(super) fn beatoraja_random_control_line(line: &str) -> Option<BeatorajaRandomControl<'_>> {
-    let body = line.trim_start().strip_prefix('#')?;
-    if starts_ignore_ascii_case(body, "ENDRANDOM") {
+    let body = line.trim_start().strip_prefix('#')?.trim_start();
+    if is_control_command(body, "ENDRANDOM") {
         return Some(BeatorajaRandomControl::EndRandom);
     }
-    if starts_ignore_ascii_case(body, "ENDIF") {
+    if is_control_command(body, "ENDIF") {
         return Some(BeatorajaRandomControl::EndIf);
     }
-    if starts_ignore_ascii_case(body, "ELSEIF") {
+    if is_control_command(body, "ELSEIF") {
         return Some(BeatorajaRandomControl::ElseIf);
     }
-    if starts_ignore_ascii_case(body, "ELSE") {
+    if is_control_command(body, "ELSE") {
         return Some(BeatorajaRandomControl::Else);
     }
-    if starts_ignore_ascii_case(body, "SETRANDOM") {
-        return Some(BeatorajaRandomControl::SetRandom(command_args(body, "SETRANDOM")));
+    if let Some(args) = control_command_args(body, "SETRANDOM") {
+        return Some(BeatorajaRandomControl::SetRandom(args));
     }
-    if starts_ignore_ascii_case(body, "RANDOM") {
-        return Some(BeatorajaRandomControl::Random(command_args(body, "RANDOM")));
+    if let Some(args) = control_command_args(body, "RANDOM") {
+        return Some(BeatorajaRandomControl::Random(args));
     }
-    if starts_ignore_ascii_case(body, "IF") {
-        return Some(BeatorajaRandomControl::If(command_args(body, "IF")));
+    if let Some(args) = control_command_args(body, "IF") {
+        return Some(BeatorajaRandomControl::If(args));
+    }
+    if is_control_command(body, "ENDSWITCH") || is_control_command(body, "ENDSW") {
+        return Some(BeatorajaRandomControl::EndSwitch);
+    }
+    if let Some(args) = control_command_args(body, "SETSWITCH") {
+        return Some(BeatorajaRandomControl::SetSwitch(args));
+    }
+    if let Some(args) = control_command_args(body, "SWITCH") {
+        return Some(BeatorajaRandomControl::Switch(args));
+    }
+    if let Some(args) = control_command_args(body, "CASE") {
+        return Some(BeatorajaRandomControl::Case(args));
+    }
+    if is_control_command(body, "SKIP") {
+        return Some(BeatorajaRandomControl::Skip);
+    }
+    if is_control_command(body, "DEF") {
+        return Some(BeatorajaRandomControl::Def);
     }
     None
 }
@@ -207,12 +380,34 @@ pub(super) fn bms_rs_random_typo_control_line(line: &str) -> Option<&'static str
     None
 }
 
-pub(super) fn starts_ignore_ascii_case(value: &str, prefix: &str) -> bool {
-    value.get(..prefix.len()).is_some_and(|candidate| candidate.eq_ignore_ascii_case(prefix))
+fn is_control_command(body: &str, command: &str) -> bool {
+    let Some(rest) = strip_control_command_prefix(body, command) else {
+        return false;
+    };
+    rest.is_empty() || rest.chars().next().is_some_and(char::is_whitespace)
 }
 
-pub(super) fn command_args<'a>(body: &'a str, command: &str) -> &'a str {
-    body.get(command.len() + 1..).unwrap_or("").trim()
+fn control_command_args<'a>(body: &'a str, command: &str) -> Option<&'a str> {
+    let rest = strip_control_command_prefix(body, command)?;
+    if rest.is_empty() {
+        return Some(rest);
+    }
+    if rest.chars().next().is_some_and(char::is_whitespace) {
+        return Some(rest.trim());
+    }
+    direct_control_number(rest.trim())
+}
+
+fn strip_control_command_prefix<'a>(body: &'a str, command: &str) -> Option<&'a str> {
+    body.get(..command.len())
+        .is_some_and(|candidate| candidate.eq_ignore_ascii_case(command))
+        .then(|| &body[command.len()..])
+}
+
+fn direct_control_number(value: &str) -> Option<&str> {
+    let value = value.strip_prefix('[').and_then(|value| value.strip_suffix(']')).unwrap_or(value);
+    let digits = value.strip_prefix(['+', '-']).unwrap_or(value);
+    (!digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit())).then_some(value)
 }
 
 pub(super) fn strip_lnobj_commands(text: &str) -> String {
@@ -317,6 +512,26 @@ pub(super) fn parse_beatoraja_control_int(
                 code: "BeatorajaRandomInvalidArgument".to_string(),
                 message: format!(
                     "line {line_number} {command} has invalid integer argument {args:?}; continuing like beatoraja"
+                ),
+            });
+            None
+        }
+    }
+}
+
+pub(super) fn parse_beatoraja_control_u64(
+    args: &str,
+    line_number: usize,
+    command: &str,
+    warnings: &mut Vec<ImportWarning>,
+) -> Option<u64> {
+    match args.parse::<u64>() {
+        Ok(value) => Some(value),
+        Err(_) => {
+            warnings.push(ImportWarning::ParserDiagnostic {
+                code: "BmsSwitchInvalidArgument".to_string(),
+                message: format!(
+                    "line {line_number} {command} has invalid u64 argument {args:?}; continuing safely"
                 ),
             });
             None

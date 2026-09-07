@@ -209,12 +209,15 @@ pub struct RenderSnapshot {
     pub skin_attempt: SkinAttemptState,
     /// READY timer (TIMER_READY=40) elapsed time. None while READY is not active yet.
     pub ready_elapsed_time: Option<TimeUs>,
+    /// Play sceneの時計を継続し、ロード表示とREADY timerを再始動しない入場。
+    /// 常駐viewerの後続Playなど、見た目だけをseek相当にする経路で使う。
+    pub seamless_play_entry: bool,
     /// 直近の小節線からの60 BPM換算拍時間 (TIMER_RHYTHM=140)。
     pub rhythm_timer_elapsed_ms: Option<i32>,
     /// 直近の4分拍からの実時間。PMS ノート拡縮に使い、TIMER_RHYTHM とは分けて扱う。
     pub quarter_note_elapsed_ms: Option<i32>,
     /// BMS リソース (WAV 等) のバックグラウンドロードが完了しているか。
-    /// READY 遷移可否の判定に使う。op 80/81 は ready_elapsed_time から判定する。
+    /// READY 遷移可否の判定に使う。op 80/81 の表現状態とは独立して保持する。
     /// preload 完了前の placeholder snapshot では false。
     pub resources_loaded: bool,
     /// Audio/BGA resource load progress in the beatoraja RateType 102 range (0.0..=1.0).

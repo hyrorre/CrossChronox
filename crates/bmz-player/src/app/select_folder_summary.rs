@@ -56,6 +56,28 @@ pub(super) struct SelectFolderSummaryRuntime {
 }
 
 impl SelectFolderSummaryRuntime {
+    /// Viewer mode は Select を表示しないため、DB worker を起動しない空 runtime を使う。
+    pub(super) fn disabled(
+        folder_stack: &[String],
+        ln_policy: LnPolicySetting,
+        rule_mode: RuleMode,
+    ) -> Self {
+        let (request_tx, request_rx) = mpsc::channel();
+        drop(request_rx);
+        let (result_tx, result_rx) = mpsc::channel();
+        drop(result_tx);
+        Self {
+            cache: HashMap::new(),
+            request_tx,
+            result_rx,
+            data_generation: 0,
+            view_generation: 0,
+            view_key: view_key(folder_stack),
+            ln_policy,
+            rule_mode,
+        }
+    }
+
     pub(super) fn new(
         library_db_path: PathBuf,
         score_db_path: PathBuf,

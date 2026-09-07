@@ -402,6 +402,7 @@ fn finish_session_snapshot_result(
                     arrange_seed,
                     arrange_seed_2p: applied_arrange.seed_2p,
                     bms_random_choices: applied_arrange.bms_random_choices.clone(),
+                    bms_switch_choices: applied_arrange.bms_switch_choices.clone(),
                     seed_scheme: if applied_arrange.legacy_seed {
                         crate::storage::replay::SEED_SCHEME_LEGACY_SHARED_V3.to_string()
                     } else {
@@ -607,6 +608,7 @@ fn enqueue_ir_jobs(
                 crate::storage::replay::SEED_SCHEME_BEATORAJA_24BIT_V1.to_string()
             },
             bms_random_choices: applied_arrange.bms_random_choices.clone(),
+            bms_switch_choices: applied_arrange.bms_switch_choices.clone(),
             rule_mode: snapshot.rule_mode.as_str().to_string(),
             course_stage: finish_mode == FinishResultMode::CourseStage,
             // 保存時に serialize 済みバイト列から計算した hash。プレイ終了

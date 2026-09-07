@@ -69,7 +69,8 @@ impl TextAtlasBuilder {
 
         let design_size = if font.size > 0 { font.size } else { font.line_height.max(1) };
         let bitmap_size = style.bitmap_size.unwrap_or(style.size);
-        let mut scale = (bitmap_size * surface.height as f32 / design_size as f32).max(0.01);
+        let mut scale =
+            PxScale::from((bitmap_size * surface.height as f32 / design_size as f32).max(0.01));
         let original_scale = scale;
         let mut text_width = bitmap_text_width_px(text, font, scale);
         let max_width = style.max_width.max(0.0) * surface.width as f32;
@@ -77,7 +78,11 @@ impl TextAtlasBuilder {
             match style.overflow {
                 TextOverflow::Overflow => std::borrow::Cow::Borrowed(text),
                 TextOverflow::Shrink => {
-                    scale = (scale * max_width / text_width).max(0.01);
+                    scale.x = (scale.x * max_width / text_width).max(0.01);
+                    std::borrow::Cow::Borrowed(text)
+                }
+                TextOverflow::ShrinkUniform => {
+                    scale = PxScale::from((scale.x * max_width / text_width).max(0.01));
                     std::borrow::Cow::Borrowed(text)
                 }
                 TextOverflow::Truncate => std::borrow::Cow::Owned(truncate_bitmap_text_to_width(
@@ -90,12 +95,13 @@ impl TextAtlasBuilder {
         text_width = bitmap_text_width_px(&text, font, scale);
         let align_offset = text_align_offset_px(style.align, max_width, text_width);
         let mut cursor_x = origin.x * surface.width as f32 + align_offset;
-        let shrink_offset_y =
-            if matches!(style.overflow, TextOverflow::Shrink) && scale < original_scale {
-                (design_size as f32 * (original_scale - scale)) / 2.0
-            } else {
-                0.0
-            };
+        let shrink_offset_y = if matches!(style.overflow, TextOverflow::ShrinkUniform)
+            && scale.y < original_scale.y
+        {
+            (design_size as f32 * (original_scale.y - scale.y)) / 2.0
+        } else {
+            0.0
+        };
         let text_top_y = origin.y * surface.height as f32 + shrink_offset_y;
 
         for ch in text.chars() {
@@ -104,11 +110,11 @@ impl TextAtlasBuilder {
             };
             if glyph.width > 0 && glyph.height > 0 {
                 let Some(page) = font.pages.get(&glyph.page) else {
-                    cursor_x += glyph.xadvance as f32 * scale;
+                    cursor_x += glyph.xadvance as f32 * scale.x;
                     continue;
                 };
-                let glyph_width = (glyph.width as f32 * scale).ceil().max(1.0) as u32;
-                let glyph_height = (glyph.height as f32 * scale).ceil().max(1.0) as u32;
+                let glyph_width = (glyph.width as f32 * scale.x).ceil().max(1.0) as u32;
+                let glyph_height = (glyph.height as f32 * scale.y).ceil().max(1.0) as u32;
                 let atlas_origin = self.reserve(glyph_width, glyph_height);
                 self.blit_bitmap_glyph(
                     atlas_origin,
@@ -118,8 +124,8 @@ impl TextAtlasBuilder {
                     page,
                     scale,
                 );
-                let x = (cursor_x + glyph.xoffset as f32 * scale) / surface.width as f32;
-                let y = (text_top_y + (glyph.yoffset as f32 - font.ascent) * scale)
+                let x = (cursor_x + glyph.xoffset as f32 * scale.x) / surface.width as f32;
+                let y = (text_top_y + (glyph.yoffset as f32 - font.ascent) * scale.y)
                     / surface.height as f32;
                 self.quads.push(TextQuad {
                     x,
@@ -132,7 +138,7 @@ impl TextAtlasBuilder {
                     color: style.color,
                 });
             }
-            cursor_x += glyph.xadvance as f32 * scale;
+            cursor_x += glyph.xadvance as f32 * scale.x;
         }
     }
 
@@ -143,7 +149,7 @@ impl TextAtlasBuilder {
         glyph_height: u32,
         glyph: crate::bitmap_font::BitmapFontGlyph,
         page: &crate::bitmap_font::BitmapFontPage,
-        scale: f32,
+        scale: PxScale,
     ) {
         let pixels = rasterized_bitmap_glyph_pixels(glyph, page, scale, glyph_width, glyph_height);
         for dst_y in 0..glyph_height {
@@ -205,11 +211,11 @@ impl TextAtlasBuilder {
             }
         }
 
-        let mut px_size = (style.size * surface.height as f32).max(1.0);
-        let original_px_size = px_size;
+        let px_size = (style.size * surface.height as f32).max(1.0);
         let max_width = style.max_width.max(0.0) * surface.width as f32;
         let mut text = std::borrow::Cow::Borrowed(text);
         let mut scale = PxScale::from(px_size);
+        let original_scale = scale;
         let mut scaled_font = font.as_scaled(scale);
         let mut text_width = text_width_px(&text, font, &scaled_font);
         if style.wrapping && max_width > 0.0 {
@@ -239,8 +245,12 @@ impl TextAtlasBuilder {
             match style.overflow {
                 TextOverflow::Overflow => {}
                 TextOverflow::Shrink => {
-                    px_size = (px_size * max_width / text_width).max(1.0);
-                    scale = PxScale::from(px_size);
+                    scale.x = (scale.x * max_width / text_width).max(0.01);
+                    scaled_font = font.as_scaled(scale);
+                    text_width = text_width_px(&text, font, &scaled_font);
+                }
+                TextOverflow::ShrinkUniform => {
+                    scale = PxScale::from((scale.x * max_width / text_width).max(1.0));
                     scaled_font = font.as_scaled(scale);
                     text_width = text_width_px(&text, font, &scaled_font);
                 }
@@ -256,12 +266,13 @@ impl TextAtlasBuilder {
             }
         }
         let cursor_x = origin.x * surface.width as f32;
-        let shrink_offset_y =
-            if matches!(style.overflow, TextOverflow::Shrink) && px_size < original_px_size {
-                (original_px_size - px_size) / 2.0
-            } else {
-                0.0
-            };
+        let shrink_offset_y = if matches!(style.overflow, TextOverflow::ShrinkUniform)
+            && scale.y < original_scale.y
+        {
+            (original_scale.y - scale.y) / 2.0
+        } else {
+            0.0
+        };
         let baseline_y = origin.y * surface.height as f32 + shrink_offset_y + scaled_font.ascent();
 
         self.push_text_line(cursor_x, baseline_y, &text, text_width, scale, style, font, surface);

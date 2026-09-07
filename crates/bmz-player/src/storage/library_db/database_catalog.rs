@@ -162,6 +162,12 @@ impl LibraryDatabase {
             .collect())
     }
 
+    /// Returns levels that are defined by at least one table entry, regardless
+    /// of whether the corresponding chart exists in the local library.
+    pub fn list_table_entry_levels(&self, source_url: &str) -> Result<Vec<String>> {
+        super::super::difficulty_table_db::list_table_entry_levels(&self.conn, source_url)
+    }
+
     pub fn find_table_entry_by_hash(
         &self,
         source_url: &str,

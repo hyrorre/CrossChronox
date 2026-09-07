@@ -13,6 +13,9 @@ pub(in crate::ui::profile_panel) fn build_profile_select_section(
             if !unrestricted {
                 ui.disable();
             }
+            ui.checkbox(&mut profile.select.random_select, "RANDOM SELECT");
+            ui.small(tr!(text, "settings-entry-description-random-select"));
+            ui.add_space(8.0);
             egui::ComboBox::new(
                 "profile_select_difficulty_table_level_display",
                 tr!(text, "profile-select-difficulty-table-level-display"),

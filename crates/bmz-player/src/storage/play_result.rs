@@ -48,6 +48,7 @@ pub struct StorePlayResultRequest {
     pub arrange_seed: Option<i64>,
     pub arrange_seed_2p: Option<i64>,
     pub bms_random_choices: Vec<i32>,
+    pub bms_switch_choices: Vec<u64>,
     pub seed_scheme: String,
     pub s_random_scheme: SRandomScheme,
     pub s_random_scheme_2p: Option<SRandomScheme>,
@@ -116,41 +117,43 @@ pub fn store_play_result(
     let arrange_seed = request.arrange_seed;
     let arrange_seed_2p = request.arrange_seed_2p;
     let bms_random_choices = request.bms_random_choices.clone();
+    let bms_switch_choices = request.bms_switch_choices.clone();
     let arrange_pattern = request.arrange_pattern.clone();
     let replay_events = request.replay_events.clone();
     let rule_mode = bmz_gameplay::rule::RuleMode::from_str_opt(&request.rule_mode)
         .unwrap_or(bmz_gameplay::rule::RuleMode::Beatoraja);
     let device_type = classify_replay_device_type(&replay_events);
 
-    let (replay_path, replay_sha256) =
-        if request.update_score && should_save_replay(replay_config, result) {
-            let file_name = replay_file_name(result.chart_sha256, request.played_at);
-            let path = profile_paths.replay_dir.join(&file_name);
-            let replay = ReplayFile::new_with_policy(
-                result.chart_sha256,
-                request.ln_policy,
-                request.double_option,
-                request.played_at,
-                request.random_seed,
-                arrange,
-                arrange_2p,
-                arrange_seed,
-                arrange_pattern.clone(),
-                replay_events.clone(),
-            )
-            .with_randomization(arrange_seed_2p, bms_random_choices.clone())
-            .with_seed_scheme(request.seed_scheme.clone())
-            .with_s_random_schemes(request.s_random_scheme, request.s_random_scheme_2p)
-            .with_playback_metadata(
-                request.applied_double_option,
-                result.gauge_type,
-                request.h_random_threshold_ms,
-            );
-            let hash = save_replay_with_hash(&path, &replay)?;
-            (format!("replay/{file_name}"), Some(hash))
-        } else {
-            (String::new(), None)
-        };
+    let (replay_path, replay_sha256) = if request.update_score
+        && should_save_replay(replay_config, result)
+    {
+        let file_name = replay_file_name(result.chart_sha256, request.played_at);
+        let path = profile_paths.replay_dir.join(&file_name);
+        let replay = ReplayFile::new_with_policy(
+            result.chart_sha256,
+            request.ln_policy,
+            request.double_option,
+            request.played_at,
+            request.random_seed,
+            arrange,
+            arrange_2p,
+            arrange_seed,
+            arrange_pattern.clone(),
+            replay_events.clone(),
+        )
+        .with_randomization(arrange_seed_2p, bms_random_choices.clone(), bms_switch_choices.clone())
+        .with_seed_scheme(request.seed_scheme.clone())
+        .with_s_random_schemes(request.s_random_scheme, request.s_random_scheme_2p)
+        .with_playback_metadata(
+            request.applied_double_option,
+            result.gauge_type,
+            request.h_random_threshold_ms,
+        );
+        let hash = save_replay_with_hash(&path, &replay)?;
+        (format!("replay/{file_name}"), Some(hash))
+    } else {
+        (String::new(), None)
+    };
 
     let mut record = ScoreRecord::from_play_result(
         result,
@@ -217,7 +220,11 @@ pub fn store_play_result(
                 arrange_pattern.clone(),
                 replay_events.clone(),
             )
-            .with_randomization(arrange_seed_2p, bms_random_choices.clone())
+            .with_randomization(
+                arrange_seed_2p,
+                bms_random_choices.clone(),
+                bms_switch_choices.clone(),
+            )
             .with_seed_scheme(request.seed_scheme.clone())
             .with_s_random_schemes(request.s_random_scheme, request.s_random_scheme_2p)
             .with_playback_metadata(

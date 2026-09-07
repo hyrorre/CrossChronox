@@ -13,6 +13,10 @@ pub struct SkinDrawState {
     pub logical_input_held: [bool; SKIN_BMZ_INPUT_COUNT],
     /// Elapsed milliseconds since the latest aggregate false-to-true press edge.
     pub logical_input_press_ms: [Option<i32>; SKIN_BMZ_INPUT_COUNT],
+    /// E1/E2 aggregate timer while either input remains held.
+    pub e1_e2_press_ms: Option<i32>,
+    /// E1/E2 aggregate timer after the last held input is released.
+    pub e1_e2_release_ms: Option<i32>,
     /// beatoraja TIMER_STARTINPUT (1)。skin.input 待機後からの経過 ms。
     pub start_input_ms: Option<i32>,
     /// beatoraja NUMBER_CURRENT_FPS (20)。
@@ -442,6 +446,8 @@ impl Default for SkinDrawState {
             runtime_flags: HashMap::new(),
             logical_input_held: [false; SKIN_BMZ_INPUT_COUNT],
             logical_input_press_ms: [None; SKIN_BMZ_INPUT_COUNT],
+            e1_e2_press_ms: None,
+            e1_e2_release_ms: None,
             start_input_ms: None,
             current_fps: 0,
             operating_time_ms: 0,

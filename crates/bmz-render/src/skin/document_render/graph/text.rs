@@ -74,7 +74,7 @@ macro_rules! skin_document_render_graph_text_methods {
                     layer: TextLayer::Ui,
                     align: skin_text_align(text.align),
                     max_width: frame.w.abs() as f32 / self.w.max(1) as f32,
-                    overflow: skin_text_overflow(text.overflow),
+                    overflow: skin_text_overflow(text.overflow, text.shrink_mode),
                     wrapping: text.wrapping,
                     outline: skin_text_outline(text, self.h),
                     shadow: skin_text_shadow(text, self.w, self.h),

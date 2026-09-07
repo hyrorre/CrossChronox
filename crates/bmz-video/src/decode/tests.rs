@@ -97,6 +97,18 @@ fn channel_catch_up_preserves_latest_skipped_frame_for_eof() {
 }
 
 #[test]
+fn direct_seek_catch_up_skips_the_landing_keyframe() {
+    let mut catch_up = ChannelFrameCatchUp { published_any: true, last_skipped: None };
+
+    for pts_us in [700_000, 900_000] {
+        assert!(catch_up.should_skip(pts_us, 1_000_000));
+        catch_up.record_skipped(pts_us);
+    }
+    assert!(!catch_up.should_skip(995_000, 1_000_000));
+    assert_eq!(catch_up.take_last_skipped(), Some(900_000));
+}
+
+#[test]
 fn channel_send_stops_while_queue_is_full() {
     let (sender, _receiver) = sync_channel(1);
     sender.try_send(queued_frame(0, 0)).unwrap();
@@ -153,6 +165,21 @@ fn video_timestamp_normalizer_starts_nonzero_timestamps_at_zero() {
     assert_eq!(normalizer.timestamp_us(Some(51_006), 1, 90_000), 33_366);
     assert_eq!(normalizer.timestamp_us(None, 1, 90_000), 33_366);
     assert_eq!(normalizer.timestamp_us(Some(48_003), 1, 90_000), 0);
+}
+
+#[test]
+fn video_timestamp_normalizer_preserves_seeked_stream_timeline() {
+    let mut normalizer = VideoTimestampNormalizer::with_origin_raw(Some(48_003));
+
+    assert_eq!(normalizer.timestamp_us(Some(48_003), 1, 90_000), 0);
+    assert_eq!(normalizer.timestamp_us(Some(138_003), 1, 90_000), 1_000_000);
+}
+
+#[test]
+fn timestamp_raw_to_us_uses_stream_time_base_and_saturates() {
+    assert_eq!(timestamp_raw_to_us(48_003, 1, 90_000), 533_366);
+    assert_eq!(timestamp_raw_to_us(10, 1, 0), 0);
+    assert_eq!(timestamp_raw_to_us(i64::MAX, i64::MAX, 1), i64::MAX);
 }
 
 #[test]
@@ -285,6 +312,19 @@ fn poll_frame_drops_frames_from_before_restart() {
 
     assert_eq!(decoder.decode_generation.load(Ordering::Acquire), 1);
     assert_eq!(pts_us, 0);
+    assert!(decoder.pending.is_empty());
+}
+
+#[test]
+fn restart_at_sets_seek_target_and_invalidates_channel_generation() {
+    let (_sender, mut decoder) = decoder_with_channel([10, 20]);
+
+    decoder.restart_at(1_234_567);
+
+    assert_eq!(decoder.playback_target_us.load(Ordering::Acquire), 1_234_567);
+    assert_eq!(decoder.decode_generation.load(Ordering::Acquire), 1);
+    assert!(decoder.restart_decode.load(Ordering::Acquire));
+    assert!(decoder.current.is_none());
     assert!(decoder.pending.is_empty());
 }
 

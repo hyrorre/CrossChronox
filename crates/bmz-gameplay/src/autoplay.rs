@@ -81,6 +81,15 @@ impl AutoplayController {
         out
     }
 
+    /// Viewer 再生の開始位置より前にある入力を、判定やキー音を発生させずに飛ばす。
+    /// 境界時刻のノートはその位置からの再生対象として残す。
+    pub fn skip_before(&mut self, chart: &PlayableChart, start_time: TimeUs) {
+        for lane in Lane::ALL {
+            self.next_note_index[lane.index()] =
+                chart.notes_for_lane(lane).partition_point(|note| note.time < start_time);
+        }
+    }
+
     fn next_scratch_direction(&mut self, lane: Lane) -> Option<ScratchDirection> {
         if !matches!(lane, Lane::Scratch | Lane::Scratch2) {
             return None;
@@ -156,6 +165,19 @@ mod tests {
 
         assert_eq!(inputs.len(), 1);
         assert_eq!(inputs[0].scratch_direction, None);
+    }
+
+    #[test]
+    fn autoplay_skip_before_keeps_boundary_note() {
+        let chart =
+            chart_with_scratch_taps([TimeUs(1_000_000), TimeUs(2_000_000), TimeUs(3_000_000)]);
+        let mut autoplay = AutoplayController::default();
+
+        autoplay.skip_before(&chart, TimeUs(2_000_000));
+        let inputs = autoplay.poll_until(&chart, TimeUs(2_000_000));
+
+        assert_eq!(inputs.len(), 1);
+        assert_eq!(inputs[0].time, TimeUs(2_000_000));
     }
 
     fn chart_with_scratch_taps<const N: usize>(times: [TimeUs; N]) -> PlayableChart {

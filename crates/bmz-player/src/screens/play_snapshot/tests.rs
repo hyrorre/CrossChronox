@@ -15,7 +15,10 @@ use bmz_render::skin::{
 };
 
 use crate::config::profile_config::ProfileConfig;
-use crate::screens::play_session::{PlaySessionOptions, build_game_session};
+use crate::screens::play_session::{
+    BattleOpponentOptions, PlaySessionOptions, SRandomScheme, build_game_session,
+};
+use crate::select_options::{ArrangeOption, DoubleOption, SessionMode};
 
 use super::*;
 

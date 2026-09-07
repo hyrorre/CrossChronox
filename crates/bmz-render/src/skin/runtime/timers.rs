@@ -12,6 +12,8 @@ pub struct DynamicTimerRuntime {
     logical_input_initialized: bool,
     logical_input_held: [bool; SKIN_BMZ_INPUT_COUNT],
     logical_input_starts: [Option<i32>; SKIN_BMZ_INPUT_COUNT],
+    e1_e2_press_started_at_ms: Option<i32>,
+    e1_e2_release_started_at_ms: Option<i32>,
     keybeam_keyon_starts: [Option<i32>; LANE_COUNT],
     keybeam_keyoff_starts: [Option<i32>; LANE_COUNT],
     keybeam_suppressed: [bool; LANE_COUNT],
@@ -103,6 +105,8 @@ impl Default for DynamicTimerRuntime {
             logical_input_initialized: false,
             logical_input_held: [false; SKIN_BMZ_INPUT_COUNT],
             logical_input_starts: [None; SKIN_BMZ_INPUT_COUNT],
+            e1_e2_press_started_at_ms: None,
+            e1_e2_release_started_at_ms: None,
             keybeam_keyon_starts: [None; LANE_COUNT],
             keybeam_keyoff_starts: [None; LANE_COUNT],
             keybeam_suppressed: [false; LANE_COUNT],
@@ -165,6 +169,10 @@ impl DynamicTimerRuntime {
         state.runtime_flags.clone_from(&self.runtime_flags);
         state.logical_input_press_ms =
             self.logical_input_starts.map(|start| start.map(|start| now_ms.saturating_sub(start)));
+        state.e1_e2_press_ms =
+            self.e1_e2_press_started_at_ms.map(|start| now_ms.saturating_sub(start));
+        state.e1_e2_release_ms =
+            self.e1_e2_release_started_at_ms.map(|start| now_ms.saturating_sub(start));
         self.advance_keybeam(state, now_ms);
         self.key_logger.write_state(state, now_ms);
         self.judge_lane.write_state(state);
@@ -213,6 +221,15 @@ impl DynamicTimerRuntime {
             self.logical_input_initialized = true;
             self.logical_input_held = held;
             return;
+        }
+        let was_e1_e2_held = self.logical_input_held[0] || self.logical_input_held[1];
+        let is_e1_e2_held = held[0] || held[1];
+        if is_e1_e2_held && !was_e1_e2_held {
+            self.e1_e2_press_started_at_ms = Some(now_ms);
+            self.e1_e2_release_started_at_ms = None;
+        } else if !is_e1_e2_held && was_e1_e2_held && self.e1_e2_press_started_at_ms.is_some() {
+            self.e1_e2_press_started_at_ms = None;
+            self.e1_e2_release_started_at_ms = Some(now_ms);
         }
         for (index, &is_held) in held.iter().enumerate() {
             if is_held && !self.logical_input_held[index] {

@@ -12,6 +12,12 @@ pub enum RestartPolicy {
 #[derive(Debug, Clone, Copy)]
 pub struct ScheduledSound {
     pub start_frame: u64,
+    /// Sample frame to begin reading from when this voice starts.
+    ///
+    /// Viewer seek uses this for a BGM event that began before the requested
+    /// chart position but is still playing there. Late callback catch-up is
+    /// applied on top of this offset.
+    pub sample_offset_frames: u64,
     pub sound_id: SoundId,
     pub volume: f32,
     pub pan: f32,
@@ -33,6 +39,7 @@ impl ScheduledSound {
     pub fn one_shot(start_frame: u64, sound_id: SoundId, volume: f32, pan: f32) -> Self {
         Self {
             start_frame,
+            sample_offset_frames: 0,
             sound_id,
             volume,
             pan,
@@ -81,6 +88,19 @@ impl ScheduledSoundQueue {
 
     pub fn is_empty(&self) -> bool {
         self.sounds.is_empty()
+    }
+
+    pub fn clear(&mut self) {
+        self.sounds.clear();
+    }
+
+    pub fn shift_output_frames(&mut self, frames: u64) {
+        if frames == 0 {
+            return;
+        }
+        for sound in &mut self.sounds {
+            sound.start_frame = sound.start_frame.saturating_add(frames);
+        }
     }
 
     /// 述語が `true` を返すスケジュール音だけを保持する。`stop_sound` 等で使う。
@@ -178,6 +198,7 @@ mod tests {
     fn sound(start_frame: u64, sound_id: u32) -> ScheduledSound {
         ScheduledSound {
             start_frame,
+            sample_offset_frames: 0,
             sound_id: SoundId(sound_id),
             volume: 1.0,
             pan: 0.0,

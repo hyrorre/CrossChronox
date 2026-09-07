@@ -1,7 +1,9 @@
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use anyhow::Result;
+use anyhow::{Context, Result, bail};
+use bmz_core::time::TimeUs;
 
 use crate::config::app_config::{AppConfig, PathEntry};
 use crate::config::load::{load_app_config, load_profile_config};
@@ -32,6 +34,30 @@ pub struct BootstrappedApp {
     pub score_db: ScoreDatabase,
     pub network_db: NetworkDatabase,
     pub startup_scan: Option<ScanReport>,
+}
+
+pub struct ViewerBootstrap {
+    pub app: BootstrappedApp,
+    pub chart_path: PathBuf,
+    pub chart_id: i64,
+    pub start_time: TimeUs,
+    pub cleanup: ViewerLibraryCleanup,
+}
+
+pub struct ViewerLibraryCleanup {
+    path: PathBuf,
+}
+
+impl Drop for ViewerLibraryCleanup {
+    fn drop(&mut self) {
+        for path in sqlite_files(&self.path) {
+            if let Err(error) = std::fs::remove_file(&path)
+                && error.kind() != std::io::ErrorKind::NotFound
+            {
+                tracing::warn!(path = %path.display(), %error, "failed to remove viewer library database");
+            }
+        }
+    }
 }
 
 impl BootstrappedApp {
@@ -90,6 +116,50 @@ pub fn bootstrap() -> Result<BootstrappedApp> {
 
 /// 起動前loggerと同じ解決済みpathを使って通常bootstrapを行う。
 pub fn bootstrap_with_paths(app_paths: AppPaths) -> Result<BootstrappedApp> {
+    bootstrap_with_paths_mode(app_paths, true, None)
+}
+
+/// `active_profile`を書き換えず、指定profileで通常起動する。
+pub fn bootstrap_with_paths_profile(
+    app_paths: AppPaths,
+    profile_id: Option<&str>,
+) -> Result<BootstrappedApp> {
+    bootstrap_with_paths_mode(app_paths, true, profile_id)
+}
+
+pub fn bootstrap_viewer_with_paths(
+    mut app_paths: AppPaths,
+    chart_path: &Path,
+    start_measure: u32,
+    bms_random_seed: u64,
+    profile_id: Option<&str>,
+) -> Result<ViewerBootstrap> {
+    let chart_path = chart_path
+        .canonicalize()
+        .with_context(|| format!("failed to resolve viewer chart: {}", chart_path.display()))?;
+    if !crate::storage::scan::is_chart_file(&chart_path) {
+        bail!("unsupported viewer chart extension: {}", chart_path.display());
+    }
+    let library_path = viewer_library_path();
+    let cleanup = ViewerLibraryCleanup { path: library_path.clone() };
+    app_paths.library_db = library_path;
+    let mut app = bootstrap_with_paths_mode(app_paths, false, profile_id)?;
+    let imported = crate::storage::import::import_chart_file(
+        &mut app.library_db,
+        &chart_path,
+        None,
+        Some(bms_random_seed),
+        now_unix_seconds(),
+    )?;
+    let start_time = viewer_measure_start_time(&imported.chart, start_measure)?;
+    Ok(ViewerBootstrap { app, chart_path, chart_id: imported.chart_id, start_time, cleanup })
+}
+
+fn bootstrap_with_paths_mode(
+    app_paths: AppPaths,
+    startup_scan_enabled: bool,
+    profile_id_override: Option<&str>,
+) -> Result<BootstrappedApp> {
     let bootstrap_started_at = Instant::now();
     app_paths.ensure_required_dirs()?;
 
@@ -105,10 +175,21 @@ pub fn bootstrap_with_paths(app_paths: AppPaths) -> Result<BootstrappedApp> {
             });
         }
     }
-    let profile_paths = resolve_profile_paths(&app_paths, &app_config.active_profile)?;
+    let profile_id = profile_id_override.unwrap_or(&app_config.active_profile).to_string();
+    let profile_paths = resolve_profile_paths(&app_paths, &profile_id)?;
+    if profile_id_override.is_some() && !profile_paths.profile_toml.is_file() {
+        bail!("profile not found: {profile_id}");
+    }
     profile_paths.ensure_dirs()?;
-    let profile_config = load_or_create_profile_config(&profile_paths, &app_config.active_profile)?;
+    let profile_config = if profile_id_override.is_some() {
+        load_profile_config(&profile_paths.profile_toml)
+            .with_context(|| format!("failed to load profile {profile_id}"))?
+    } else {
+        load_or_create_profile_config(&profile_paths, &profile_id)?
+    };
     tracing::info!(
+        profile_id,
+        profile_override = profile_id_override.is_some(),
         config_ms = config_started_at.elapsed().as_millis(),
         "startup configuration loaded"
     );
@@ -136,8 +217,12 @@ pub fn bootstrap_with_paths(app_paths: AppPaths) -> Result<BootstrappedApp> {
 
     let mut library_db = LibraryDatabase::open(&app_paths.library_db)?;
     let bundled_sample_root = bundled_sample_song_root(&app_paths);
-    let scan_roots = startup_scan_roots(&app_config, bundled_sample_root.as_deref());
     let scan_started_at = Instant::now();
+    let scan_roots = if startup_scan_enabled {
+        startup_scan_roots(&app_config, bundled_sample_root.as_deref())
+    } else {
+        Vec::new()
+    };
     let startup_scan = if scan_roots.is_empty() {
         None
     } else {
@@ -174,6 +259,39 @@ pub fn bootstrap_with_paths(app_paths: AppPaths) -> Result<BootstrappedApp> {
         "startup bootstrap timings"
     );
     Ok(boot)
+}
+
+pub(crate) fn viewer_measure_start_time(
+    chart: &bmz_chart::model::PlayableChart,
+    measure: u32,
+) -> Result<TimeUs> {
+    let bar_time = chart
+        .bar_lines
+        .iter()
+        .find(|bar| bar.measure == measure)
+        .map(|bar| bar.time)
+        .or_else(|| (measure == 0).then_some(TimeUs(0)))
+        .with_context(|| format!("start measure {measure} is not present in the chart"))?;
+    let mut shifted = chart.clone();
+    let margin = bmz_chart::start_margin::apply_start_note_margin(&mut shifted);
+    Ok(TimeUs(bar_time.0.saturating_add(margin.0)))
+}
+
+fn viewer_library_path() -> PathBuf {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+    std::env::temp_dir().join(format!("bmz-player-viewer-{}-{nonce}.db", std::process::id()))
+}
+
+fn sqlite_files(path: &Path) -> [PathBuf; 3] {
+    let append = |suffix: &str| {
+        let mut value = OsString::from(path.as_os_str());
+        value.push(suffix);
+        PathBuf::from(value)
+    };
+    [path.to_path_buf(), append("-wal"), append("-shm")]
 }
 
 fn load_or_create_app_config(paths: &AppPaths) -> Result<AppConfig> {
@@ -229,6 +347,8 @@ fn now_unix_seconds() -> i64 {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Write;
+
     use bmz_chart::import::import_bms_chart;
     use rusqlite::Connection;
 
@@ -335,5 +455,58 @@ mod tests {
             .unwrap();
         assert_eq!(title, "BMZ Sample Playable");
         assert!(total_notes > 0);
+    }
+
+    #[test]
+    fn viewer_start_measure_uses_source_measure_after_start_margin() {
+        let path = std::env::temp_dir().join(format!(
+            "bmz-viewer-measure-{}-{}.bms",
+            std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.write_all(b"#TITLE Viewer Measure\n#BPM 120\n#00011:01\n#00212:01\n").unwrap();
+        file.sync_all().unwrap();
+
+        let chart = import_bms_chart(&path, None, true).unwrap().chart;
+
+        assert_eq!(viewer_measure_start_time(&chart, 0).unwrap(), TimeUs(1_000_000));
+        assert_eq!(viewer_measure_start_time(&chart, 2).unwrap(), TimeUs(5_000_000));
+        assert!(viewer_measure_start_time(&chart, 99).is_err());
+
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn viewer_profile_override_loads_existing_profile_without_changing_active_profile() {
+        let nonce = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let root =
+            std::env::temp_dir().join(format!("bmz-viewer-profile-{}-{nonce}", std::process::id()));
+        let app_paths = AppPaths::from_dirs(
+            root.join("resources"),
+            root.join("data"),
+            root.join("cache"),
+            root.join("logs"),
+        );
+        app_paths.ensure_required_dirs().unwrap();
+
+        let app_config = AppConfig::default();
+        save_app_config(&app_paths.config_toml, &app_config).unwrap();
+        let alt_paths = resolve_profile_paths(&app_paths, "alt").unwrap();
+        alt_paths.ensure_dirs().unwrap();
+        save_profile_config(&alt_paths.profile_toml, &ProfileConfig::new_default("alt", "Alt", 1))
+            .unwrap();
+
+        let boot = bootstrap_with_paths_mode(app_paths.clone(), false, Some("alt")).unwrap();
+        assert_eq!(boot.profile_config.id, "alt");
+        assert_eq!(boot.profile_paths.root_dir, alt_paths.root_dir);
+        drop(boot);
+
+        let saved = load_app_config(&app_paths.config_toml).unwrap();
+        assert_eq!(saved.active_profile, "default");
+        assert!(bootstrap_with_paths_mode(app_paths.clone(), false, Some("missing")).is_err());
+        assert!(!app_paths.profiles_dir.join("missing").exists());
+
+        let _ = std::fs::remove_dir_all(root);
     }
 }

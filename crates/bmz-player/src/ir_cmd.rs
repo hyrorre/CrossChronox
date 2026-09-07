@@ -38,7 +38,9 @@ mod ranking;
 mod upload;
 
 pub use account::sync_ir_rivals_into_profile;
-pub use dispatch::{run_ir_command, run_ir_command_with_paths};
+pub use dispatch::{
+    run_ir_command, run_ir_command_with_paths, run_ir_command_with_paths_and_profile,
+};
 #[cfg(test)]
 use upload::ensure_full_upload_progress;
 

@@ -13,7 +13,11 @@ impl WinitApp {
             Ok(runtime)
         }) {
             Ok(runtime) => {
-                self.install_system_audio(&runtime, None);
+                // Viewer は譜面音声だけを必要とする。Select BGM / system SE の
+                // engine と decode worker を作らず、direct Play の開始を優先する。
+                if !self.viewer_mode {
+                    self.install_system_audio(&runtime, None);
+                }
                 self.audio.audio_runtime = Some(runtime);
                 tracing::info!(
                     audio_open_ms = audio_open_started_at.elapsed().as_millis(),
@@ -221,7 +225,10 @@ impl WinitApp {
                 .install_preview(SelectChartPreview::new(system_audio.engine()));
         }
         self.audio.system_audio = Some(system_audio);
-        if self.audio.system_sound.is_none() && self.audio.pending_system_sound.is_none() {
+        if !self.viewer_mode
+            && self.audio.system_sound.is_none()
+            && self.audio.pending_system_sound.is_none()
+        {
             self.start_system_sound_load();
         }
     }

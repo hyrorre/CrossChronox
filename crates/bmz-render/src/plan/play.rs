@@ -37,10 +37,12 @@ pub(super) fn plan_play(
 
     let play_elapsed_ms = play_elapsed_ms(snapshot);
     let mut skin_state = build_play_skin_state(snapshot, skin, play_elapsed_ms);
-    skin_state.start_input_ms = dynamic_timers.start_input_elapsed_ms(
-        play_elapsed_ms,
-        skin.document().map_or(0, |document| document.input),
-    );
+    let skin_input_ms = skin.document().map_or(0, |document| document.input);
+    skin_state.start_input_ms = if snapshot.seamless_play_entry {
+        crate::skin::skin_start_input_elapsed_ms(play_elapsed_ms, skin_input_ms)
+    } else {
+        dynamic_timers.start_input_elapsed_ms(play_elapsed_ms, skin_input_ms)
+    };
     dynamic_timers.ingest_skin_events(
         skin.document(),
         &snapshot.skin_events,

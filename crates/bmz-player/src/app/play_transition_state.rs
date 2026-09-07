@@ -6,6 +6,30 @@ pub(super) enum ResultSkinSlot {
     Course,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(super) enum PlayEntryPresentation {
+    #[default]
+    Normal,
+    ViewerSeek,
+}
+
+impl PlayEntryPresentation {
+    pub(super) const fn is_seamless(self) -> bool {
+        matches!(self, Self::ViewerSeek)
+    }
+
+    pub(super) const fn shows_ready_presentation(self) -> bool {
+        !self.is_seamless()
+    }
+}
+
+pub(super) const fn play_entry_elapsed_time(
+    presentation: PlayEntryPresentation,
+    continued_elapsed: TimeUs,
+) -> TimeUs {
+    if presentation.is_seamless() { continued_elapsed } else { TimeUs(0) }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum ResultSkinClickAction {
     SetPanel(i32),

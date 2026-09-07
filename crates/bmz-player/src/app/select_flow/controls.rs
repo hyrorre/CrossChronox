@@ -68,6 +68,12 @@ impl WinitApp {
     }
 
     pub(super) fn play_elapsed_time(&self) -> TimeUs {
+        if self.viewer_mode
+            && self.viewer_paused
+            && let Some(elapsed) = self.viewer_paused_play_elapsed
+        {
+            return elapsed;
+        }
         let micros =
             self.play.play_scene_started_at.elapsed().as_micros().min(i64::MAX as u128) as i64;
         TimeUs(micros)

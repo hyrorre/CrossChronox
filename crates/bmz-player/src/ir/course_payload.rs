@@ -205,6 +205,7 @@ pub fn build_course_submission(
                     crate::storage::replay::SEED_SCHEME_BEATORAJA_24BIT_V1
                 },
                 "bms_random_choices": arrange.bms_random_choices,
+                "bms_switch_choices": arrange.bms_switch_choices,
             })
         })
         .collect();

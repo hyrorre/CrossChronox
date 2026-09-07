@@ -139,13 +139,13 @@ fn update_single_video(
 
     if needs_new {
         if let Some(active) = video_bga_decoders.get_mut(&asset_id) {
-            // Same path reuse: seek/restart instead of reopen (beatoraja stop→play).
+            // Same path reuse: seek directly to the current event offset instead of reopening.
             if active.decoder.path() == path {
-                active.decoder.restart();
+                active.decoder.restart_at(video_offset_us);
                 active.event_start_time = event_start_time;
                 active.last_pts = None;
             } else {
-                match VideoBgaDecoder::open(path) {
+                match open_video_decoder_at(path, video_offset_us) {
                     Ok(decoder) => {
                         *active =
                             ActiveVideoBgaDecoder { event_start_time, decoder, last_pts: None };
@@ -168,7 +168,7 @@ fn update_single_video(
                 }
             }
         } else {
-            match VideoBgaDecoder::open(path) {
+            match open_video_decoder_at(path, video_offset_us) {
                 Ok(decoder) => {
                     video_bga_decoders.insert(
                         asset_id,
@@ -200,6 +200,17 @@ fn update_single_video(
     }
 }
 
+fn open_video_decoder_at(
+    path: &std::path::Path,
+    video_offset_us: i64,
+) -> anyhow::Result<VideoBgaDecoder> {
+    let mut decoder = VideoBgaDecoder::open(path)?;
+    if video_offset_us > 0 {
+        decoder.restart_at(video_offset_us);
+    }
+    Ok(decoder)
+}
+
 fn upload_video_bga_frame(
     renderer: &mut bmz_render::renderer::Renderer,
     bga_frames: &mut BgaFrameCatalog,
@@ -228,6 +239,15 @@ fn upload_video_bga_frame(
 pub fn prepare_reused_video_decoders(decoders: &mut VideoBgaDecoderMap) {
     for active in decoders.values_mut() {
         active.decoder.restart();
+        active.event_start_time = REUSED_VIDEO_EVENT_START;
+        active.last_pts = None;
+    }
+}
+
+/// Mark reused decoders for Viewer seek without first rewinding them to zero.
+/// The first active BGA update supplies the exact event-relative target to `restart_at`.
+pub fn prepare_reused_video_decoders_for_seek(decoders: &mut VideoBgaDecoderMap) {
+    for active in decoders.values_mut() {
         active.event_start_time = REUSED_VIDEO_EVENT_START;
         active.last_pts = None;
     }

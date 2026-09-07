@@ -5,6 +5,17 @@ pub const BOOT_PLAY_SAMPLE_ARG: &str = "--boot-play-sample";
 pub const BOOT_RESULT_SAMPLE_ARG: &str = "--boot-result-sample";
 pub const AUTOPLAY_ON_START_ARG: &str = "--autoplay-on-start";
 pub const AUTOPLAY_SHORT_ARG: &str = "-a";
+pub const VIEWER_PLAY_ARG: &str = "--viewer-play";
+pub const VIEWER_PLAY_SHORT_ARG: &str = "-P";
+pub const VIEWER_BATTLE_ARG: &str = "--battle";
+pub const VIEWER_BATTLE_SHORT_ARG: &str = "-B";
+pub const VIEWER_PROFILE_ARG: &str = "--profile";
+pub const VIEWER_STOP_ARG: &str = "--viewer-stop";
+pub const VIEWER_STOP_SHORT_ARG: &str = "-S";
+pub const START_MEASURE_ARG: &str = "--start-measure";
+pub const START_MEASURE_SHORT_ARG: &str = "-N";
+pub const SKIP_DECIDE_ARG: &str = "--skip-decide";
+pub const SKIP_RESULT_ARG: &str = "--skip-result";
 pub const SMOKE_EXIT_AFTER_FRAMES_ARG: &str = "--smoke-exit-after-frames";
 pub const SMOKE_EXIT_AFTER_PLAY_FRAMES_ARG: &str = "--smoke-exit-after-play-frames";
 pub const SMOKE_EXIT_AFTER_RESULT_FRAMES_ARG: &str = "--smoke-exit-after-result-frames";
@@ -30,11 +41,11 @@ mod parse;
 use help::parse_beatoraja_replay_flag;
 pub use help::{app_help_text, args_request_help};
 pub use model::{
-    Command, CourseCommand, IrCommand, ProfileCommand, ReplayCommand, RivalAction, SongsCommand,
-    TableCommand,
+    Command, CourseCommand, IrCommand, ParsedCommand, ProfileCommand, ReplayCommand, RivalAction,
+    SongsCommand, TableCommand,
 };
 pub use options::AppOptions;
-pub use parse::parse_command;
+pub use parse::{parse_cli_command, parse_command};
 
 #[cfg(test)]
 #[path = "cli/tests.rs"]

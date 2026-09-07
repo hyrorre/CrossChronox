@@ -11,6 +11,7 @@ use super::library_db::{ChartImportRecord, LibraryDatabase};
 pub struct ImportedChart {
     pub chart_id: i64,
     pub chart_file_id: i64,
+    pub chart: bmz_chart::model::PlayableChart,
     pub warnings: Vec<ImportWarning>,
 }
 
@@ -18,6 +19,7 @@ pub fn import_chart_file(
     db: &mut LibraryDatabase,
     path: &Path,
     root_id: Option<i64>,
+    random_seed: Option<u64>,
     scanned_at: i64,
 ) -> Result<ImportedChart> {
     let metadata = std::fs::metadata(path)?;
@@ -28,7 +30,7 @@ pub fn import_chart_file(
         .map(|duration| duration.as_secs() as i64)
         .unwrap_or(0);
 
-    let ImportResult { chart, warnings, .. } = import_bms_chart(path, None, true)?;
+    let ImportResult { chart, warnings, .. } = import_bms_chart(path, random_seed, true)?;
     let record = ChartImportRecord {
         root_id,
         file_path: path,
@@ -49,7 +51,7 @@ pub fn import_chart_file(
         db.chart_file_id_by_path(path)?.expect("chart file must exist after import upsert");
     db.replace_import_warnings(chart_file_id, &warnings, scanned_at)?;
 
-    Ok(ImportedChart { chart_id, chart_file_id, warnings })
+    Ok(ImportedChart { chart_id, chart_file_id, chart, warnings })
 }
 
 #[cfg(test)]
@@ -82,10 +84,11 @@ mod tests {
         let key_path = path.parent().unwrap().join("key.wav");
         write_file(&key_path, b"");
 
-        let imported = import_chart_file(&mut db, &path, None, 1_700_000_010).unwrap();
+        let imported = import_chart_file(&mut db, &path, None, None, 1_700_000_010).unwrap();
 
         assert!(imported.chart_id > 0);
         assert!(imported.chart_file_id > 0);
+        assert_eq!(imported.chart.metadata.title, "Storage Import");
         assert!(!imported.warnings.is_empty(), "warnings: {:?}", imported.warnings);
 
         let title: String =
@@ -95,6 +98,35 @@ mod tests {
 
         std::fs::remove_file(&path).unwrap();
         std::fs::remove_file(key_path).unwrap();
+    }
+
+    #[test]
+    fn import_chart_file_honors_bms_random_seed() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        configure_connection(&conn).unwrap();
+        run_migrations(&mut conn, LIBRARY_MIGRATIONS).unwrap();
+        let mut db = LibraryDatabase::from_connection(conn);
+        let path = write_temp_bms(
+            "\
+#RANDOM 2
+#IF 1
+#TITLE Random One
+#ENDIF
+#IF 2
+#TITLE Random Two
+#ENDIF
+#BPM 120
+#00011:01
+",
+        );
+        let expected = import_bms_chart(&path, Some(77), true).unwrap().chart;
+
+        let imported = import_chart_file(&mut db, &path, None, Some(77), 1_700_000_011).unwrap();
+
+        assert_eq!(imported.chart.metadata.title, expected.metadata.title);
+        assert_eq!(imported.chart.total_notes, expected.total_notes);
+
+        std::fs::remove_file(path).unwrap();
     }
 
     fn write_temp_bms(text: &str) -> std::path::PathBuf {

@@ -187,7 +187,10 @@ pub enum TextAlign {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TextOverflow {
     Overflow,
+    /// Preserve text height and compress only its width, matching beatoraja.
     Shrink,
+    /// Shrink both axes uniformly and vertically center the result.
+    ShrinkUniform,
     Truncate,
 }
 

@@ -230,6 +230,7 @@ fn schedule_preview_sounds(
         ScheduledSound {
             sound_id: event.sound,
             start_frame: time_us_to_frame(event.time.0, sample_rate),
+            sample_offset_frames: 0,
             volume,
             pan: 0.0,
             loop_playback: false,
@@ -256,6 +257,7 @@ fn schedule_preview_sounds(
                 note.sounds().map(move |sound_id| ScheduledSound {
                     sound_id,
                     start_frame: time_us_to_frame(note.time.0, sample_rate),
+                    sample_offset_frames: 0,
                     volume,
                     pan: 0.0,
                     loop_playback: false,

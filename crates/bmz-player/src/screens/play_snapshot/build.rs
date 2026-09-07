@@ -217,10 +217,19 @@ pub fn build_render_snapshot_with_target_and_bga_frames_cached(
             gauge_type: gauge.definition.gauge_type as i32,
             gauge_max: gauge.definition.max,
             gauge_border: gauge.definition.border,
-            full_combo_elapsed_ms: None,
+            full_combo_elapsed_ms: optional_skin_timer_elapsed_ms(
+                chart_now,
+                opponent.full_combo_started_at,
+            ),
             end_of_note_elapsed_ms: end_of_note_elapsed_ms(chart_now, cache.end_of_note_time),
-            gauge_increase_elapsed_ms: None,
-            gauge_max_elapsed_ms: None,
+            gauge_increase_elapsed_ms: optional_skin_timer_elapsed_ms(
+                chart_now,
+                opponent.gauge_increase_started_at,
+            ),
+            gauge_max_elapsed_ms: optional_skin_timer_elapsed_ms(
+                chart_now,
+                opponent.gauge_max_started_at,
+            ),
         }
     });
     let legacy_opponent = session.opponent_score.as_ref().zip(session.opponent_gauge.as_ref()).map(
@@ -281,6 +290,7 @@ pub fn build_render_snapshot_with_target_and_bga_frames_cached(
             ..Default::default()
         },
         ready_elapsed_time: None,
+        seamless_play_entry: false,
         rhythm_timer_elapsed_ms: rhythm_timer_elapsed_ms(
             &session.timing_map,
             &session.chart.bar_lines,

@@ -27,8 +27,9 @@ pub(super) fn skin_text_bitmap_size(
     Some(bitmap_size as f32 / skin_height.max(1) as f32)
 }
 
-pub(super) fn skin_text_overflow(overflow: i32) -> TextOverflow {
+pub(super) fn skin_text_overflow(overflow: i32, shrink_mode: i32) -> TextOverflow {
     match overflow {
+        1 if shrink_mode == 1 => TextOverflow::ShrinkUniform,
         1 => TextOverflow::Shrink,
         2 => TextOverflow::Truncate,
         _ => TextOverflow::Overflow,

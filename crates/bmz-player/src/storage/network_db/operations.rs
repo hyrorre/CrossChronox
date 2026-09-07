@@ -330,10 +330,10 @@ impl NetworkDatabase {
         Ok(jobs)
     }
 
-    /// Result で表示中の attempt に対応する primary provider の job だけを claim する。
+    /// Result で表示中の attempt に対応する指定provider/accountのjobだけをclaimする。
     ///
-    /// 通常のバッチ順に依存すると、古い pending job が上限を埋めた場合や別 task と
-    /// claim が競合した場合に、今回の送信レスポンス内ランキングを Result が受け取れない。
+    /// 通常のバッチ順に依存すると、古いpending jobが上限を埋めた場合や別taskと
+    /// claimが競合した場合に、Resultが今回の送信完了を待ち切れない。
     pub fn claim_pending_ir_score_job_for_local_score(
         &mut self,
         provider: &str,

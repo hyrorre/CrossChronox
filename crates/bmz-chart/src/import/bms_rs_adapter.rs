@@ -114,6 +114,7 @@ pub fn import_bms_to_intermediate(
         source_path,
         &BmsRandomSource::Seed(random_seed),
         &mut Vec::new(),
+        &mut Vec::new(),
         warnings,
     )
 }
@@ -122,6 +123,7 @@ pub fn import_bms_to_intermediate_with_random_source(
     source_path: &Path,
     random_source: &BmsRandomSource,
     bms_random_choices: &mut Vec<i32>,
+    bms_switch_choices: &mut Vec<u64>,
     warnings: &mut Vec<ImportWarning>,
 ) -> Result<IntermediateChart, ImportError> {
     import_with_layout::<KeyLayoutBeat>(
@@ -129,6 +131,7 @@ pub fn import_bms_to_intermediate_with_random_source(
         ChartKeyLayout::beat(),
         random_source,
         bms_random_choices,
+        bms_switch_choices,
         warnings,
     )
 }
@@ -142,6 +145,7 @@ pub fn import_pms_to_intermediate(
         source_path,
         &BmsRandomSource::Seed(random_seed),
         &mut Vec::new(),
+        &mut Vec::new(),
         warnings,
     )
 }
@@ -150,6 +154,7 @@ pub fn import_pms_to_intermediate_with_random_source(
     source_path: &Path,
     random_source: &BmsRandomSource,
     bms_random_choices: &mut Vec<i32>,
+    bms_switch_choices: &mut Vec<u64>,
     warnings: &mut Vec<ImportWarning>,
 ) -> Result<IntermediateChart, ImportError> {
     let bytes = std::fs::read(source_path)
@@ -170,6 +175,7 @@ pub fn import_pms_to_intermediate_with_random_source(
             ChartKeyLayout::pms(PmsKeyLayout::Standard),
             random_source,
             bms_random_choices,
+            bms_switch_choices,
             warnings,
         ),
         PmsKeyLayout::BmeType => import_with_layout::<KeyLayoutPmsBmeType>(
@@ -177,6 +183,7 @@ pub fn import_pms_to_intermediate_with_random_source(
             ChartKeyLayout::pms(PmsKeyLayout::BmeType),
             random_source,
             bms_random_choices,
+            bms_switch_choices,
             warnings,
         ),
     }
@@ -187,6 +194,7 @@ fn import_with_layout<T: KeyLayoutMapper>(
     layout: ChartKeyLayout,
     random_source: &BmsRandomSource,
     bms_random_choices: &mut Vec<i32>,
+    bms_switch_choices: &mut Vec<u64>,
     warnings: &mut Vec<ImportWarning>,
 ) -> Result<IntermediateChart, ImportError> {
     let bytes = std::fs::read(source_path)
@@ -204,6 +212,7 @@ fn import_with_layout<T: KeyLayoutMapper>(
         &compatible_text,
         random_source,
         bms_random_choices,
+        bms_switch_choices,
         warnings,
     );
     let metadata_text = strip_empty_metadata_commands(&text);

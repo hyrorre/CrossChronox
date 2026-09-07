@@ -9,7 +9,7 @@ use crate::storage::score_db::BestScoreSummary;
 
 use super::*;
 
-fn app_test_chart() -> bmz_chart::model::PlayableChart {
+pub(super) fn app_test_chart() -> bmz_chart::model::PlayableChart {
     bmz_chart::model::PlayableChart {
         identity: bmz_core::chart::ChartIdentity { file_md5: [0; 16], file_sha256: [0; 32] },
         metadata: bmz_chart::model::ChartMetadata {

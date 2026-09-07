@@ -396,9 +396,12 @@ pub fn table_level_folder_items(
         return Ok(Vec::new());
     };
 
+    let defined_levels: HashSet<String> =
+        library_db.list_table_entry_levels(source_url)?.into_iter().collect();
     let mut items: Vec<SelectItem> = table
         .level_order
         .iter()
+        .filter(|level| defined_levels.contains(*level))
         .map(|level| SelectItem::Folder {
             path: format!("{TABLE_ROOT_PATH}{source_url}{TABLE_LEVEL_SEPARATOR}{level}"),
             name: format!("{}{}", table.symbol, level),

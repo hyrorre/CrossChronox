@@ -9,10 +9,22 @@ impl WinitApp {
             self.sync_select_holds_from_pressed_controls();
             self.sync_play_control_holds_from_pressed_controls();
         }
+        if self.viewer_waiting {
+            if self.route_waiting_viewer_keyboard(event) {
+                return;
+            }
+            if !event.repeat {
+                self.sync_viewer_wait_exit_holds();
+            }
+            return;
+        }
         if !event.repeat
             && let Some(device_event) = key_event_to_device_input(event)
             && self.filter_app_input_bounce(device_event).is_none()
         {
+            return;
+        }
+        if self.route_viewer_keyboard(event) {
             return;
         }
         let play_control = control_event.name.as_deref();
@@ -346,6 +358,23 @@ impl WinitApp {
         event: &winit::event::KeyEvent,
         control_event: &ControlInputEvent,
     ) {
+        if self.viewer_waiting {
+            // 待機中はエディタからのIPCだけを再生入口にする。Escape長押しによる
+            // 通常終了だけはSelectと同じ操作として残す。
+            if event.physical_key == PhysicalKey::Code(KeyCode::Escape) {
+                match event.state {
+                    ElementState::Pressed => {
+                        if self.select.select_exit_hold_started_at.is_none() {
+                            self.select.select_exit_hold_started_at = Some(Instant::now());
+                        }
+                    }
+                    ElementState::Released => {
+                        self.select.select_exit_hold_started_at = None;
+                    }
+                }
+            }
+            return;
+        }
         if matches!(self.view_state(), AppViewState::Select)
             && self.select.select_option_panel == 0
             && let Some(control) = physical_key_name(event.physical_key)

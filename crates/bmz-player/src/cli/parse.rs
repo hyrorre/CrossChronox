@@ -3,8 +3,17 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
+    Ok(parse_cli_command(args)?.command)
+}
+
+pub fn parse_cli_command<I, S>(args: I) -> Result<ParsedCommand>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     let args: Vec<String> = args.into_iter().map(|s| s.as_ref().to_string()).collect();
-    match args.first().map(|s| s.as_str()) {
+    let (args, profile_id, mut warnings) = extract_global_profile(args)?;
+    let command = match args.first().map(|s| s.as_str()) {
         Some("table") => {
             let rest = &args[1..];
             match rest.first().map(|s| s.as_str()) {
@@ -118,7 +127,63 @@ where
         }
         Some("profile") => parse_profile_command(&args[1..]),
         Some("ir") => parse_ir_command(&args[1..]),
-        _ => Ok(Command::Run(AppOptions::parse_args(args)?)),
+        _ => {
+            let (options, option_warnings) = AppOptions::parse_args_with_warnings(args)?;
+            warnings.extend(option_warnings);
+            Ok(Command::Run(options))
+        }
+    }?;
+    if profile_id.is_some() && !command_uses_profile(&command) {
+        warnings.push(format!(
+            "{VIEWER_PROFILE_ARG} does not affect this command; ignoring the profile override"
+        ));
+    }
+    Ok(ParsedCommand { command, profile_id, warnings })
+}
+
+fn extract_global_profile(args: Vec<String>) -> Result<(Vec<String>, Option<String>, Vec<String>)> {
+    let mut remaining = Vec::with_capacity(args.len());
+    let mut profile_id = None;
+    let mut warnings = Vec::new();
+    let mut index = 0;
+    while index < args.len() {
+        let arg = &args[index];
+        let value = if arg == VIEWER_PROFILE_ARG {
+            index += 1;
+            Some(
+                args.get(index)
+                    .ok_or_else(|| anyhow::anyhow!("{VIEWER_PROFILE_ARG} requires a profile id"))?
+                    .as_str(),
+            )
+        } else {
+            arg.strip_prefix("--profile=")
+        };
+        if let Some(value) = value {
+            crate::paths::validate_profile_id(value)?;
+            if profile_id.is_some() {
+                warnings.push(format!(
+                    "multiple {VIEWER_PROFILE_ARG} options were specified; using the last profile ({value})"
+                ));
+            }
+            profile_id = Some(value.to_string());
+        } else {
+            remaining.push(arg.clone());
+        }
+        index += 1;
+    }
+    Ok((remaining, profile_id, warnings))
+}
+
+fn command_uses_profile(command: &Command) -> bool {
+    match command {
+        Command::Run(options) => !options.viewer_stop,
+        Command::Course(CourseCommand::History { .. } | CourseCommand::Attempt { .. })
+        | Command::Replay(_)
+        | Command::Ir(_) => true,
+        Command::Table(_)
+        | Command::Songs(_)
+        | Command::Course(CourseCommand::Import { .. } | CourseCommand::List)
+        | Command::Profile(_) => false,
     }
 }
 

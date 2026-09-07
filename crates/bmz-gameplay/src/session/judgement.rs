@@ -103,7 +103,11 @@ pub fn apply_judge_outcome(
         // keysound scheduler へ渡し、未指定時の既定SE判定はフレーム終端へ運ぶ。
         session.gauge.apply_mine(hit.damage);
         if hit.sound.is_some() {
-            session.pending_keysounds.push(KeySoundEvent { note_id: hit.note_id, time: hit.time });
+            session.pending_keysounds.push(KeySoundEvent {
+                note_id: hit.note_id,
+                time: hit.time,
+                trigger: KeySoundTrigger::Mine,
+            });
         }
         session.pending_mine_hits.push(hit);
     }
@@ -186,26 +190,40 @@ pub(super) fn update_gauge_increase_timer_state(
 
 pub(super) fn update_gauge_max_timer(session: &mut GameSession, now: TimeUs) {
     let current = session.gauge.current();
-    let is_max = current.value >= current.definition.max.max(1.0);
-    if is_max {
-        session.gauge_increase_started_at = None;
-    }
-    match (is_max, session.gauge_max_started_at) {
-        (true, None) => session.gauge_max_started_at = Some(TimeUs(now.0.max(0))),
-        (false, Some(_)) => session.gauge_max_started_at = None,
-        _ => {}
-    }
+    update_gauge_max_timer_state(
+        &mut session.gauge_increase_started_at,
+        &mut session.gauge_max_started_at,
+        current.value,
+        current.definition.max,
+        now,
+    );
     if let Some(opponent_gauge) = &session.opponent_gauge {
-        let is_max =
-            opponent_gauge.current().value >= opponent_gauge.current().definition.max.max(1.0);
-        if is_max {
-            session.opponent_gauge_increase_started_at = None;
-        }
-        match (is_max, session.opponent_gauge_max_started_at) {
-            (true, None) => session.opponent_gauge_max_started_at = Some(TimeUs(now.0.max(0))),
-            (false, Some(_)) => session.opponent_gauge_max_started_at = None,
-            _ => {}
-        }
+        let current = opponent_gauge.current();
+        update_gauge_max_timer_state(
+            &mut session.opponent_gauge_increase_started_at,
+            &mut session.opponent_gauge_max_started_at,
+            current.value,
+            current.definition.max,
+            now,
+        );
+    }
+}
+
+pub(super) fn update_gauge_max_timer_state(
+    increase_started_at: &mut Option<TimeUs>,
+    max_started_at: &mut Option<TimeUs>,
+    current_value: f32,
+    max_value: f32,
+    now: TimeUs,
+) {
+    let is_max = current_value >= max_value.max(1.0);
+    if is_max {
+        *increase_started_at = None;
+    }
+    match (is_max, *max_started_at) {
+        (true, None) => *max_started_at = Some(TimeUs(now.0.max(0))),
+        (false, Some(_)) => *max_started_at = None,
+        _ => {}
     }
 }
 use super::*;

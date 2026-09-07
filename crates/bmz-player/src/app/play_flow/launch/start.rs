@@ -29,10 +29,19 @@ impl WinitApp {
     /// Decide 中の通常 preload、Result retry、中間リザルト中のコース次曲先読みで
     /// 共通利用する。ここでは preload generation を更新せず、未完了なら Play の
     /// ロード演出中も同じ worker を継続する。
-    pub(super) fn begin_preloaded_play_scene(
+    pub(super) fn begin_preloaded_play_scene(&mut self, chart_id: i64, options: PlayStartOptions) {
+        self.begin_preloaded_play_scene_with_presentation(
+            chart_id,
+            options,
+            PlayEntryPresentation::Normal,
+        );
+    }
+
+    pub(super) fn begin_preloaded_play_scene_with_presentation(
         &mut self,
         chart_id: i64,
         mut options: PlayStartOptions,
+        presentation: PlayEntryPresentation,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
         self.ensure_skin_ready(SkinKind::Decide);
@@ -51,7 +60,12 @@ impl WinitApp {
             options.chart_zero_time = self.play_skin_playstart_offset();
         }
         self.audio.draining_audio = None;
-        self.enter_play_scene(chart_id, options, self.decide_snapshot_for_chart(chart_id));
+        self.enter_play_scene_with_presentation(
+            chart_id,
+            options,
+            self.decide_snapshot_for_chart(chart_id),
+            presentation,
+        );
         self.poll_play_preload();
     }
 
@@ -133,6 +147,14 @@ impl WinitApp {
         skin_duration_ms(ready_delay_ms)
     }
 
+    pub(super) fn play_ready_animation_elapsed_time(&self) -> Option<TimeUs> {
+        if self.play.play_entry_presentation.shows_ready_presentation() {
+            self.play.play_ready_sound_started_at.map(elapsed_since)
+        } else {
+            None
+        }
+    }
+
     pub(super) fn clear_play_meta_image_state(&mut self) {
         self.clear_play_stagefile_state();
         self.clear_play_backbmp_state();
@@ -193,8 +215,23 @@ impl WinitApp {
     pub(super) fn enter_play_scene(
         &mut self,
         chart_id: i64,
+        options: PlayStartOptions,
+        snapshot: RenderSnapshot,
+    ) {
+        self.enter_play_scene_with_presentation(
+            chart_id,
+            options,
+            snapshot,
+            PlayEntryPresentation::Normal,
+        );
+    }
+
+    pub(super) fn enter_play_scene_with_presentation(
+        &mut self,
+        chart_id: i64,
         mut options: PlayStartOptions,
         mut snapshot: RenderSnapshot,
+        presentation: PlayEntryPresentation,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
         if let Some(score_key) = self.play_skin_score_key_for_chart_id(chart_id, &options) {
@@ -228,11 +265,16 @@ impl WinitApp {
         self.prepare_play_meta_image_textures(chart_id);
         self.result.finished_play = None;
         self.audio.draining_audio = None;
-        self.play.play_scene_started_at = Instant::now();
+        self.play.play_entry_presentation = presentation;
+        if !presentation.is_seamless() {
+            self.play.play_scene_started_at = Instant::now();
+        }
         snapshot.arrange = options.arrange.as_str().to_string();
         snapshot.arrange_2p = options.arrange_2p.as_str().to_string();
-        snapshot.play_elapsed_time = TimeUs(0);
+        snapshot.play_elapsed_time =
+            play_entry_elapsed_time(presentation, self.play_elapsed_time());
         snapshot.ready_elapsed_time = None;
+        snapshot.seamless_play_entry = presentation.is_seamless();
         snapshot.time = self.play_skin_playstart_offset();
         snapshot.stagefile_background = self.play.play_stagefile_loaded;
         snapshot.stagefile_image_size = self.play.play_stagefile_size;
@@ -423,7 +465,8 @@ impl WinitApp {
         snapshot.backbmp_background = self.play.play_backbmp_loaded;
         let play_elapsed_time = self.play_elapsed_time();
         snapshot.play_elapsed_time = play_elapsed_time;
-        snapshot.ready_elapsed_time = self.play.play_ready_sound_started_at.map(elapsed_since);
+        snapshot.ready_elapsed_time = self.play_ready_animation_elapsed_time();
+        snapshot.seamless_play_entry = self.play.play_entry_presentation.is_seamless();
         self.apply_course_skin_context(&mut snapshot);
         self.apply_play_table_text(&mut snapshot);
         crate::screens::play_snapshot::refresh_play_skin_visuals_with_input_elapsed(

@@ -29,6 +29,403 @@ fn advance_session_frame_schedules_bgm_with_mix_volume() {
 }
 
 #[test]
+fn bgm_scheduler_starting_at_skips_past_events_and_keeps_boundary() {
+    let mut chart = chart_with_bgm();
+    chart.bgm_events = vec![
+        SoundEvent { tick: ChartTick(192), time: TimeUs(1_000_000), sound: SoundId(3) },
+        SoundEvent { tick: ChartTick(384), time: TimeUs(2_000_000), sound: SoundId(4) },
+        SoundEvent { tick: ChartTick(576), time: TimeUs(3_000_000), sound: SoundId(5) },
+    ];
+    let mut scheduler = BgmScheduler::starting_at(&chart, TimeUs(2_000_000));
+    let mut audio = TestAudio::default();
+
+    scheduler.schedule_until(
+        &chart,
+        &AudioClock::stopped(48_000),
+        TimeUs(3_000_000),
+        1.0,
+        &mut audio,
+    );
+
+    assert_eq!(
+        audio.scheduled.iter().map(|sound| sound.sound_id).collect::<Vec<_>>(),
+        vec![SoundId(4), SoundId(5)]
+    );
+}
+
+#[test]
+fn viewer_seek_skips_past_autoplay_judgements_and_keeps_boundary_note() {
+    let mut chart = chart_with_keysound();
+    let mut boundary = chart.lane_notes[Lane::Key1.index()][0].clone();
+    boundary.id = NoteId(2);
+    boundary.tick = ChartTick(384);
+    boundary.time = TimeUs(2_000_000);
+    chart.lane_notes[Lane::Key1.index()].push(boundary);
+    chart.total_notes = 2;
+    chart.end_time = TimeUs(2_000_000);
+    let mut session = session_with_autoplay(chart);
+    prepare_viewer_seek(&mut session, TimeUs(2_000_000));
+    session.audio_clock =
+        AudioClock::with_position(48_000, 0, 2_000_000, Arc::new(AtomicU64::new(0)), true);
+    let mut audio = TestAudio::default();
+
+    let frame = advance_session_frame(&mut session, &mut audio);
+
+    assert_eq!(frame.judgements.len(), 1);
+    assert_eq!(frame.judgements[0].note_id, Some(NoteId(2)));
+    assert_eq!(session.score.past_notes, 2);
+    assert_eq!(session.score.combo, 2);
+    assert_eq!(session.score.ex_score(), 4);
+}
+
+#[test]
+fn viewer_seek_prefills_display_only_battle_score_and_gauge() {
+    let mut chart = chart_with_keysound();
+    let mut opponent_note = chart.lane_notes[Lane::Key1.index()][0].clone();
+    opponent_note.id = NoteId(2);
+    opponent_note.lane = Lane::Key8;
+    chart.lane_notes[Lane::Key8.index()].push(opponent_note);
+    chart.total_notes = 2;
+    let mut session = session_with_autoplay(chart);
+    session.scored_total_notes = 1;
+    session.display_only_lane_mask[Lane::Key8.index()] = true;
+    session.opponent_score = Some(ScoreState::default());
+    session.opponent_gauge = Some(session.gauge.clone());
+    let opponent_gauge_before = session.opponent_gauge.as_ref().unwrap().current().value;
+
+    prepare_viewer_seek(&mut session, TimeUs(500_000));
+
+    assert_eq!(session.score.ex_score(), 2);
+    assert_eq!(session.score.past_notes, 1);
+    let opponent_score = session.opponent_score.as_ref().unwrap();
+    assert_eq!(opponent_score.ex_score(), 2);
+    assert_eq!(opponent_score.past_notes, 1);
+    assert_eq!(opponent_score.combo, 1);
+    assert!(session.opponent_gauge.as_ref().unwrap().current().value > opponent_gauge_before);
+    assert_eq!(session.opponent_full_combo_started_at, Some(TimeUs(500_000)));
+}
+
+#[test]
+fn viewer_seek_prefills_independent_battle_opponent() {
+    let opponent_chart = Arc::new(chart_with_keysound());
+    let window = JudgeWindow::symmetric(16_000, 40_000, 80_000, 120_000, 500_000, 200_000, 16_000);
+    let mut session = session_with_autoplay(chart_with_keysound());
+    session.battle_opponent = Some(BattleOpponentSession {
+        chart: Arc::clone(&opponent_chart),
+        key_mode: opponent_chart.metadata.key_mode,
+        scored_total_notes: 1,
+        judge: JudgeEngine::new(window),
+        base_judge_windows: JudgeWindows::uniform(window),
+        rule_mode: RuleMode::Beatoraja,
+        score: ScoreState::default(),
+        gauge: GaugeState::new(bmz_core::clear::GaugeType::Normal, 160.0, 1),
+        replay_player: None,
+        autoplay: Some(AutoplayController::default()),
+        display_uses_primary_arrangement: true,
+        publish_display_judgements: true,
+        gauge_increase_started_at: None,
+        gauge_max_started_at: None,
+        full_combo_started_at: None,
+        lane_keyon_started_at: Default::default(),
+    });
+    let opponent_gauge_before = session.battle_opponent.as_ref().unwrap().gauge.current().value;
+
+    prepare_viewer_seek(&mut session, TimeUs(500_000));
+
+    let opponent = session.battle_opponent.as_ref().unwrap();
+    assert_eq!(opponent.score.ex_score(), 2);
+    assert_eq!(opponent.score.past_notes, 1);
+    assert_eq!(opponent.score.combo, 1);
+    assert!(opponent.gauge.current().value > opponent_gauge_before);
+    assert_eq!(opponent.full_combo_started_at, Some(TimeUs(500_000)));
+}
+
+#[test]
+fn viewer_seek_prefills_pgreats_and_restores_crossing_hcn() {
+    let mut session = session_with_autoplay(chart_with_hcn_long_note());
+
+    prepare_viewer_seek(&mut session, TimeUs(500_000));
+
+    assert_eq!(session.score.past_notes, 1);
+    assert_eq!(session.score.combo, 1);
+    assert_eq!(session.score.ex_score(), 2);
+    assert_eq!(session.judge.judged_notes.get(&NoteId(1)), Some(&Judge::PGreat));
+    assert!(session.judge.lanes[Lane::Key1.index()].active_long.is_some());
+    assert_eq!(session.lane_keyon_started_at[Lane::Key1.index()], Some(TimeUs(500_000)));
+
+    session.audio_clock =
+        AudioClock::with_position(48_000, 0, 1_000_000, Arc::new(AtomicU64::new(0)), true);
+    let mut audio = TestAudio::default();
+    advance_session_frame(&mut session, &mut audio);
+
+    assert_eq!(session.score.past_notes, 2);
+    assert_eq!(session.score.combo, 2);
+    assert_eq!(session.score.ex_score(), 4);
+    assert!(session.judge.lanes[Lane::Key1.index()].active_long.is_none());
+}
+
+#[test]
+fn viewer_seek_prefills_completed_ln_only_at_its_end() {
+    let mut session = session_with_autoplay(ln_chart_with_start_sound_and_end_sound(None));
+
+    prepare_viewer_seek(&mut session, TimeUs(500_000));
+    assert_eq!(session.score.past_notes, 0);
+    assert!(session.judge.lanes[Lane::Key1.index()].active_long.is_some());
+
+    session.audio_clock =
+        AudioClock::with_position(48_000, 0, 1_000_000, Arc::new(AtomicU64::new(0)), true);
+    let mut audio = TestAudio::default();
+    advance_session_frame(&mut session, &mut audio);
+    assert_eq!(session.score.past_notes, 1);
+    assert_eq!(session.score.combo, 1);
+    assert_eq!(session.score.ex_score(), 2);
+
+    let mut session = session_with_autoplay(ln_chart_with_start_sound_and_end_sound(None));
+    prepare_viewer_seek(&mut session, TimeUs(1_500_000));
+    assert_eq!(session.score.past_notes, 1);
+    assert_eq!(session.score.combo, 1);
+    assert_eq!(session.score.ex_score(), 2);
+}
+
+#[test]
+fn bgm_scheduler_viewer_seek_carries_only_live_latest_bgm_voices() {
+    let mut chart = chart_with_bgm();
+    chart.bgm_events = vec![
+        SoundEvent { tick: ChartTick(0), time: TimeUs(0), sound: SoundId(10) },
+        SoundEvent { tick: ChartTick(0), time: TimeUs(0), sound: SoundId(11) },
+        SoundEvent { tick: ChartTick(0), time: TimeUs(0), sound: SoundId(12) },
+        SoundEvent { tick: ChartTick(0), time: TimeUs(0), sound: SoundId(13) },
+        SoundEvent { tick: ChartTick(288), time: TimeUs(1_500_000), sound: SoundId(12) },
+        SoundEvent { tick: ChartTick(384), time: TimeUs(2_000_000), sound: SoundId(13) },
+        SoundEvent { tick: ChartTick(576), time: TimeUs(3_000_000), sound: SoundId(14) },
+    ];
+    let clock =
+        AudioClock::with_position(48_000, 512, 2_000_000, Arc::new(AtomicU64::new(512)), true);
+
+    let (mut scheduler, carryover) = BgmScheduler::starting_at_with_carryover(
+        &chart,
+        TimeUs(2_000_000),
+        &clock,
+        0.5,
+        |sound_id| match sound_id {
+            SoundId(10) => Some(3_000_000),
+            SoundId(11) => Some(1_000_000),
+            SoundId(12) => Some(250_000),
+            SoundId(13) => Some(3_000_000),
+            _ => None,
+        },
+    );
+
+    assert_eq!(carryover.len(), 1);
+    assert_eq!(carryover[0].sound_id, SoundId(10));
+    assert_eq!(carryover[0].start_frame, 512);
+    assert_eq!(carryover[0].sample_offset_frames, 96_000);
+    assert_eq!(carryover[0].volume, 0.5);
+    assert_eq!(carryover[0].restart_policy, RestartPolicy::StopSameSound);
+
+    let mut audio = TestAudio::default();
+    scheduler.schedule_until(&chart, &clock, TimeUs(3_000_000), 1.0, &mut audio);
+    assert_eq!(
+        audio.scheduled.iter().map(|sound| sound.sound_id).collect::<Vec<_>>(),
+        vec![SoundId(13), SoundId(14)]
+    );
+}
+
+#[test]
+fn auto_keysound_plays_note_sounds_without_input() {
+    let mut session = session_with_autoplay(chart_with_keysound());
+    session.autoplay = None;
+    session.audio_mix.master_volume = 0.5;
+    session.audio_mix.key_volume = 0.25;
+    session.audio_mix.chart_normalization_gain = 0.5;
+    session.audio_mix.normalize_chart_volume = true;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    // 押鍵ゼロでも譜面の生タイミングでキー音が鳴る。音量は key_volume を使う。
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(7));
+    assert_eq!(audio.scheduled[0].start_frame, 0);
+    assert_eq!(audio.scheduled[0].volume, 0.0625);
+    assert_eq!(audio.scheduled[0].restart_policy, RestartPolicy::StopSameSound);
+}
+
+#[test]
+fn auto_keysound_suppresses_hit_keysounds() {
+    let mut session = session_with_autoplay(chart_with_keysound());
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    let frame = advance_session_frame(&mut session, &mut audio);
+
+    // オートプレイでノーツは判定されるが、キー音は自動再生の 1 回だけ
+    // (押鍵経路は抑制されるので二重再生しない)。
+    assert_eq!(frame.judgements.len(), 1);
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(7));
+}
+
+#[test]
+fn auto_keysound_skips_display_only_lanes() {
+    let mut chart = chart_with_keysound();
+    chart.lane_notes[Lane::Key2.index()].push(NoteEvent {
+        id: NoteId(2),
+        lane: Lane::Key2,
+        kind: NoteKind::Tap,
+        tick: ChartTick(0),
+        time: TimeUs(0),
+        sound: Some(SoundId(9)),
+        layered_sounds: Vec::new(),
+        damage: None,
+    });
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.display_only_lane_mask[Lane::Key2.index()] = true;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    // 主プレイヤーレーン (Key1) は鳴り、display-only レーン (Key2) は鳴らない。
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(7));
+}
+
+#[test]
+fn auto_keysound_does_not_schedule_invisible_notes() {
+    let mut chart = chart_with_keysound();
+    chart.lane_notes[Lane::Key1.index()].push(NoteEvent {
+        id: NoteId(2),
+        lane: Lane::Key1,
+        kind: NoteKind::Invisible,
+        tick: ChartTick(0),
+        time: TimeUs(50_000),
+        sound: Some(SoundId(8)),
+        layered_sounds: Vec::new(),
+        damage: None,
+    });
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    // Invisible は押鍵時の fallback キー音候補であり、譜面タイミングでの自動再生対象外。
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(7));
+}
+
+#[test]
+fn practice_auto_keysound_does_not_catch_up_notes_before_section() {
+    let mut chart = chart_with_keysound();
+    chart.lane_notes[Lane::Key1.index()].push(NoteEvent {
+        id: NoteId(2),
+        lane: Lane::Key1,
+        kind: NoteKind::Tap,
+        tick: ChartTick(0),
+        time: TimeUs(50_000),
+        sound: Some(SoundId(8)),
+        layered_sounds: Vec::new(),
+        damage: None,
+    });
+    // 区間 [40ms, 100ms) を練習: time 0 のノーツは Invisible へ退避される。
+    bmz_chart::practice::apply_practice_section(&mut chart, TimeUs(40_000), TimeUs(100_000));
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    // 区間前 (time 0) のキー音は catch-up されず、区間内 (time 50ms) のみ鳴る。
+    assert_eq!(audio.scheduled.len(), 1);
+    assert_eq!(audio.scheduled[0].sound_id, SoundId(8));
+}
+
+#[test]
+fn auto_keysound_schedules_layered_note_sounds() {
+    let mut chart = chart_with_keysound();
+    chart.lane_notes[Lane::Key1.index()][0].layered_sounds = vec![SoundId(8)];
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    let mut sounds: Vec<_> = audio.scheduled.iter().map(|s| s.sound_id).collect();
+    sounds.sort_by_key(|s| s.0);
+    assert_eq!(sounds, vec![SoundId(7), SoundId(8)]);
+}
+
+#[test]
+fn auto_keysound_schedules_long_start_and_long_end() {
+    let mut chart = ln_chart_with_start_sound_and_end_sound(Some(SoundId(8)));
+    // LongEnd を先読み窓 (100ms) 内へ寄せる。
+    chart.lane_notes[Lane::Key1.index()][1].time = TimeUs(50_000);
+    chart.long_notes[0].end_time = TimeUs(50_000);
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    let mut sounds: Vec<_> = audio.scheduled.iter().map(|s| s.sound_id).collect();
+    sounds.sort_by_key(|s| s.0);
+    // LongStart (SoundId 7) と LongEnd (SoundId 8) がそれぞれ 1 回ずつ。
+    assert_eq!(sounds, vec![SoundId(7), SoundId(8)]);
+}
+
+#[test]
+fn auto_keysound_applies_key_volume_events() {
+    let mut chart = chart_with_keysound();
+    chart.key_volume_events.push(bmz_chart::model::ChartVolumeEvent {
+        tick: ChartTick(0),
+        time: TimeUs(0),
+        value: 128,
+    });
+    let mut session = session_with_autoplay(chart);
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    session.audio_mix.master_volume = 1.0;
+    session.audio_mix.key_volume = 1.0;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+
+    // 譜面のチャンネル音量 (#xxx07 相当) が自動再生にも反映される。
+    let expected = 128.0 / 255.0;
+    assert_eq!(audio.scheduled.len(), 1);
+    assert!((audio.scheduled[0].volume - expected).abs() < 0.001);
+}
+
+#[test]
+fn auto_keysound_restart_resets_lane_cursors() {
+    let mut session = session_with_autoplay(chart_with_keysound());
+    session.autoplay = None;
+    session.audio_mix.auto_keysound = true;
+    let mut audio = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio);
+    assert_eq!(audio.scheduled.len(), 1);
+    assert!(session.auto_keysound_scheduler.next_note_index[Lane::Key1.index()] > 0);
+
+    // リトライ等でセッションを作り直すのと同じく、スケジューラも Default に戻す。
+    // カーソルが 0 に戻り、同じノーツを先頭から再スケジュールできることを確認する。
+    session.auto_keysound_scheduler = AutoKeysoundScheduler::default();
+    let mut audio_after_restart = TestAudio::default();
+
+    advance_session_frame(&mut session, &mut audio_after_restart);
+
+    assert_eq!(audio_after_restart.scheduled.len(), 1);
+    assert_eq!(audio_after_restart.scheduled[0].sound_id, SoundId(7));
+}
+
+#[test]
 fn advance_session_frame_applies_chart_volume_channels() {
     let mut chart = chart_with_keysound();
     chart.key_volume_events.push(bmz_chart::model::ChartVolumeEvent {

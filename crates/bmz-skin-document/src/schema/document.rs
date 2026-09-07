@@ -435,6 +435,11 @@ pub struct SkinTextDef {
     pub wrapping: bool,
     #[serde(default)]
     pub overflow: i32,
+    /// BMZ extension: controls how `overflow = 1` shrinks text.
+    /// 0 (default) preserves height and shrinks only width like beatoraja;
+    /// 1 shrinks both axes uniformly like legacy BMZ rendering.
+    #[serde(default, rename = "shrinkMode")]
+    pub shrink_mode: i32,
     #[serde(default, rename = "outlineColor")]
     pub outline_color: String,
     #[serde(default, rename = "outlineWidth")]

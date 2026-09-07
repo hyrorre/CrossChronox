@@ -1,4 +1,12 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedCommand {
+    pub command: Command,
+    /// `active_profile`を書き換えない、CLI呼び出し全体のprofile上書き。
+    pub profile_id: Option<String>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
     Run(AppOptions),
     Table(TableCommand),

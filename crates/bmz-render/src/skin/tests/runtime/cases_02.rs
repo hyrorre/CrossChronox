@@ -219,6 +219,53 @@ fn logical_input_press_edges_drive_options_timers_and_runtime_events() {
 }
 
 #[test]
+fn e1_e2_aggregate_timers_cover_hold_and_release_transitions() {
+    let document: SkinDocument =
+        serde_json::from_str(r#"{ "type": 0, "w": 1, "h": 1, "destination": [] }"#).unwrap();
+    let mut runtime = DynamicTimerRuntime::default();
+    let mut state = SkinDrawState::default();
+
+    // A scene-entry hold must not invent either side of the aggregate transition.
+    state.logical_input_held[0] = true;
+    runtime.advance(&document, &mut state, 100);
+    assert!(test_skin_op(SKIN_OPTION_BMZ_E1_E2_HELD, &[], &state));
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), None);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), None);
+
+    state.logical_input_held[0] = false;
+    runtime.advance(&document, &mut state, 110);
+    assert!(!test_skin_op(SKIN_OPTION_BMZ_E1_E2_HELD, &[], &state));
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), None);
+
+    state.logical_input_held[0] = true;
+    runtime.advance(&document, &mut state, 120);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), Some(0));
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), None);
+
+    // Adding and removing E2 must not restart or release while E1/E2 remains held.
+    state.logical_input_held[1] = true;
+    runtime.advance(&document, &mut state, 150);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), Some(30));
+    state.logical_input_held[0] = false;
+    runtime.advance(&document, &mut state, 170);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), Some(50));
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), None);
+
+    state.logical_input_held[1] = false;
+    runtime.advance(&document, &mut state, 180);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), None);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), Some(0));
+    runtime.advance(&document, &mut state, 210);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), Some(30));
+
+    // A new aggregate press cancels the release animation and starts over.
+    state.logical_input_held[1] = true;
+    runtime.advance(&document, &mut state, 220);
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_PRESS), &state), Some(0));
+    assert_eq!(skin_timer_elapsed_ms(Some(SKIN_TIMER_BMZ_E1_E2_RELEASE), &state), None);
+}
+
+#[test]
 fn end_of_note_timers_use_elapsed_since_end_of_note() {
     let inactive =
         SkinDrawState { elapsed_ms: 5_000, end_of_note_ms: None, ..SkinDrawState::default() };

@@ -353,6 +353,7 @@ fn play_skin_video_source_runtime_visibility_follows_bga_ops() {
         },
         None,
         None,
+        0,
     );
     assert!(skin_video_source_runtime_visible(&source, &visible_state));
 
@@ -365,6 +366,7 @@ fn play_skin_video_source_runtime_visibility_follows_bga_ops() {
         },
         None,
         None,
+        0,
     );
     assert!(!skin_video_source_runtime_visible(&source, &song_bga_state));
 
@@ -377,6 +379,7 @@ fn play_skin_video_source_runtime_visibility_follows_bga_ops() {
         },
         None,
         None,
+        0,
     );
     assert!(!skin_video_source_runtime_visible(&source, &bga_off_state));
 
@@ -389,6 +392,7 @@ fn play_skin_video_source_runtime_visibility_follows_bga_ops() {
         },
         None,
         None,
+        0,
     );
     assert!(!skin_video_source_runtime_visible(&source, &song_bga_off_state));
 }
@@ -404,6 +408,7 @@ fn play_skin_draw_state_maps_lane_cover_and_lift_offsets_to_skin_pixels() {
         },
         Some(1080),
         Some(720),
+        0,
     );
 
     assert_eq!(state.offset_lift_px, 180);
@@ -421,6 +426,7 @@ fn play_skin_video_loaded_state_starts_with_ready_timer() {
         },
         None,
         None,
+        0,
     );
     assert!(!preload_state.skin_loaded);
 
@@ -432,8 +438,24 @@ fn play_skin_video_loaded_state_starts_with_ready_timer() {
         },
         None,
         None,
+        0,
     );
     assert!(ready_state.skin_loaded);
+
+    let seamless_state = play_skin_video_draw_state(
+        &RenderSnapshot {
+            resources_loaded: false,
+            play_elapsed_time: TimeUs(2_500_000),
+            seamless_play_entry: true,
+            ..RenderSnapshot::default()
+        },
+        None,
+        None,
+        1_000,
+    );
+    assert!(seamless_state.skin_loaded);
+    assert_eq!(seamless_state.ready_timer_ms, None);
+    assert_eq!(seamless_state.start_input_ms, Some(1_500));
 }
 
 #[test]

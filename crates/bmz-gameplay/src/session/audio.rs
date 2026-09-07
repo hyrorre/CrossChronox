@@ -1,5 +1,16 @@
 pub fn schedule_keysounds(session: &mut GameSession, audio: &mut dyn AudioScheduler) {
-    for event in std::mem::take(&mut session.pending_keysounds) {
+    let mut pending = std::mem::take(&mut session.pending_keysounds);
+    if session.audio_mix.auto_keysound {
+        session.pending_keysound_volumes.clear();
+        let allow_fallback = session.audio_mix.auto_keysound_fallback;
+        let allow_mine = session.audio_mix.auto_keysound_mine;
+        pending.retain(|event| match event.trigger {
+            KeySoundTrigger::NoteJudged => false,
+            KeySoundTrigger::Fallback => allow_fallback,
+            KeySoundTrigger::Mine => allow_mine,
+        });
+    }
+    for event in pending {
         let note_id = event.note_id;
         let Some(note) = session.chart.note_by_id(note_id) else {
             continue;
@@ -16,6 +27,7 @@ pub fn schedule_keysounds(session: &mut GameSession, audio: &mut dyn AudioSchedu
         for sound_id in note.sounds() {
             audio.schedule(ScheduledSound {
                 start_frame: session.audio_clock.time_to_output_frame(event.time),
+                sample_offset_frames: 0,
                 sound_id,
                 volume,
                 pan: 0.0,

@@ -115,6 +115,10 @@ pub(crate) use discovery::folder_has_document;
 pub use discovery::{ChartFileEntry, discover_chart_files};
 pub use import::{scan_song_roots, scan_song_roots_with_progress};
 
+pub fn is_chart_file(path: &Path) -> bool {
+    path.file_name().is_some_and(discovery::is_chart_file_name)
+}
+
 use discovery::*;
 #[cfg(test)]
 mod tests {

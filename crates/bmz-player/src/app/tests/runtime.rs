@@ -446,6 +446,47 @@ fn failed_transition_retire_sound_only_starts_on_new_failure() {
 }
 
 #[test]
+fn landmine_se_should_play_respects_auto_keysound_mine_flag() {
+    use crate::app::integrations::landmine_se_should_play;
+    use bmz_core::ids::{NoteId, SoundId};
+    use bmz_core::lane::Lane;
+    use bmz_core::time::TimeUs;
+    use bmz_gameplay::judge::model::MineHitEvent;
+    use bmz_gameplay::session::PlayAudioMix;
+
+    fn audio_mix(auto_keysound: bool, auto_keysound_mine: bool) -> PlayAudioMix {
+        PlayAudioMix {
+            master_volume: 1.0,
+            chart_normalization_gain: 1.0,
+            normalize_chart_volume: true,
+            key_volume: 1.0,
+            bgm_volume: 1.0,
+            auto_keysound,
+            auto_keysound_fallback: false,
+            auto_keysound_mine,
+        }
+    }
+
+    let no_chart_sound = MineHitEvent {
+        note_id: NoteId(1),
+        lane: Lane::Key1,
+        damage: 10.0,
+        sound: None,
+        time: TimeUs(0),
+    };
+    let with_chart_sound = MineHitEvent { sound: Some(SoundId(1)), ..no_chart_sound };
+
+    // auto_keysound OFF: 既定 SE は常に鳴る (従来どおり)。
+    assert!(landmine_se_should_play(&[no_chart_sound], audio_mix(false, false)));
+    // auto_keysound ON かつ auto_keysound_mine ON: 鳴る。
+    assert!(landmine_se_should_play(&[no_chart_sound], audio_mix(true, true)));
+    // auto_keysound ON かつ auto_keysound_mine OFF: 既定 SE も抑制する。
+    assert!(!landmine_se_should_play(&[no_chart_sound], audio_mix(true, false)));
+    // 譜面指定音があるヒットは既定 SE の対象外 (通常の keysound 経路で鳴る)。
+    assert!(!landmine_se_should_play(&[with_chart_sound], audio_mix(true, true)));
+}
+
+#[test]
 fn target_cycle_maps_start_arrow_and_scratch_controls() {
     let keys = default_select_keys();
     let gamepad_keys =
@@ -493,6 +534,41 @@ fn window_title_uses_scene_name() {
 }
 
 #[test]
+fn viewer_wait_and_shutdown_keep_the_last_play_snapshot_as_the_active_scene() {
+    use crate::app::scene_state::viewer_uses_play_scene;
+
+    assert!(viewer_uses_play_scene(true, true, false, true));
+    assert!(viewer_uses_play_scene(true, false, true, true));
+    assert!(!viewer_uses_play_scene(true, true, false, false));
+    assert!(!viewer_uses_play_scene(true, false, false, true));
+    assert!(!viewer_uses_play_scene(false, true, true, true));
+}
+
+#[test]
+fn viewer_shutdown_completes_and_retains_the_faded_play_snapshot() {
+    use crate::app::viewer::complete_viewer_exit_fade;
+
+    let mut snapshot = Some(RenderSnapshot::default());
+    complete_viewer_exit_fade(&mut snapshot, 300);
+
+    assert_eq!(
+        snapshot.and_then(|snapshot| snapshot.fadeout_elapsed_ms),
+        Some(bmz_render::snapshot::DEFAULT_PLAY_FADEOUT_DURATION_MS)
+    );
+}
+
+#[test]
+fn cli_mode_flags_resolve_without_using_the_profile_default() {
+    use crate::app::constructor::initial_session_mode;
+
+    assert_eq!(initial_session_mode(true, true, false), SessionMode::AutoplayBattle);
+    assert_eq!(initial_session_mode(true, false, false), SessionMode::GBattle);
+    assert_eq!(initial_session_mode(false, true, false), SessionMode::Autoplay);
+    assert_eq!(initial_session_mode(false, false, true), SessionMode::Practice);
+    assert_eq!(initial_session_mode(false, false, false), SessionMode::Normal);
+}
+
+#[test]
 fn deferred_boot_action_keeps_practice_boot_after_window_init() {
     let mut options = AppOptions {
         boot_practice: true,
@@ -513,7 +589,30 @@ fn deferred_boot_action_keeps_practice_boot_after_window_init() {
     options.boot_practice = false;
     assert_eq!(
         deferred_boot_action(Some(42), &options),
-        Some(DeferredBoot::Chart { chart_id: 42, replay_slot: None })
+        Some(DeferredBoot::Chart {
+            chart_id: 42,
+            replay_slot: None,
+            skip_decide: false,
+            score_save_disabled: false,
+            start_time_us: None,
+            bms_random_seed: None,
+        })
+    );
+
+    options.viewer_play = true;
+    options.skip_decide = true;
+    options.boot_start_time_us = Some(2_500_000);
+    options.boot_bms_random_seed = Some(99);
+    assert_eq!(
+        deferred_boot_action(Some(42), &options),
+        Some(DeferredBoot::Chart {
+            chart_id: 42,
+            replay_slot: None,
+            skip_decide: true,
+            score_save_disabled: true,
+            start_time_us: Some(2_500_000),
+            bms_random_seed: Some(99),
+        })
     );
 }
 

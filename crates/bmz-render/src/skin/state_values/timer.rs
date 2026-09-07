@@ -10,6 +10,8 @@ pub(super) fn skin_timer_elapsed_ms(timer: Option<i32>, state: &SkinDrawState) -
         Some(SKIN_TIMER_BMZ_INPUT_BASE..=SKIN_TIMER_BMZ_INPUT_LAST) => {
             state.logical_input_press_ms[(timer.unwrap() - SKIN_TIMER_BMZ_INPUT_BASE) as usize]
         }
+        Some(SKIN_TIMER_BMZ_E1_E2_PRESS) => state.e1_e2_press_ms,
+        Some(SKIN_TIMER_BMZ_E1_E2_RELEASE) => state.e1_e2_release_ms,
         Some(SKIN_TIMER_BMZ_JUDGE_LANE_BASE..=SKIN_TIMER_BMZ_JUDGE_LANE_LAST) => {
             state.judge_lane_ms[(timer.unwrap() - SKIN_TIMER_BMZ_JUDGE_LANE_BASE) as usize]
         }

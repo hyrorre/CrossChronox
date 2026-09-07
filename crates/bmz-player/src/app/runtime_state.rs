@@ -128,6 +128,8 @@ pub(super) struct PlayRuntimeState {
     pub(super) play_option_input: Option<PlayOptionInput>,
     pub(super) play_analog_scroll_buffer: i32,
     pub(super) play_analog_last_tick_at: Option<Instant>,
+    /// 現在のPlay入場で開始/READY演出を表示するかを表すapp側の表現状態。
+    pub(super) play_entry_presentation: PlayEntryPresentation,
     pub(super) play_scene_started_at: Instant,
     pub(super) play_ready_sound_started_at: Option<Instant>,
     /// READY 前に E1/E2 が最後に押されていた時刻。

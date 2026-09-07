@@ -2,12 +2,12 @@ use super::*;
 
 impl WinitApp {
     pub(super) fn poll_play_preload(&mut self) {
-        if self
-            .play
-            .play_ending
-            .as_ref()
-            .is_some_and(|ending| ending.completion == PlayEndingCompletion::Select)
-        {
+        if self.play.play_ending.as_ref().is_some_and(|ending| {
+            matches!(
+                ending.completion,
+                PlayEndingCompletion::Select | PlayEndingCompletion::ViewerExit
+            )
+        }) {
             return;
         }
         // 1) preload worker からの結果を受け取り (Decide 演出中でも受信して退避する)。
@@ -269,8 +269,10 @@ impl WinitApp {
         self.clear_play_control_holds();
         self.stop_system_sound(crate::system_sound::SoundType::PlayReady);
         self.play.decide_sound_stopped_for_chart_start = true;
-        self.clear_play_meta_image_state();
-        self.play.last_play_snapshot = None;
+        if !self.viewer_mode {
+            self.clear_play_meta_image_state();
+            self.play.last_play_snapshot = None;
+        }
         // An audio-open / audio-start failure bounces the user back to the
         // select screen.  If they were in a course at the time, the course
         // session is no longer valid — otherwise the next chart they pick
@@ -281,6 +283,14 @@ impl WinitApp {
         self.play.play_media_cache = None;
         // Result から Retry した直後は、前回結果の score DB 更新を
         // SelectItem がまだ取り込んでいない。曲開始前退出でも必ず再取得する。
+        if self.viewer_mode {
+            self.viewer_waiting = true;
+            self.stop_select_preview();
+            if let Some(manager) = &self.audio.system_sound {
+                manager.stop_all_bgm();
+            }
+            return;
+        }
         self.reload_select_items();
         self.reload_skin_for_scene_entry(SkinKind::Select);
         self.restart_select_scene_timers();

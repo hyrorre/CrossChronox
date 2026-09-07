@@ -236,10 +236,12 @@ pub fn sync_ir_rivals_into_profile(
 
 pub(super) fn load_active_profile_with_paths(
     app_paths: &AppPaths,
+    profile_id: Option<&str>,
 ) -> Result<(ProfilePaths, ProfileConfig)> {
     let app_config = load_app_config(&app_paths.config_toml)
         .context("failed to load data/config.toml; run the app once to create it")?;
-    let profile_paths = resolve_profile_paths(app_paths, &app_config.active_profile)?;
+    let profile_id = profile_id.unwrap_or(&app_config.active_profile);
+    let profile_paths = resolve_profile_paths(app_paths, profile_id)?;
     let profile = load_profile_config(&profile_paths.profile_toml).with_context(|| {
         format!("failed to load profile config: {}", profile_paths.profile_toml.display())
     })?;

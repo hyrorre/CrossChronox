@@ -96,7 +96,9 @@ fn pm_chara_motion(
     }
 
     if let Some(elapsed) = state.music_end_ms {
-        let motion = if state.gauge >= state.gauge_max {
+        let motion = if definition.side == 2 {
+            if state.gauge >= state.gauge_border { 16 } else { 15 }
+        } else if state.gauge >= state.gauge_max {
             17
         } else if state.gauge >= state.gauge_border {
             15
@@ -108,14 +110,19 @@ fn pm_chara_motion(
         }
     }
 
-    if definition.side != 2
-        && let (Some(elapsed), Some(judge)) = (state.judge_ms[0], state.judge_index[0])
-    {
-        let motion = match judge {
-            0 | 1 if state.gauge >= state.gauge_max => 6,
-            0 | 1 => 7,
-            2 => 8,
-            _ => 10,
+    if let (Some(elapsed), Some(judge)) = (state.judge_ms[0], state.judge_index[0]) {
+        let motion = if definition.side == 2 {
+            match judge {
+                0..=2 => 10,
+                _ => 7,
+            }
+        } else {
+            match judge {
+                0 | 1 if state.gauge >= state.gauge_max => 6,
+                0 | 1 => 7,
+                2 => 8,
+                _ => 10,
+            }
         };
         let duration = runtime
             .motions

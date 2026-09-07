@@ -87,6 +87,42 @@ fn pm_chara_sources() -> HashMap<String, SkinDocumentTexture> {
     )])
 }
 
+fn single_frame_pm_chara_motion(motion: i32, source_id: &str) -> SkinPmCharaMotionLayerDef {
+    SkinPmCharaMotionLayerDef {
+        motion,
+        source_id: source_id.to_string(),
+        frame_ms: 200,
+        loop_start: 0,
+        frames: vec![SkinPmCharaFrameDef {
+            source_x: 0,
+            source_y: 0,
+            source_w: 20,
+            source_h: 30,
+            destination_x: 0,
+            destination_y: 0,
+            destination_w: 20,
+            destination_h: 30,
+            alpha: 255,
+            angle: 0,
+        }],
+    }
+}
+
+fn insert_pm_chara_source(
+    sources: &mut HashMap<String, SkinDocumentTexture>,
+    source_id: &str,
+    texture: SkinTextureId,
+) {
+    sources.insert(
+        source_id.to_string(),
+        SkinDocumentTexture {
+            source_id: source_id.to_string(),
+            texture,
+            source_size: SkinImageSize { width: 20.0, height: 30.0 },
+        },
+    );
+}
+
 #[test]
 fn pm_chara_renders_neutral_animation_frames_and_inner_geometry() {
     let document = pm_chara_document();
@@ -142,5 +178,84 @@ fn pm_chara_uses_recent_great_reaction_motion() {
     assert!(matches!(
         items.as_slice(),
         [SkinRenderItem::Image { uv: TextureRegion { x, .. }, .. }] if approx_eq(*x, 0.5)
+    ));
+}
+
+#[test]
+fn pm_chara_side_two_uses_opponent_judgement_reactions() {
+    let mut document = pm_chara_document();
+    document.pmchara[0].side = 2;
+    document.pmchara[0]
+        .runtime
+        .as_mut()
+        .unwrap()
+        .motions
+        .push(single_frame_pm_chara_motion(10, "pm-bad"));
+    let mut sources = pm_chara_sources();
+    insert_pm_chara_source(&mut sources, "pm-bad", SkinTextureId(78));
+    let mut state = SkinDrawState { elapsed_ms: 1_000, gauge: 50.0, ..Default::default() };
+    state.judge_ms[0] = Some(0);
+    state.judge_index[0] = Some(0);
+
+    let player_success = document.static_image_render_items(&sources, &state);
+    state.judge_index[0] = Some(3);
+    let player_failure = document.static_image_render_items(&sources, &state);
+
+    assert!(matches!(
+        player_success.as_slice(),
+        [SkinRenderItem::Image { texture: SkinTextureId(78), .. }]
+    ));
+    assert!(matches!(
+        player_failure.as_slice(),
+        [SkinRenderItem::Image {
+            texture: SkinTextureId(77),
+            uv: TextureRegion { x, .. },
+            ..
+        }] if approx_eq(*x, 0.5)
+    ));
+}
+
+#[test]
+fn pm_chara_side_two_inverts_music_end_result() {
+    let mut document = pm_chara_document();
+    document.pmchara[0].side = 2;
+    document.pmchara[0].runtime.as_mut().unwrap().motions.extend([
+        single_frame_pm_chara_motion(15, "pm-win"),
+        single_frame_pm_chara_motion(16, "pm-lose"),
+        single_frame_pm_chara_motion(17, "pm-fever-win"),
+    ]);
+    let mut sources = pm_chara_sources();
+    insert_pm_chara_source(&mut sources, "pm-win", SkinTextureId(79));
+    insert_pm_chara_source(&mut sources, "pm-lose", SkinTextureId(80));
+    insert_pm_chara_source(&mut sources, "pm-fever-win", SkinTextureId(81));
+
+    let player_clear = document.static_image_render_items(
+        &sources,
+        &SkinDrawState {
+            music_end_ms: Some(0),
+            gauge: 100.0,
+            gauge_border: 80.0,
+            gauge_max: 100.0,
+            ..Default::default()
+        },
+    );
+    let player_failed = document.static_image_render_items(
+        &sources,
+        &SkinDrawState {
+            music_end_ms: Some(0),
+            gauge: 50.0,
+            gauge_border: 80.0,
+            gauge_max: 100.0,
+            ..Default::default()
+        },
+    );
+
+    assert!(matches!(
+        player_clear.as_slice(),
+        [SkinRenderItem::Image { texture: SkinTextureId(80), .. }]
+    ));
+    assert!(matches!(
+        player_failed.as_slice(),
+        [SkinRenderItem::Image { texture: SkinTextureId(79), .. }]
     ));
 }

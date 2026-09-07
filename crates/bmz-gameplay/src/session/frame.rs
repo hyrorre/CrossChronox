@@ -18,7 +18,10 @@ pub fn sync_judge_windows(session: &mut GameSession, now: TimeUs) {
     ));
 }
 
-use super::judgement::{update_failed_state_from_gauge, update_gauge_max_timer};
+use super::judgement::{
+    update_failed_state_from_gauge, update_gauge_increase_timer_state, update_gauge_max_timer,
+    update_gauge_max_timer_state,
+};
 
 pub(super) fn sync_input_timestamp_anchor(session: &mut GameSession, audio_now: TimeUs) {
     session.input_timestamp_anchor = if session.audio_clock.running {
@@ -56,6 +59,22 @@ pub fn advance_session_frame(
                 * session.audio_mix.bgm_volume,
             audio,
         );
+
+        // キー音自動再生モード: ノーツの押下有無に関わらず、譜面の生タイミングで
+        // キー音を鳴らす。入力オフセット・表示オフセットは適用しない。
+        // 押鍵時のキー音は `schedule_keysounds` 側で抑制する。
+        if session.audio_mix.auto_keysound {
+            session.auto_keysound_scheduler.schedule_until(
+                &session.chart,
+                &session.display_only_lane_mask,
+                &session.audio_clock,
+                times.audio_schedule_until,
+                session.audio_mix.master_volume
+                    * session.audio_mix.effective_normalization_gain()
+                    * session.audio_mix.key_volume,
+                audio,
+            );
+        }
     }
 
     if session.state == PlayState::Playing {
@@ -110,6 +129,168 @@ pub fn advance_session_frame(
     }
 }
 
+/// Viewer の途中再生開始前に、過去の入力・判定 cursor を無音で進める。
+/// 開始時刻より前に判定時刻を迎えたscore対象ノートはPGREATとして事前集計し、
+/// 境界時刻のノートはその位置からのAutoplay対象として残す。
+pub fn prepare_viewer_seek(session: &mut GameSession, start_time: TimeUs) {
+    session.judge.skip_before(&session.chart, start_time);
+    apply_viewer_pgreat_prefix(session, start_time);
+    if let Some(autoplay) = &mut session.autoplay {
+        autoplay.skip_before(&session.chart, start_time);
+        for lane in Lane::ALL {
+            if autoplay.is_lane_enabled(lane)
+                && session.judge.lanes[lane.index()].active_long.is_some()
+            {
+                session.lane_keyon_started_at[lane.index()] = Some(start_time);
+                session.lane_keyoff_started_at[lane.index()] = None;
+                session.lane_auto_release_at[lane.index()] = None;
+            }
+        }
+    }
+    if let Some(replay) = &mut session.replay_player {
+        replay.skip_before(start_time);
+    }
+    if let Some(opponent) = &mut session.battle_opponent {
+        opponent.judge.skip_before(&opponent.chart, start_time);
+        apply_battle_opponent_viewer_pgreat_prefix(opponent, start_time);
+        if let Some(autoplay) = &mut opponent.autoplay {
+            autoplay.skip_before(&opponent.chart, start_time);
+            for lane in Lane::ALL {
+                if autoplay.is_lane_enabled(lane)
+                    && opponent.judge.lanes[lane.index()].active_long.is_some()
+                {
+                    opponent.lane_keyon_started_at[lane.index()] = Some(start_time);
+                }
+            }
+        }
+        if let Some(replay) = &mut opponent.replay_player {
+            replay.skip_before(start_time);
+        }
+    }
+    session.bgm_scheduler = BgmScheduler::starting_at(&session.chart, start_time);
+}
+
+fn apply_viewer_pgreat_prefix(session: &mut GameSession, start_time: TimeUs) {
+    let display_only_lane_mask = session.display_only_lane_mask;
+    let events = viewer_pgreat_prefix_events(&session.chart, start_time, |lane| {
+        !display_only_lane_mask[lane.index()]
+    });
+    for event in events {
+        session.score.apply(&event);
+        session.gauge.apply_judge(Judge::PGreat, 1.0);
+        if let Some(note_id) = event.note_id {
+            session.judge.judged_notes.insert(note_id, Judge::PGreat);
+            session.result_judgements.insert(
+                note_id,
+                ResultJudgementDetail {
+                    judge: Judge::PGreat,
+                    side: TimingSide::Slow,
+                    delta: TimeUs(0),
+                    time: event.time,
+                },
+            );
+        }
+    }
+    session.course_max_combo = session.course_max_combo.max(session.display_combo());
+    if session.scored_total_notes != 0
+        && session.score.past_notes == session.scored_total_notes
+        && session.score.combo == session.scored_total_notes
+    {
+        session.full_combo_started_at = Some(start_time);
+    }
+
+    if session.battle_opponent.is_none() {
+        let opponent_events = viewer_pgreat_prefix_events(&session.chart, start_time, |lane| {
+            display_only_lane_mask[lane.index()]
+        });
+        for event in opponent_events {
+            if let Some(score) = &mut session.opponent_score {
+                score.apply(&event);
+            }
+            if let Some(gauge) = &mut session.opponent_gauge {
+                gauge.apply_judge(Judge::PGreat, 1.0);
+            }
+        }
+        if session.scored_total_notes != 0
+            && session.opponent_score.as_ref().is_some_and(|score| {
+                score.past_notes == session.scored_total_notes
+                    && score.combo == session.scored_total_notes
+            })
+        {
+            session.opponent_full_combo_started_at = Some(start_time);
+        }
+    }
+}
+
+fn apply_battle_opponent_viewer_pgreat_prefix(
+    opponent: &mut BattleOpponentSession,
+    start_time: TimeUs,
+) {
+    for event in viewer_pgreat_prefix_events(&opponent.chart, start_time, |_| true) {
+        opponent.score.apply(&event);
+        opponent.gauge.apply_judge(Judge::PGreat, 1.0);
+    }
+    if opponent.scored_total_notes != 0
+        && opponent.score.past_notes == opponent.scored_total_notes
+        && opponent.score.combo == opponent.scored_total_notes
+    {
+        opponent.full_combo_started_at = Some(start_time);
+    }
+}
+
+fn viewer_pgreat_prefix_events(
+    chart: &PlayableChart,
+    start_time: TimeUs,
+    mut includes_lane: impl FnMut(Lane) -> bool,
+) -> Vec<JudgementEvent> {
+    let mut events = Vec::new();
+    for lane in Lane::ALL {
+        if !includes_lane(lane) {
+            continue;
+        }
+        for note in chart.notes_for_lane(lane).iter().filter(|note| note.time < start_time) {
+            let note_id = match note.kind {
+                NoteKind::Tap => Some(note.id),
+                NoteKind::LongStart => chart
+                    .long_notes
+                    .iter()
+                    .find(|pair| pair.start_note_id == note.id)
+                    .filter(|pair| {
+                        matches!(
+                            pair.mode.unwrap_or(chart.metadata.long_note_mode),
+                            LongNoteMode::Cn | LongNoteMode::Hcn
+                        )
+                    })
+                    .map(|_| note.id),
+                NoteKind::LongEnd => {
+                    chart.long_notes.iter().find(|pair| pair.end_note_id == note.id).map(|pair| {
+                        if pair.mode.unwrap_or(chart.metadata.long_note_mode) == LongNoteMode::Ln {
+                            pair.start_note_id
+                        } else {
+                            pair.end_note_id
+                        }
+                    })
+                }
+                NoteKind::Invisible | NoteKind::Mine => None,
+            };
+            let Some(note_id) = note_id else {
+                continue;
+            };
+            events.push(JudgementEvent {
+                note_id: Some(note_id),
+                lane,
+                judge: Judge::PGreat,
+                side: TimingSide::Slow,
+                delta: TimeUs(0),
+                time: note.time,
+                affects_score: true,
+            });
+        }
+    }
+    events.sort_by_key(|event| (event.time, event.lane.index(), event.note_id));
+    events
+}
+
 fn advance_battle_opponent(session: &mut GameSession, now: TimeUs) {
     let playback_rate_percent = session.audio_clock.playback_rate_percent();
     let Some(opponent) = &mut session.battle_opponent else {
@@ -158,6 +339,7 @@ fn advance_battle_opponent(session: &mut GameSession, now: TimeUs) {
     display_judgements.extend(apply_battle_opponent_outcome(opponent, mine_outcome));
     let miss_outcome = opponent.judge.process_misses(&opponent.chart, now);
     display_judgements.extend(apply_battle_opponent_outcome(opponent, miss_outcome));
+    update_battle_opponent_skin_timers(opponent, &display_judgements, now);
 
     if !publish_display_judgements {
         return;
@@ -194,7 +376,16 @@ fn apply_battle_opponent_outcome(
     for event in outcome.events {
         if event.affects_score {
             opponent.score.apply(&event);
+            let previous_gauge = opponent.gauge.current().value;
             opponent.gauge.apply_judge(event.judge, 1.0);
+            let current = opponent.gauge.current();
+            update_gauge_increase_timer_state(
+                &mut opponent.gauge_increase_started_at,
+                previous_gauge,
+                current.value,
+                current.definition.max,
+                event.time,
+            );
         }
         display_judgements
             .push(DisplayJudgementEvent { judgement: event, combo: opponent.score.combo });
@@ -203,6 +394,34 @@ fn apply_battle_opponent_outcome(
         opponent.gauge.apply_mine(mine.damage);
     }
     display_judgements
+}
+
+fn update_battle_opponent_skin_timers(
+    opponent: &mut BattleOpponentSession,
+    display_judgements: &[DisplayJudgementEvent],
+    now: TimeUs,
+) {
+    let current = opponent.gauge.current();
+    update_gauge_max_timer_state(
+        &mut opponent.gauge_increase_started_at,
+        &mut opponent.gauge_max_started_at,
+        current.value,
+        current.definition.max,
+        now,
+    );
+    if opponent.full_combo_started_at.is_some()
+        || opponent.scored_total_notes == 0
+        || opponent.score.past_notes < opponent.scored_total_notes
+        || opponent.score.combo < opponent.scored_total_notes
+    {
+        return;
+    }
+    opponent.full_combo_started_at = display_judgements
+        .iter()
+        .rev()
+        .find(|display| display.judgement.affects_score && display.judgement.note_id.is_some())
+        .map(|display| display.judgement.time)
+        .or(Some(TimeUs(now.0.max(0))));
 }
 
 fn second_player_lane(lane: Lane) -> Lane {

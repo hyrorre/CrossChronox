@@ -18,6 +18,9 @@ struct BeatorajaCourse {
     /// Standard beatoraja course format: array of song objects with title/md5/sha256.
     #[serde(default, alias = "song")]
     hash: Vec<BeatorajaCourseSong>,
+    /// bmstable header format used by jbmstable-parser.
+    #[serde(default)]
+    charts: Vec<BeatorajaCourseSong>,
     /// Stella/table-embedded format: flat array of MD5 hex strings.
     #[serde(default, rename = "md5")]
     md5_list: Vec<String>,
@@ -90,6 +93,15 @@ pub fn parse_beatoraja_course_json(source: &str, json: &str) -> Result<Vec<Cours
         .enumerate()
         .map(|(index, course)| convert_beatoraja_course(source, index, course))
         .collect()
+}
+
+pub(crate) fn parse_beatoraja_course_value(
+    source: &str,
+    index: usize,
+    value: serde_json::Value,
+) -> Result<CourseDefinition> {
+    let course: BeatorajaCourse = serde_json::from_value(value)?;
+    convert_beatoraja_course(source, index, course)
 }
 
 pub(crate) fn next_local_course_key<'a>(keys: impl IntoIterator<Item = &'a str>) -> String {
@@ -178,10 +190,12 @@ fn convert_beatoraja_course(
     index: usize,
     course: BeatorajaCourse,
 ) -> Result<CourseDefinition> {
-    // Build entries from `hash` (object format) or fall back to `md5_list` (string format).
-    let entries: Vec<CourseEntry> = if !course.hash.is_empty() {
-        course
-            .hash
+    let BeatorajaCourse { name, hash, charts, md5_list, constraint, trophy, release } = course;
+    // Build entries from the local-course `hash` object format, the bmstable
+    // `charts` object format, or the older flat `md5` string format.
+    let object_entries = if !hash.is_empty() { hash } else { charts };
+    let entries: Vec<CourseEntry> = if !object_entries.is_empty() {
+        object_entries
             .into_iter()
             .enumerate()
             .map(|(entry_index, song)| CourseEntry {
@@ -195,10 +209,9 @@ fn convert_beatoraja_course(
                 chart_id: None,
             })
             .collect()
-    } else if !course.md5_list.is_empty() {
+    } else if !md5_list.is_empty() {
         // Stella/table format: md5 is a flat array of hex strings.
-        course
-            .md5_list
+        md5_list
             .into_iter()
             .enumerate()
             .map(|(entry_index, md5)| CourseEntry {
@@ -216,13 +229,11 @@ fn convert_beatoraja_course(
         bail!("course has no entries");
     }
 
-    let title =
-        if course.name.trim().is_empty() { "No Course Title".to_string() } else { course.name };
+    let title = if name.trim().is_empty() { "No Course Title".to_string() } else { name };
     let constraints =
-        CourseConstraints::from_beatoraja_names(course.constraint.iter().map(String::as_str));
+        CourseConstraints::from_beatoraja_names(constraint.iter().map(String::as_str));
     let kind = CourseDefinition::derive_kind_from_constraints(&constraints);
-    let trophies = course
-        .trophy
+    let trophies = trophy
         .into_iter()
         .map(|trophy| CourseTrophy {
             name: trophy.name,
@@ -238,7 +249,7 @@ fn convert_beatoraja_course(
         entries,
         constraints,
         trophies,
-        release: course.release,
+        release,
     };
     normalize_course_definition(&mut definition);
     Ok(definition)

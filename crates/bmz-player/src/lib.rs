@@ -58,4 +58,5 @@ pub mod table_cmd;
 pub mod ui;
 pub mod update;
 pub mod video_bga;
+pub mod viewer_ipc;
 pub mod window_config;

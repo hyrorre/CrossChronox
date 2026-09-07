@@ -115,6 +115,17 @@ impl AudioClock {
     }
 
     pub fn pause(&mut self) {
+        if self.running {
+            self.chart_zero_time_us = self.now().0;
+            self.start_output_frame = self.current_frame.load(Ordering::Relaxed);
+        }
+        self.running = false;
+        self.started_at = None;
+    }
+
+    pub fn pause_at(&mut self, chart_time: TimeUs) {
+        self.chart_zero_time_us = chart_time.0;
+        self.start_output_frame = self.current_frame.load(Ordering::Relaxed);
         self.running = false;
         self.started_at = None;
     }
@@ -197,6 +208,20 @@ mod tests {
         assert_eq!(clock.now(), TimeUs(0));
         assert_eq!(clock.time_to_output_frame(TimeUs(1_000_000)), 48_000);
         assert_eq!(clock.elapsed_since(TimeUs(0)), TimeUs(0));
+    }
+
+    #[test]
+    fn pause_at_freezes_exact_chart_time_until_restarted() {
+        let current_frame = Arc::new(AtomicU64::new(48_000));
+        let mut clock = AudioClock::with_position(48_000, 0, 0, Arc::clone(&current_frame), true);
+
+        clock.pause_at(TimeUs(1_250_000));
+        current_frame.store(96_000, Ordering::Relaxed);
+
+        assert_eq!(clock.now(), TimeUs(1_250_000));
+        assert!(!clock.running);
+        clock.start_at(TimeUs(1_250_000), Instant::now());
+        assert!(clock.running);
     }
 
     #[test]

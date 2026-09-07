@@ -28,11 +28,14 @@ pub(crate) fn select_video_stream(
         .stream(stream_index)
         .ok_or_else(|| anyhow::anyhow!("selected video stream not available"))?;
     let tb = stream.time_base();
+    let start_time_raw =
+        (stream.start_time() != ffmpeg_next::ffi::AV_NOPTS_VALUE).then_some(stream.start_time());
     tracing::debug!(stream_index, best_index, "selected video stream for BGA decode");
     Ok(SelectedVideoStream {
         index: stream_index,
         time_base_num: tb.numerator() as i64,
         time_base_den: tb.denominator() as i64,
+        start_time_raw,
         codec_params,
     })
 }
@@ -55,6 +58,36 @@ pub(crate) fn rewind_video_decoder(
     ictx.seek(0, ..)?;
     decoder.flush();
     Ok(())
+}
+
+pub(crate) fn seek_video_decoder(
+    ictx: &mut ffmpeg_next::format::context::Input,
+    decoder: &mut ffmpeg_next::decoder::Video,
+    selected: &SelectedVideoStream,
+    video_offset_us: i64,
+) -> Result<()> {
+    let stream_start_us = selected.start_time_raw.map_or(0, |start_time_raw| {
+        timestamp_raw_to_us(start_time_raw, selected.time_base_num, selected.time_base_den)
+    });
+    let target_us = stream_start_us.saturating_add(video_offset_us.max(0));
+    ictx.seek(target_us, ..target_us)?;
+    decoder.flush();
+    Ok(())
+}
+
+pub(crate) fn timestamp_raw_to_us(
+    timestamp_raw: i64,
+    time_base_num: i64,
+    time_base_den: i64,
+) -> i64 {
+    if time_base_den == 0 {
+        return 0;
+    }
+    let timestamp_us = i128::from(timestamp_raw)
+        .saturating_mul(i128::from(time_base_num))
+        .saturating_mul(1_000_000)
+        / i128::from(time_base_den);
+    timestamp_us.clamp(i128::from(i64::MIN), i128::from(i64::MAX)) as i64
 }
 
 pub(crate) fn video_stream_bit_rate(params: &ffmpeg_next::codec::Parameters) -> usize {
