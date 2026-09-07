@@ -222,6 +222,53 @@ impl ResultSummary {
 }
 
 impl ResultGraphCollector {
+    pub(crate) fn for_runtime(chart: &PlayableChart) -> Self {
+        let mut collector = Self::default();
+        collector.graph.judge_graph_density =
+            bmz_render::chart_graph::build_judge_graph_density(chart);
+        collector.graph.bpm_graph_segments =
+            bmz_render::chart_graph::build_bpm_graph_segments(chart);
+        collector
+            .graph
+            .timing_points
+            .reserve(bmz_gameplay::score::scored_note_count(chart) as usize);
+        collector
+    }
+    /// Result data is sampled by gameplay, independently of snapshot publication.
+    pub(crate) fn record_runtime_frame(
+        &mut self,
+        session: &GameSession,
+        frame: &bmz_gameplay::session::SessionFrame,
+    ) {
+        let time_ms = clamp_us_to_ms(frame.times.audio_now.0.max(0));
+        if self.next_gauge_sample_ms <= time_ms {
+            self.graph.gauge_points.extend(session.gauge.gauges.iter().map(|gauge| {
+                ResultGaugeGraphPoint {
+                    time_ms: self.next_gauge_sample_ms,
+                    value: gauge.value,
+                    max: gauge.definition.max,
+                    border: gauge.definition.border,
+                    gauge_type: gauge.definition.gauge_type as i32,
+                    course_section_start: false,
+                }
+            }));
+            self.next_gauge_sample_ms =
+                self.next_gauge_sample_ms.saturating_add(RESULT_GAUGE_GRAPH_SAMPLE_MS);
+        }
+        self.graph.hit_error_ring = bmz_render::snapshot::HitErrorRingSnapshot {
+            values: session.hit_error_ring.values,
+            index: session.hit_error_ring.index,
+        };
+        for event in frame.judgements.iter().filter(|event| event.affects_score) {
+            let delta_us = -event.delta.0;
+            self.graph.timing_points.push(ResultTimingPoint {
+                time_ms: clamp_us_to_ms(event.time.0 - event.delta.0),
+                delta_us,
+                judge: event.judge,
+            });
+            self.graph.timing_distribution.add(clamp_us_to_ms(delta_us));
+        }
+    }
     pub fn snapshot_for_source(
         &self,
         source: &dyn crate::screens::play_finish::FinishSessionSource,

@@ -66,6 +66,8 @@ struct Worker {
     commands: mpsc::SyncSender<EditSession>,
     latest: Arc<Mutex<Option<Publication>>>,
     stop: Arc<AtomicBool>,
+    snapshot_requested: Arc<AtomicBool>,
+    event_ack: Arc<AtomicU64>,
     thread: JoinHandle<()>,
 }
 
@@ -154,11 +156,26 @@ impl GameplayClient {
         let worker_latest = Arc::clone(&latest);
         let worker_stop = Arc::clone(&stop);
         let generation = self.generation;
+        let snapshot_requested = Arc::new(AtomicBool::new(true));
+        let request = snapshot_requested.clone();
+        let event_ack = Arc::new(AtomicU64::new(0));
+        let worker_ack = event_ack.clone();
         let thread =
             thread::Builder::new().name(format!("bmz-gameplay-{generation}")).spawn(move || {
-                run(runtime, audio, config, receiver, worker_latest, worker_stop, generation)
+                run(
+                    runtime,
+                    audio,
+                    config,
+                    receiver,
+                    worker_latest,
+                    worker_stop,
+                    generation,
+                    request,
+                    worker_ack,
+                )
             })?;
-        self.worker = Some(Worker { commands, latest, stop, thread });
+        self.worker =
+            Some(Worker { commands, latest, stop, snapshot_requested, event_ack, thread });
         tracing::info!(
             generation,
             "gameplay runtime: dedicated thread; audio scheduling: gameplay runtime"
@@ -168,10 +185,15 @@ impl GameplayClient {
 
     pub fn poll(&mut self) -> Option<FrameOutput<RenderSnapshot>> {
         let worker = self.worker.as_ref()?;
+        worker.snapshot_requested.store(true, Ordering::Release);
+        worker.thread.thread().unpark();
         let publication = worker.latest.try_lock().ok().and_then(|mut latest| latest.take());
         if let Some(publication) = publication {
             if publication.generation != self.generation {
                 return None;
+            }
+            if let Some(event) = publication.frame.render_snapshot.skin_events.last() {
+                worker.event_ack.store(event.sequence.saturating_add(1), Ordering::Release);
             }
             self.session = publication.session;
             self.result = publication.result;
@@ -211,12 +233,16 @@ fn run(
     latest: Arc<Mutex<Option<Publication>>>,
     stop: Arc<AtomicBool>,
     generation: u64,
+    snapshot_requested: Arc<AtomicBool>,
+    event_ack: Arc<AtomicU64>,
 ) {
-    let mut graph = ResultGraphCollector::default();
+    let mut graph = ResultGraphCollector::for_runtime(&runtime.session.chart);
     let mut history = VecDeque::<SkinRuntimeEvent>::with_capacity(PRESENTATION_HISTORY_CAPACITY);
     let mut result = None;
     let mut terminal_result = false;
     let mut last_time = TimeUs(i64::MIN);
+    let mut last_visual_time = i64::MIN;
+    let mut last_publication = Instant::now() - Duration::from_secs(1);
     runtime.session.input_system.backend.set_waker(Some(thread::current()));
     while !stop.load(Ordering::Acquire) {
         let iteration_started = Instant::now();
@@ -227,7 +253,7 @@ fn run(
             break;
         }
         let previous_state = runtime.session.state;
-        let frame = runtime.advance(&audio);
+        let mut frame = runtime.advance(&audio);
         if let Some(effects) = &config.effects {
             if runtime.session.guide_se_enabled {
                 for event in &frame.judgements {
@@ -245,39 +271,12 @@ fn run(
             }
         }
         crate::screens::play_loop::log_audio_scheduling_latency(&audio);
-        let mut frame = crate::screens::play_loop::frame_output_from_session_frame_cached(
-            &runtime.session,
-            frame,
-            config.best_ex_score,
-            config.best_ghost.as_deref(),
-            config.target_ex_score,
-            &config.bga_frames,
-            &config.cache,
-        );
-        let snapshot = &mut frame.render_snapshot;
-        crate::screens::play_loop::apply_play_arrange_to_snapshot(
-            snapshot,
-            &config.applied_arrange,
-        );
-        snapshot.target.clone_from(&config.target);
-        snapshot.skin_attempt = config.skin_attempt;
-        snapshot.rule_mode_index =
-            crate::skin_extension::rule_mode_index(config.score_key.rule_mode);
-        snapshot.ln_score_policy_index =
-            Some(crate::skin_extension::ln_score_policy_index(config.score_key.ln_policy));
-        snapshot.practice_mode = config.practice_mode;
-        snapshot.score_save_enabled = !snapshot.autoplay
-            && !snapshot.replay_playback
-            && !config.practice_mode
-            && !config.score_save_disabled
-            && runtime.session.assist.score_update_enabled();
-        crate::screens::play_snapshot::refresh_play_skin_visuals(snapshot, &runtime.session);
         debug_assert!(
-            snapshot.time >= last_time,
+            frame.times.audio_now >= last_time,
             "gameplay clock moved backwards within a generation"
         );
-        last_time = snapshot.time;
-        graph.record_frame(&frame);
+        last_time = frame.times.audio_now;
+        graph.record_runtime_frame(&runtime.session, &frame);
         let terminal = matches!(runtime.session.state, PlayState::Finished | PlayState::Failed);
         if (result.is_none()
             && bmz_gameplay::session::result_is_settled(&runtime.session, last_time))
@@ -302,6 +301,59 @@ fn run(
             }
             history.push_back(event);
         }
+
+        // Acknowledgement means the renderer owns a detached event copy.
+        // Its timers use event timestamps, so expired animations are not replayed
+        // as new effects after a stall; stateful observers still see every event.
+        let ack = event_ack.load(Ordering::Acquire);
+        while history.front().is_some_and(|event| event.sequence < ack) {
+            history.pop_front();
+        }
+        let publish = snapshot_requested.swap(false, Ordering::AcqRel)
+            || last_publication.elapsed() >= Duration::from_millis(8)
+            || previous_state != frame.state;
+        if !publish {
+            let remaining =
+                runtime.next_wake_after(SAFETY_WAKE).saturating_sub(iteration_started.elapsed());
+            if !remaining.is_zero() {
+                thread::park_timeout(remaining);
+            }
+            continue;
+        }
+        last_publication = Instant::now();
+        // Auto timing adjustment changes the offset by small steps. Clamp only
+        // the visual projection; judgement, saved offsets and replay stay exact.
+        let original_visual_offset = runtime.session.offsets.visual_offset_us;
+        last_visual_time = last_visual_time.max(last_time.0.saturating_add(original_visual_offset));
+        runtime.session.offsets.visual_offset_us = last_visual_time.saturating_sub(last_time.0);
+        let mut frame = crate::screens::play_loop::frame_output_from_session_frame_cached(
+            &runtime.session,
+            frame,
+            config.best_ex_score,
+            config.best_ghost.as_deref(),
+            config.target_ex_score,
+            &config.bga_frames,
+            &config.cache,
+        );
+        runtime.session.offsets.visual_offset_us = original_visual_offset;
+        let snapshot = &mut frame.render_snapshot;
+        crate::screens::play_loop::apply_play_arrange_to_snapshot(
+            snapshot,
+            &config.applied_arrange,
+        );
+        snapshot.target.clone_from(&config.target);
+        snapshot.skin_attempt = config.skin_attempt;
+        snapshot.rule_mode_index =
+            crate::skin_extension::rule_mode_index(config.score_key.rule_mode);
+        snapshot.ln_score_policy_index =
+            Some(crate::skin_extension::ln_score_policy_index(config.score_key.ln_policy));
+        snapshot.practice_mode = config.practice_mode;
+        snapshot.score_save_enabled = !snapshot.autoplay
+            && !snapshot.replay_playback
+            && !config.practice_mode
+            && !config.score_save_disabled
+            && runtime.session.assist.score_update_enabled();
+        crate::screens::play_snapshot::refresh_play_skin_visuals(snapshot, &runtime.session);
         frame.render_snapshot.skin_events = history.iter().cloned().collect();
         let publication = Publication {
             generation,
