@@ -25,6 +25,20 @@ impl WinitApp {
         self.select.select_mode_filter = resolved_mode_filter;
         self.boot.profile_config.select.mode_filter = resolved_mode_filter.as_str().to_string();
         self.select.select_items = items;
+        if self.select.folder_stack.last().and_then(|path| parse_search_query(path)).is_some() {
+            let count = self
+                .select
+                .select_items
+                .iter()
+                .filter(|item| matches!(item, SelectItem::Chart(_)))
+                .count();
+            let mut args = FluentArgs::new();
+            args.set("count", count as i64);
+            self.select.search.set_message(
+                Localizer::new(self.boot.profile_config.ui.locale())
+                    .format("select-search-results", &args),
+            );
+        }
         self.select.replay_slot_cache.replace(None);
         self.select.select_distribution_cache.borrow_mut().clear();
         self.select.selected_index = restored_select_index(

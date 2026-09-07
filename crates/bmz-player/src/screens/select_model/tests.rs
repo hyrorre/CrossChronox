@@ -19,6 +19,34 @@ use crate::storage::migration::{
 use crate::storage::score_db::{ScoreDatabase, ScoreRecord};
 
 #[test]
+fn search_keeps_active_duplicate_before_deduplication() {
+    let (mut library_db, score_db) = open_in_memory_dbs();
+    let duplicate = chart("Formula");
+    for path in ["/old/song.bms", "/active/song.bms", "/active/copy.bms"] {
+        library_db.upsert_chart_import(&record_for_chart(path, &duplicate)).unwrap();
+    }
+    let outside = chart("Formula outside");
+    library_db.upsert_chart_import(&record_for_chart("/active-other/song.bms", &outside)).unwrap();
+    for roots in [vec!["/active".to_string()], vec!["/active/".to_string()]] {
+        let items = load_select_items_for_search_for_rule_mode_with_filters(
+            &library_db,
+            &score_db,
+            "formula",
+            LnPolicySetting::default(),
+            RuleMode::Beatoraja,
+            &[],
+            Some(&roots),
+            None,
+        )
+        .unwrap();
+        assert_eq!(items.len(), 1);
+        let SelectItem::Chart(row) = &items[0] else { panic!("expected chart") };
+        assert_eq!(row.chart.as_ref().unwrap().folder_path, "/active");
+    }
+    assert!(library_db.search_charts_in_roots("formula", Some(&[])).unwrap().is_empty());
+}
+
+#[test]
 fn new_course_action_is_available_without_chart_ids() {
     let item = new_course_item_for_locale(AppLocale::Ja);
     assert_eq!(item.display_name(), "新規コース");

@@ -936,7 +936,8 @@ impl WinitApp {
         if query.is_empty() {
             return;
         }
-        let hit_count = match self.boot.library_db.search_charts(&query) {
+        let roots = enabled_root_paths(&self.boot.app_config);
+        let hit_count = match self.boot.library_db.search_charts_in_roots(&query, Some(&roots)) {
             Ok(charts) => charts.len(),
             Err(error) => {
                 tracing::error!(%error, %query, "song search failed");
@@ -957,12 +958,6 @@ impl WinitApp {
         self.select.search.record_successful_query(query.clone());
 
         self.set_search_mode(false);
-        let mut args = FluentArgs::new();
-        args.set("count", hit_count as i64);
-        self.select.search.set_message(
-            Localizer::new(self.boot.profile_config.ui.locale())
-                .format("select-search-results", &args),
-        );
 
         // 検索結果フォルダへ入る。`enter_or_play_selected` と同じ流儀でカーソル
         // 位置を退避してから push する。

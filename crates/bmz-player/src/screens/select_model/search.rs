@@ -65,8 +65,7 @@ pub fn load_select_items_for_search_for_rule_mode_with_filters(
     active_song_roots: Option<&[String]>,
     active_table_sources: Option<&[String]>,
 ) -> Result<Vec<SelectItem>> {
-    let mut charts = library_db.search_charts(query)?;
-    retain_active_charts(&mut charts, active_song_roots);
+    let charts = library_db.search_charts_in_roots(query, active_song_roots)?;
     chart_items_with_enrichment(
         library_db,
         score_db,

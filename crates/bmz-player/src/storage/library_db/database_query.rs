@@ -572,41 +572,68 @@ impl LibraryDatabase {
     /// `query` as a case-insensitive substring. Equivalent to beatoraja
     /// `SQLiteSongDatabaseAccessor.getSongDatasByText`.
     pub fn search_charts(&self, query: &str) -> Result<Vec<ChartListItem>> {
-        self.search_charts_with_limit(query, None)
+        self.search_charts_with_limit(query, None, None)
+    }
+
+    pub fn search_charts_in_roots(
+        &self,
+        query: &str,
+        roots: Option<&[String]>,
+    ) -> Result<Vec<ChartListItem>> {
+        self.search_charts_with_limit(query, None, roots)
     }
 
     /// Searches chart metadata while limiting the rows materialized by SQLite.
     /// UI callers should use this instead of collecting every match and truncating it.
     pub fn search_charts_limited(&self, query: &str, limit: u32) -> Result<Vec<ChartListItem>> {
-        self.search_charts_with_limit(query, Some(limit))
+        self.search_charts_with_limit(query, Some(limit), None)
     }
 
     fn search_charts_with_limit(
         &self,
         query: &str,
         limit: Option<u32>,
+        roots: Option<&[String]>,
     ) -> Result<Vec<ChartListItem>> {
         let pattern = format!("%{}%", escape_like(query));
-        let limit_clause = if limit.is_some() { " LIMIT ?2" } else { "" };
+        let mut values = vec![rusqlite::types::Value::Text(pattern)];
+        let root_clause = if let Some(roots) = roots {
+            if roots.is_empty() {
+                return Ok(Vec::new());
+            }
+            let predicates: Vec<_> = roots.iter().map(|root| {
+                let root = library_path_key(Path::new(root));
+                values.push(rusqlite::types::Value::Text(root.trim_end_matches('/').to_string()));
+                let index = values.len();
+                format!("(folder_path = ?{index} OR substr(folder_path, 1, length(?{index}) + 1) = ?{index} || '/')")
+            }).collect();
+            format!(" AND ({})", predicates.join(" OR "))
+        } else {
+            String::new()
+        };
+        let limit_clause = if let Some(limit) = limit {
+            values.push(rusqlite::types::Value::Integer(i64::from(limit)));
+            format!(" LIMIT ?{}", values.len())
+        } else {
+            String::new()
+        };
         let mut stmt = self.conn.prepare(&format!(
             "SELECT {CHART_LIST_ITEM_COLUMNS}
             FROM charts
-            WHERE title LIKE ?1 ESCAPE '\\'
+            WHERE id IN (
+            SELECT MIN(id) FROM charts
+            WHERE (title LIKE ?1 ESCAPE '\\'
                OR subtitle LIKE ?1 ESCAPE '\\'
                OR artist LIKE ?1 ESCAPE '\\'
                OR subartist LIKE ?1 ESCAPE '\\'
-               OR genre LIKE ?1 ESCAPE '\\'
-            GROUP BY sha256
+               OR genre LIKE ?1 ESCAPE '\\')
+            {root_clause}
+            GROUP BY sha256)
             ORDER BY title COLLATE NOCASE, artist COLLATE NOCASE, play_level COLLATE NOCASE
             {limit_clause}"
         ))?;
-        if let Some(limit) = limit {
-            let rows = stmt.query_map(params![pattern, limit], chart_list_item_from_row)?;
-            rows.collect::<std::result::Result<Vec<_>, _>>().map_err(Into::into)
-        } else {
-            let rows = stmt.query_map(params![pattern], chart_list_item_from_row)?;
-            rows.collect::<std::result::Result<Vec<_>, _>>().map_err(Into::into)
-        }
+        let rows = stmt.query_map(rusqlite::params_from_iter(values), chart_list_item_from_row)?;
+        rows.collect::<std::result::Result<Vec<_>, _>>().map_err(Into::into)
     }
 
     pub fn primary_chart_file_path(&self, chart_id: i64) -> Result<Option<String>> {
