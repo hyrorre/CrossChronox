@@ -81,6 +81,7 @@ pub struct GameplayClient {
     worker: Option<Worker>,
     generation: u64,
     latest_frame: Option<Arc<FrameOutput<RenderSnapshot>>>,
+    snapshot_diagnostics: SnapshotDiagnostics,
     pub result: Option<Arc<RuntimeResult>>,
 }
 
@@ -92,6 +93,7 @@ impl GameplayClient {
             worker: None,
             generation: NEXT_GENERATION.fetch_add(1, Ordering::Relaxed),
             latest_frame: None,
+            snapshot_diagnostics: SnapshotDiagnostics::default(),
             result: None,
         }
     }
@@ -202,6 +204,13 @@ impl GameplayClient {
             self.result = publication.result;
             self.latest_frame = Some(publication.frame);
         }
+        if let Some(frame) = self.latest_frame.as_deref() {
+            self.snapshot_diagnostics.record(
+                self.generation,
+                self.session.audio_clock.now(),
+                frame.render_snapshot.time,
+            );
+        }
         self.latest_frame.as_deref().cloned()
     }
 
@@ -218,6 +227,40 @@ impl GameplayClient {
             if worker.thread.is_finished() {
                 let _ = worker.thread.join();
             }
+        }
+    }
+}
+
+#[derive(Default)]
+struct SnapshotDiagnostics {
+    started: Option<Instant>,
+    previous: Option<TimeUs>,
+    age: bmz_core::latency::LatencyHistogram,
+    step: bmz_core::latency::LatencyHistogram,
+    repeats: u64,
+}
+
+impl SnapshotDiagnostics {
+    fn record(&mut self, generation: u64, audio_now: TimeUs, snapshot_time: TimeUs) {
+        if !tracing::enabled!(target: "bmz_player::frame_pacing", tracing::Level::DEBUG) {
+            return;
+        }
+        let now = Instant::now();
+        let started = *self.started.get_or_insert(now);
+        let age_us = audio_now.0.saturating_sub(snapshot_time.0).max(0) as u64;
+        self.age.record(age_us);
+        if let Some(previous) = self.previous.replace(snapshot_time) {
+            let step_us = snapshot_time.0.saturating_sub(previous.0);
+            self.repeats += u64::from(step_us == 0);
+            self.step.record(step_us.max(0) as u64);
+            tracing::trace!(target: "bmz_player::frame_pacing", generation, age_us, step_us, "snapshot cadence sample");
+        }
+        if now.duration_since(started) >= Duration::from_secs(5) {
+            tracing::debug!(target: "bmz_player::frame_pacing", generation, age_us = ?self.age.summary(), step_us = ?self.step.summary(), repeats = self.repeats, "snapshot cadence");
+            self.age = Default::default();
+            self.step = Default::default();
+            self.repeats = 0;
+            self.started = Some(now);
         }
     }
 }

@@ -15,6 +15,7 @@ pub(super) struct FrameRuntime {
     pending_wake: Option<PendingFrameWake>,
     current_pacing_timings: FramePacingTimings,
     consecutive_deadline_misses: u32,
+    cadence: FrameCadence,
     select_profiler: SceneFrameProfiler,
     decide_profiler: SceneFrameProfiler,
     play_profiler: SceneFrameProfiler,
@@ -39,6 +40,7 @@ impl FrameRuntime {
             pending_wake: None,
             current_pacing_timings: FramePacingTimings::default(),
             consecutive_deadline_misses: 0,
+            cadence: FrameCadence::default(),
             select_profiler: SceneFrameProfiler::default(),
             decide_profiler: SceneFrameProfiler::default(),
             play_profiler: SceneFrameProfiler::default(),
@@ -64,6 +66,7 @@ impl FrameRuntime {
 
         self.skip_next_pace = false;
         self.pacer.record_frame_started(now, fps, skip_wait);
+        self.cadence.record(now, fps);
         self.current_pacing_timings = self
             .pending_wake
             .take()
@@ -80,6 +83,7 @@ impl FrameRuntime {
         self.fps.reset(now);
         self.pending_wake = None;
         self.consecutive_deadline_misses = 0;
+        self.cadence = FrameCadence::default();
         self.select_profiler = SceneFrameProfiler::default();
         self.decide_profiler = SceneFrameProfiler::default();
         self.play_profiler = SceneFrameProfiler::default();
@@ -303,6 +307,38 @@ fn normalized_fps(presented_frames: u32, elapsed: Duration) -> u32 {
 struct FramePacer {
     next_frame_at: Option<Instant>,
     fps: Option<u32>,
+}
+
+/// CPU frame cadence is distinct from the monitor's displayed frame cadence.
+/// TRACE permits offline correlation without synchronous file IO in this loop.
+#[derive(Default)]
+struct FrameCadence {
+    previous: Option<Instant>,
+    started: Option<Instant>,
+    intervals: bmz_core::latency::LatencyHistogram,
+    error: bmz_core::latency::LatencyHistogram,
+}
+
+impl FrameCadence {
+    fn record(&mut self, now: Instant, fps: u32) {
+        if !tracing::enabled!(target: "bmz_player::frame_pacing", tracing::Level::DEBUG) {
+            return;
+        }
+        let started = *self.started.get_or_insert(now);
+        if let Some(previous) = self.previous.replace(now) {
+            let interval_us = duration_us_saturating(now.duration_since(previous));
+            let error_us = interval_us.abs_diff(duration_us_saturating(frame_budget_or_zero(fps)));
+            self.intervals.record(interval_us);
+            self.error.record(error_us);
+            tracing::trace!(target: "bmz_player::frame_pacing", fps, interval_us, error_us, "frame cadence sample");
+        }
+        if now.duration_since(started) >= Duration::from_secs(5) {
+            tracing::debug!(target: "bmz_player::frame_pacing", fps, interval_us = ?self.intervals.summary(), error_us = ?self.error.summary(), "CPU frame cadence");
+            self.intervals = Default::default();
+            self.error = Default::default();
+            self.started = Some(now);
+        }
+    }
 }
 
 impl FramePacer {
