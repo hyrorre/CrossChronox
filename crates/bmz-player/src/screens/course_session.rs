@@ -182,7 +182,36 @@ impl ActiveCourseSession {
             match assist_level {
                 AssistLevel::Assist => ClearType::AssistEasy,
                 AssistLevel::LightAssist => ClearType::LightAssistEasy,
-                AssistLevel::None => last_result.map(|r| r.clear_type).unwrap_or(ClearType::NoPlay),
+                AssistLevel::None => {
+                    if total_notes > 0
+                        && judge_counts.bad == 0
+                        && judge_counts.poor == 0
+                        && judge_counts.pgreat + judge_counts.great + judge_counts.good
+                            == total_notes
+                    {
+                        if judge_counts.good > 0 {
+                            ClearType::FullCombo
+                        } else if judge_counts.great > 0 {
+                            ClearType::Perfect
+                        } else {
+                            ClearType::Max
+                        }
+                    } else {
+                        last_result
+                            .map(|result| {
+                                // A last-stage FC lamp does not describe the entire course.
+                                bmz_gameplay::gauge::gauge_definitions_for_rule_mode(
+                                    Default::default(),
+                                    self.rule_mode,
+                                )
+                                .into_iter()
+                                .find(|definition| definition.gauge_type == result.gauge_type)
+                                .and_then(|definition| definition.clear_type)
+                                .unwrap_or(ClearType::Failed)
+                            })
+                            .unwrap_or(ClearType::NoPlay)
+                    }
+                }
             }
         };
         let final_gauge_type = last_result.map(|r| r.gauge_type).unwrap_or(GaugeType::Normal);
@@ -289,6 +318,23 @@ mod tests {
         ScoreState {
             judges: JudgeCounts { fast_pgreat: pgreat, fast_poor: poor, ..Default::default() },
             ..Default::default()
+        }
+    }
+
+    #[test]
+    fn course_completion_lamp_uses_all_stage_judgements() {
+        let mut missed = make_session(1, vec![(make_score(9, 1), 10), (make_score(10, 0), 10)]);
+        missed.entry_results[1].finished.result.clear_type = ClearType::Max;
+        assert_eq!(missed.into_result().final_clear_type, ClearType::Normal);
+        for (good, great, expected) in
+            [(1, 0, ClearType::FullCombo), (0, 1, ClearType::Perfect), (0, 0, ClearType::Max)]
+        {
+            let mut first = make_score(10 - good - great, 0);
+            first.judges.fast_good = good;
+            first.judges.fast_great = great;
+            let mut session = make_session(1, vec![(first, 10), (make_score(10, 0), 10)]);
+            session.entry_results[1].finished.result.clear_type = ClearType::Max;
+            assert_eq!(session.into_result().final_clear_type, expected);
         }
     }
 
