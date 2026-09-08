@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
 
   const tokens = await createAuthTokens(userId, { clientType: body.client_type ?? 'web' })
   await setUserSession(event, {
+    secure: { sessionGroupId: tokens.sessionGroupId },
     user: {
       id: userId,
       email,

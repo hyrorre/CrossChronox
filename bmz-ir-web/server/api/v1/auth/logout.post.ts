@@ -1,5 +1,5 @@
 import { getBearerToken } from '../../../utils/auth'
-import { revokeToken } from '../../../utils/auth_tokens'
+import { revokeToken, revokeWebSession } from '../../../utils/auth_tokens'
 
 interface LogoutBody {
   refresh_token?: string
@@ -15,6 +15,10 @@ export default defineEventHandler(async (event) => {
     await revokeToken(body.refresh_token, 'refresh')
   }
 
+  const session = await getUserSession(event)
+  if (session.user?.id && session.secure?.sessionGroupId) {
+    await revokeWebSession(session.user.id, session.secure.sessionGroupId)
+  }
   await clearUserSession(event)
 
   return { logged_out: true }

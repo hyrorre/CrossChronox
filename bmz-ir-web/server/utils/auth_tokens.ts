@@ -10,6 +10,7 @@ type ClientType = 'web' | 'desktop'
 type RevocationReason = SessionRevocationReason
 
 export interface AuthTokenPair {
+  sessionGroupId: string
   accessToken: string
   refreshToken: string
   accessExpiresAt: number
@@ -66,7 +67,44 @@ export async function createAuthTokens(
     },
   ])
 
-  return { accessToken, refreshToken, accessExpiresAt }
+  return { sessionGroupId, accessToken, refreshToken, accessExpiresAt }
+}
+
+export async function findUserByWebSession(
+  userId: string,
+  sessionGroupId: string,
+  now = Date.now(),
+) {
+  const rows = await db
+    .select({ id: schema.users.id, email: schema.users.email })
+    .from(schema.sessions)
+    .innerJoin(schema.users, eq(schema.sessions.userId, schema.users.id))
+    .where(
+      and(
+        eq(schema.sessions.userId, userId),
+        eq(schema.sessions.sessionGroupId, sessionGroupId),
+        eq(schema.sessions.clientType, 'web'),
+        eq(schema.sessions.kind, 'refresh'),
+        isNull(schema.sessions.revokedAt),
+        gt(schema.sessions.expiresAt, new Date(now)),
+      ),
+    )
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function revokeWebSession(userId: string, sessionGroupId: string) {
+  await db
+    .update(schema.sessions)
+    .set({ revokedAt: new Date(), revokedReason: 'logout' })
+    .where(
+      and(
+        eq(schema.sessions.userId, userId),
+        eq(schema.sessions.sessionGroupId, sessionGroupId),
+        eq(schema.sessions.clientType, 'web'),
+        isNull(schema.sessions.revokedAt),
+      ),
+    )
 }
 
 export async function findUserByAccessToken(token: string, now = Date.now()) {

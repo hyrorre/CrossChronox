@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import { getHeader, createError } from 'h3'
-import { findUserByAccessToken } from './auth_tokens'
+import { findUserByAccessToken, findUserByWebSession } from './auth_tokens'
 
 export interface IrUser {
   id: string
@@ -23,10 +23,11 @@ export async function resolveIrUser(event: H3Event): Promise<IrUser | null> {
 
   const session = await getUserSession(event)
   const user = session.user as { id?: string; email?: string } | undefined
-  if (!user?.id) {
+  const sessionGroupId = session.secure?.sessionGroupId
+  if (!user?.id || !sessionGroupId) {
     return null
   }
-  return { id: user.id, email: user.email }
+  return findUserByWebSession(user.id, sessionGroupId)
 }
 
 export function getBearerToken(event: H3Event): string | null {
