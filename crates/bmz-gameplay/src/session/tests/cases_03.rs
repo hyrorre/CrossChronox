@@ -545,7 +545,7 @@ fn advance_session_frame_skips_human_inputs_when_replay_active() {
     };
     use crate::input::binding::{BindingEntry, LaneBinding};
 
-    let chart = chart_with_keysound();
+    let chart = chart_with_mine(TimeUs(0), 8.0);
     let mut session = session_with_autoplay(chart);
     // 入力バインディングを設定して Z キーを Key1 にマップ
     let mut backend = BufferedInputBackend::default();
@@ -574,7 +574,8 @@ fn advance_session_frame_skips_human_inputs_when_replay_active() {
     session.autoplay = None;
     let mut audio = TestAudio::default();
 
-    advance_session_frame(&mut session, &mut audio);
+    let before_gauge = session.gauge.current().value;
+    let frame = advance_session_frame(&mut session, &mut audio);
 
     // 人間入力は judge にも recorder にも渡らない
     assert_eq!(session.score.judges.fast_pgreat + session.score.judges.slow_pgreat, 0);
@@ -582,6 +583,9 @@ fn advance_session_frame_skips_human_inputs_when_replay_active() {
     assert!(session.replay_recorder.events.is_empty());
     // recent_inputs だけは Press が反映される (視覚エフェクト用)
     assert_eq!(session.recent_inputs.len(), 1);
+    assert_eq!(session.lane_keyon_started_at[Lane::Key1.index()], None);
+    assert_eq!(session.gauge.current().value, before_gauge);
+    assert!(frame.mine_hits.is_empty());
 }
 
 #[test]

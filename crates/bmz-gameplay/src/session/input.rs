@@ -168,7 +168,6 @@ pub fn drain_human_inputs(session: &mut GameSession) {
     };
     let inputs = session.input_system.collect_game_inputs(&ctx);
     update_recent_inputs(session, &inputs, session.audio_clock.now());
-    update_lane_key_states(session, &inputs);
 }
 
 /// READY 開始前の play 導入中に、判定へは渡さず keybeam / lazer 用の lane key 状態だけ更新する。
