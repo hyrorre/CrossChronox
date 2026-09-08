@@ -66,6 +66,19 @@ pub(super) async fn sync_pending_ir_jobs_with_filter(
                 .push(format!("job {}: provider '{}' not configured", job.id, job.provider));
             continue;
         };
+        // Keep the checked token for this job: loading it again during submission
+        // could pick up a different account after a concurrent login.
+        let credentials =
+            match credentials_for_job(profile_root, provider, &job.account_id, job_now).await {
+                Ok(credentials) => credentials,
+                Err(error) => {
+                    let message = format!("{error:#}");
+                    network_db.mark_ir_score_job_failed(job.id, job_now, &message, None)?;
+                    report.failed += 1;
+                    report.messages.push(format!("job {}: {message}", job.id));
+                    continue;
+                }
+            };
         match job.kind {
             IrJobKind::Replay => {
                 let replay_result = submit_replay_job(
@@ -74,7 +87,7 @@ pub(super) async fn sync_pending_ir_jobs_with_filter(
                     &job.payload_json,
                     replay_paths.get(&job.id).and_then(Option::as_deref),
                     job.local_score_id,
-                    job_now,
+                    credentials,
                 )
                 .await;
                 match replay_result {
@@ -116,7 +129,7 @@ pub(super) async fn sync_pending_ir_jobs_with_filter(
                     profile_root,
                     provider,
                     &job.payload_json,
-                    job_now,
+                    credentials,
                 )
                 .await;
                 match attestation_result {
@@ -172,7 +185,7 @@ pub(super) async fn sync_pending_ir_jobs_with_filter(
                             profile_root,
                             provider,
                             &job.payload_json,
-                            job_now,
+                            credentials,
                             include_ranking,
                         )
                         .await
@@ -182,7 +195,7 @@ pub(super) async fn sync_pending_ir_jobs_with_filter(
                             profile_root,
                             provider,
                             &job.payload_json,
-                            job_now,
+                            credentials,
                         )
                         .await
                     }

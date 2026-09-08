@@ -122,6 +122,22 @@ pub async fn ensure_fresh_credentials(
     Ok(refreshed)
 }
 
+async fn credentials_for_job(
+    profile_root: &Path,
+    provider: &IrProviderConfig,
+    account_id: &str,
+    now: i64,
+) -> Result<IrStoredCredentials> {
+    let provider_key = crate::ir::provider_key::configured_provider_key(provider)
+        .context("IR provider key is not set; log in again")?;
+    let credentials =
+        ensure_fresh_credentials(profile_root, provider_key, &provider.base_url, now).await?;
+    if credentials.account_id != account_id {
+        bail!("IR job belongs to account '{account_id}'; sign in to that account to retry");
+    }
+    Ok(credentials)
+}
+
 /// pending / failed (retry時刻到達済み) の IR スコアジョブを送信する。
 pub async fn sync_pending_ir_jobs(
     network_db: &mut NetworkDatabase,
@@ -190,6 +206,37 @@ use replay::*;
 mod tests {
     use super::*;
     use crate::ln_policy::LnScorePolicy;
+
+    #[tokio::test]
+    async fn queued_credentials_require_the_original_account() {
+        let stamp =
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let root =
+            std::env::temp_dir().join(format!("bmz-ir-job-account-{}-{stamp}", std::process::id()));
+        let mut provider = IrProviderConfig::bmz_ir();
+        provider.provider_key = "bmz-test".into();
+        let key = crate::ir::provider_key::configured_provider_key(&provider).unwrap();
+        let mut credentials = IrStoredCredentials {
+            provider: key.to_string(),
+            account_id: "account-b".into(),
+            display_name: String::new(),
+            access_token: "token-b".into(),
+            refresh_token: String::new(),
+            expires_at: None,
+        };
+        save_credentials(&root, &credentials).unwrap();
+        let error = credentials_for_job(&root, &provider, "account-a", 100).await.unwrap_err();
+        assert!(error.to_string().contains("belongs to account 'account-a'"));
+        credentials.account_id = "account-a".into();
+        credentials.access_token = "token-a".into();
+        save_credentials(&root, &credentials).unwrap();
+        let checked = credentials_for_job(&root, &provider, "account-a", 100).await.unwrap();
+        credentials.account_id = "account-b".into();
+        save_credentials(&root, &credentials).unwrap();
+        assert_eq!(checked.account_id, "account-a");
+        assert_eq!(checked.access_token, "token-a");
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn ir_sync_throttles_keep_background_and_cli_budgets_separate() {

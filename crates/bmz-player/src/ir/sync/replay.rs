@@ -126,7 +126,7 @@ pub(super) async fn submit_replay_job(
     payload_json: &str,
     replay_path: Option<&str>,
     local_score_id: i64,
-    now: i64,
+    credentials: IrStoredCredentials,
 ) -> Result<()> {
     if crate::ir::bms_ir::is_bms_ir_config(provider) {
         bail!("BMS-IR replay upload is not supported");
@@ -142,10 +142,6 @@ pub(super) async fn submit_replay_job(
     let replay_path = replay_path.to_string();
     let bytes =
         std::fs::read(profile_root.join(&replay_path)).context("failed to read replay file")?;
-    let provider_key = crate::ir::provider_key::configured_provider_key(provider)
-        .context("IR provider key is not set; log in again")?;
-    let credentials =
-        ensure_fresh_credentials(profile_root, provider_key, &provider.base_url, now).await?;
     let client = BmzOfficialIrClient::new(&provider.base_url, credentials.access_token)?;
     let target = client.replay_upload_url(&payload.remote_score_id).await?;
     client.upload_replay(&target.upload_url, bytes).await?;
@@ -179,17 +175,13 @@ pub(super) async fn submit_job_payload(
     profile_root: &Path,
     provider: &IrProviderConfig,
     payload_json: &str,
-    now: i64,
+    credentials: IrStoredCredentials,
     include_ranking: bool,
 ) -> Result<(String, String)> {
     let mut payload: IrScoreSubmission =
         serde_json::from_str(payload_json).context("failed to parse stored IR payload")?;
     normalize_legacy_score_seed_options(&mut payload);
     ensure_score_payload_allowed(provider, &payload)?;
-    let provider_key = crate::ir::provider_key::configured_provider_key(provider)
-        .context("IR provider key is not set; log in again")?;
-    let credentials =
-        ensure_fresh_credentials(profile_root, provider_key, &provider.base_url, now).await?;
     if crate::ir::bms_ir::is_bms_ir_config(provider) {
         let client = crate::ir::bms_ir::BmsIrClient::new(&provider.base_url)?;
         let outcome = client

@@ -4,7 +4,7 @@ pub(super) async fn submit_score_attestation_job(
     profile_root: &Path,
     provider: &IrProviderConfig,
     payload_json: &str,
-    now: i64,
+    credentials: IrStoredCredentials,
 ) -> Result<(String, String, String)> {
     if crate::ir::bms_ir::is_bms_ir_config(provider) {
         bail!("BMS-IR score attestation is not supported");
@@ -19,8 +19,6 @@ pub(super) async fn submit_score_attestation_job(
     }
     let provider_key = crate::ir::provider_key::configured_provider_key(provider)
         .context("IR provider key is not set; log in again")?;
-    let credentials =
-        ensure_fresh_credentials(profile_root, provider_key, &provider.base_url, now).await?;
     let client = BmzOfficialIrClient::new(&provider.base_url, credentials.access_token)?;
     let unsigned = serde_json::json!({
         "score_id": &payload.remote_score_id,
@@ -50,15 +48,13 @@ pub(super) async fn submit_course_job_payload(
     profile_root: &Path,
     provider: &IrProviderConfig,
     payload_json: &str,
-    now: i64,
+    credentials: IrStoredCredentials,
 ) -> Result<(String, String)> {
     let mut payload: serde_json::Value =
         serde_json::from_str(payload_json).context("failed to parse stored IR course payload")?;
     normalize_legacy_course_payload(&mut payload);
     let provider_key = crate::ir::provider_key::configured_provider_key(provider)
         .context("IR provider key is not set; log in again")?;
-    let credentials =
-        ensure_fresh_credentials(profile_root, provider_key, &provider.base_url, now).await?;
     if crate::ir::bms_ir::is_bms_ir_config(provider) {
         let client = crate::ir::bms_ir::BmsIrClient::new(&provider.base_url)?;
         let outcome = client
