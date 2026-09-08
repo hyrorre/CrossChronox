@@ -455,48 +455,6 @@ fn expand_json_skin_value_inner(
     }
 }
 
-#[cfg(test)]
-mod include_tests {
-    use super::*;
-
-    #[test]
-    fn includes_reject_cycles_and_depth_but_allow_reuse() {
-        let stamp =
-            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let root =
-            std::env::temp_dir().join(format!("bmz-json-include-{}-{stamp}", std::process::id()));
-        std::fs::create_dir_all(&root).unwrap();
-        let expand = |value| expand_json_skin_value(value, &root, &root, &[]);
-        std::fs::write(root.join("a.json"), r#"{"include":"./b.json"}"#).unwrap();
-        std::fs::write(root.join("b.json"), r#"[{"include":"a.json"}]"#).unwrap();
-        assert!(
-            expand(serde_json::json!({"include":"a.json"}))
-                .unwrap_err()
-                .to_string()
-                .contains("cyclic")
-        );
-        std::fs::write(root.join("b.json"), "[1,2]").unwrap();
-        assert_eq!(
-            expand(serde_json::json!([{"include":"a.json"},{"include":"a.json"}])).unwrap(),
-            serde_json::json!([1, 2, 1, 2])
-        );
-        for i in 0..65 {
-            std::fs::write(
-                root.join(format!("depth{i}.json")),
-                format!(r#"{{"include":"depth{}.json"}}"#, i + 1),
-            )
-            .unwrap();
-        }
-        assert!(
-            expand(serde_json::json!({"include":"depth0.json"}))
-                .unwrap_err()
-                .to_string()
-                .contains("maximum depth")
-        );
-        std::fs::remove_dir_all(root).unwrap();
-    }
-}
-
 pub fn load_included_json(
     include: &JsonValue,
     current_dir: &Path,
@@ -580,4 +538,46 @@ pub fn default_property_option(property: &JsonValue) -> Option<i32> {
         .and_then(|item| item.get("op"))
         .and_then(JsonValue::as_i64)
         .and_then(|op| i32::try_from(op).ok())
+}
+
+#[cfg(test)]
+mod include_tests {
+    use super::*;
+
+    #[test]
+    fn includes_reject_cycles_and_depth_but_allow_reuse() {
+        let stamp =
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let root =
+            std::env::temp_dir().join(format!("bmz-json-include-{}-{stamp}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let expand = |value| expand_json_skin_value(value, &root, &root, &[]);
+        std::fs::write(root.join("a.json"), r#"{"include":"./b.json"}"#).unwrap();
+        std::fs::write(root.join("b.json"), r#"[{"include":"a.json"}]"#).unwrap();
+        assert!(
+            expand(serde_json::json!({"include":"a.json"}))
+                .unwrap_err()
+                .to_string()
+                .contains("cyclic")
+        );
+        std::fs::write(root.join("b.json"), "[1,2]").unwrap();
+        assert_eq!(
+            expand(serde_json::json!([{"include":"a.json"},{"include":"a.json"}])).unwrap(),
+            serde_json::json!([1, 2, 1, 2])
+        );
+        for i in 0..65 {
+            std::fs::write(
+                root.join(format!("depth{i}.json")),
+                format!(r#"{{"include":"depth{}.json"}}"#, i + 1),
+            )
+            .unwrap();
+        }
+        assert!(
+            expand(serde_json::json!({"include":"depth0.json"}))
+                .unwrap_err()
+                .to_string()
+                .contains("maximum depth")
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }
