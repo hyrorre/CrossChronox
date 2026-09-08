@@ -196,11 +196,13 @@ impl GameplayClient {
                     config,
                     receiver,
                     worker_latest,
-                    worker_stop,
                     generation,
-                    request,
-                    worker_ack,
-                    worker_final_notes_processed,
+                    WorkerSignals {
+                        stop: worker_stop,
+                        snapshot_requested: request,
+                        event_ack: worker_ack,
+                        final_notes_processed: worker_final_notes_processed,
+                    },
                     projection_pool,
                 )
             })?;
@@ -319,19 +321,24 @@ impl Drop for GameplayClient {
     }
 }
 
+struct WorkerSignals {
+    stop: Arc<AtomicBool>,
+    snapshot_requested: Arc<AtomicBool>,
+    event_ack: Arc<AtomicU64>,
+    final_notes_processed: Arc<AtomicBool>,
+}
+
 fn run(
     mut runtime: GameplayRuntime,
     audio: AudioEngineHandle,
     mut config: RuntimeRenderConfig,
     commands: mpsc::Receiver<EditSession>,
     latest: Arc<Mutex<Option<Publication>>>,
-    stop: Arc<AtomicBool>,
     generation: u64,
-    snapshot_requested: Arc<AtomicBool>,
-    event_ack: Arc<AtomicU64>,
-    final_notes_processed: Arc<AtomicBool>,
+    signals: WorkerSignals,
     mut projection_pool: [Arc<PlayfieldProjection>; 3],
 ) {
+    let WorkerSignals { stop, snapshot_requested, event_ack, final_notes_processed } = signals;
     let audio = audio.for_play(stop.clone());
     if let Some(effects) = &mut config.effects {
         effects.bind_play(stop.clone());
