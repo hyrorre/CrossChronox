@@ -81,6 +81,7 @@ struct Worker {
 /// endpoint plus immutable observations, with no access to the live GameSession.
 pub struct GameplayClient {
     pub session: PlaySessionObservation,
+    final_notes_processed: Arc<AtomicBool>,
     local: Option<Box<GameplayRuntime>>,
     worker: Option<Worker>,
     generation: u64,
@@ -93,8 +94,11 @@ pub struct GameplayClient {
 
 impl GameplayClient {
     pub fn new(session: GameSession) -> Self {
+        let final_notes_processed =
+            Arc::new(AtomicBool::new(session.judge.is_exhausted(&session.chart)));
         Self {
             session: PlaySessionObservation::from_session(&session),
+            final_notes_processed,
             local: Some(Box::new(GameplayRuntime::new(session))),
             worker: None,
             generation: NEXT_GENERATION.fetch_add(1, Ordering::Relaxed),
@@ -115,6 +119,8 @@ impl GameplayClient {
             self.local.as_mut().expect("prepared session cannot be edited after runtime start");
         let result = edit(&mut runtime.session);
         self.session = PlaySessionObservation::from_session(&runtime.session);
+        self.final_notes_processed
+            .store(runtime.session.judge.is_exhausted(&runtime.session.chart), Ordering::Release);
         result
     }
 
@@ -122,6 +128,10 @@ impl GameplayClient {
         if let Some(runtime) = &mut self.local {
             edit(&mut runtime.session);
             self.session = PlaySessionObservation::from_session(&runtime.session);
+            self.final_notes_processed.store(
+                runtime.session.judge.is_exhausted(&runtime.session.chart),
+                Ordering::Release,
+            );
             return true;
         }
         let Some(worker) = &self.worker else {
@@ -177,6 +187,7 @@ impl GameplayClient {
         let request = snapshot_requested.clone();
         let event_ack = Arc::new(AtomicU64::new(0));
         let worker_ack = event_ack.clone();
+        let worker_final_notes_processed = self.final_notes_processed.clone();
         let thread =
             thread::Builder::new().name(format!("bmz-gameplay-{generation}")).spawn(move || {
                 run(
@@ -189,6 +200,7 @@ impl GameplayClient {
                     generation,
                     request,
                     worker_ack,
+                    worker_final_notes_processed,
                     projection_pool,
                 )
             })?;
@@ -199,6 +211,10 @@ impl GameplayClient {
             "gameplay runtime: dedicated thread; audio scheduling: gameplay runtime"
         );
         Ok(())
+    }
+
+    pub fn final_notes_processed(&self) -> bool {
+        self.final_notes_processed.load(Ordering::Acquire)
     }
 
     pub fn poll(&mut self) -> Option<FrameOutput<RenderSnapshot>> {
@@ -313,6 +329,7 @@ fn run(
     generation: u64,
     snapshot_requested: Arc<AtomicBool>,
     event_ack: Arc<AtomicU64>,
+    final_notes_processed: Arc<AtomicBool>,
     mut projection_pool: [Arc<PlayfieldProjection>; 3],
 ) {
     let audio = audio.for_play(stop.clone());
@@ -341,6 +358,8 @@ fn run(
             break;
         }
         let mut frame = runtime.advance(&audio);
+        final_notes_processed
+            .store(runtime.session.judge.is_exhausted(&runtime.session.chart), Ordering::Release);
         if let Some(effects) = &config.effects {
             if runtime.session.guide_se_enabled {
                 for event in &frame.judgements {

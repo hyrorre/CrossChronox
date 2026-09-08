@@ -263,6 +263,28 @@ fn runtime_publishes_target_id_and_resolved_name_from_the_first_frame() {
     client.shutdown();
 }
 
+#[test]
+fn final_note_state_reaches_input_path_without_render_poll() {
+    let session = prepared(SharedInputBackend::default());
+    let audio = AudioEngineHandle::new(AudioEngine::new(1_000_000));
+    let config = config(&session, Arc::new(RuntimeProbe::default()));
+    let mut client = GameplayClient::new(session);
+    client.start(audio, config).unwrap();
+
+    let commands = client.worker.as_ref().unwrap().commands.clone();
+    let wake = client.worker.as_ref().unwrap().thread.thread().clone();
+    commands
+        .send(Box::new(|session| {
+            session.audio_clock.current_frame.store(1_300_000, Ordering::Release);
+        }))
+        .unwrap();
+    wake.unpark();
+
+    wait_until(|| client.final_notes_processed());
+    assert!(!client.session.exhausted, "detached render observation must not be required");
+    client.shutdown();
+}
+
 fn run_mode_with_render_stall(stall_ms: u64, mode: u8) -> (String, u64) {
     let input = SharedInputBackend::default();
     let mut session = prepared(input.clone());

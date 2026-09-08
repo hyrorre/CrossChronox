@@ -466,7 +466,7 @@ impl WinitApp {
             self.play.play_ready_sound_started_at.is_some(),
             self.play.play_ending.is_some(),
             active_play.running.session.state,
-            active_play.running.session.exhausted,
+            active_play.running.gameplay.final_notes_processed(),
         );
         let practice_playing = self
             .play
