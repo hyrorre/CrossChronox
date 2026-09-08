@@ -195,6 +195,7 @@ pub struct SkinFontCacheKey {
     pub(super) modified: Option<SystemTime>,
     pub(super) len: u64,
     pub(super) is_bitmap: bool,
+    pub(super) pages: Vec<(PathBuf, Option<SystemTime>, u64)>,
 }
 
 impl SkinFontCache {

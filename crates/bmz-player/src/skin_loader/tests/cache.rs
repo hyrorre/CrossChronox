@@ -772,6 +772,63 @@ fn installed_font_snapshot_skips_font_payload_decode() {
 }
 
 #[test]
+fn bitmap_page_changes_invalidate_cached_and_installed_fonts() {
+    for (extension, definition) in [
+        (
+            "fnt",
+            "info face=Test size=1\ncommon lineHeight=1 base=1 scaleW=1 scaleH=1\npage id=0 file=\"page.png\"\nchar id=65 x=0 y=0 width=1 height=1 xoffset=0 yoffset=0 xadvance=1 page=0\n",
+        ),
+        ("lr2font", "#S,1\n#T,0,page.png\n#R,65,0,0,0,1,1\n"),
+    ] {
+        let root = unique_test_dir("bmz-bitmap-page-change");
+        fs::create_dir_all(&root).unwrap();
+        let font_path = root.join(format!("font.{extension}"));
+        let page_path = root.join("page.png");
+        fs::write(&font_path, definition).unwrap();
+        image::RgbaImage::from_pixel(1, 1, image::Rgba([255, 0, 0, 255])).save(&page_path).unwrap();
+        let cache = Arc::new(Mutex::new(SkinFontCache::default()));
+        let (_, _, old_key) = decode_font_with_cache(&font_path, Some(&cache)).unwrap();
+        let old_key = old_key.unwrap();
+        image::RgbaImage::from_pixel(2, 1, image::Rgba([0, 255, 0, 255])).save(&page_path).unwrap();
+        fs::File::options()
+            .write(true)
+            .open(&page_path)
+            .unwrap()
+            .set_modified(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_000_000_000))
+            .unwrap();
+        assert_ne!(skin_font_cache_key(&font_path).unwrap(), old_key);
+        assert_eq!(fs::read_to_string(&font_path).unwrap(), definition);
+        let skin_path = root.join("skin.json");
+        fs::write(
+            &skin_path,
+            format!(r#"{{"type":0,"font":[{{"id":"page-test","path":"font.{extension}"}}]}}"#),
+        )
+        .unwrap();
+        let decoded = decode_beatoraja_skin_with_options_and_runtime_state_and_caches(
+            &skin_path,
+            SkinKind::Play,
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            &LuaLoadRuntimeState::default(),
+            None,
+            None,
+            None,
+            Some(cache),
+            Some(HashMap::from([("play:page-test".into(), old_key)])),
+        )
+        .unwrap();
+        assert_eq!(decoded.stats.font_payload_skipped, 0);
+        assert_eq!(decoded.stats.font_cache_misses, 1);
+        let Some(DecodedFontData::Bitmap(font)) = &decoded.fonts[0].data else {
+            panic!("bitmap font payload")
+        };
+        assert_eq!(font.pages[&0].image.width, 2);
+        assert_eq!(&font.pages[&0].image.pixels[..4], &[0, 255, 0, 255]);
+        fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[test]
 fn skin_source_asset_cache_hit_skips_loader() {
     let root = unique_test_dir("bmz-source-cache-hit");
     std::fs::create_dir_all(&root).unwrap();

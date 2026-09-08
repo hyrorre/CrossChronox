@@ -44,8 +44,21 @@ pub(in crate::skin_loader) fn decode_font_with_cache_key(
 pub(in crate::skin_loader) fn skin_font_cache_key(path: &Path) -> Option<SkinFontCacheKey> {
     let metadata = fs::metadata(path).ok()?;
     let path = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+    let is_bitmap = is_bitmap_font_path(&path);
+    let mut pages = Vec::new();
+    if is_bitmap {
+        for page in bmz_render::bitmap_font::bitmap_font_page_paths(&path).ok()? {
+            let metadata = fs::metadata(&page).ok()?;
+            pages.push((
+                fs::canonicalize(&page).unwrap_or(page),
+                metadata.modified().ok(),
+                metadata.len(),
+            ));
+        }
+    }
     Some(SkinFontCacheKey {
-        is_bitmap: is_bitmap_font_path(&path),
+        is_bitmap,
+        pages,
         path,
         modified: metadata.modified().ok(),
         len: metadata.len(),

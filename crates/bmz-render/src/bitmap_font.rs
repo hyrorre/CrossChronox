@@ -55,6 +55,49 @@ pub fn load_bitmap_font(path: &Path) -> Result<BitmapFont> {
     .with_context(|| format!("failed to parse bitmap font: {}", path.display()))
 }
 
+/// Resolve page dependencies without decoding their pixels, for cache validation.
+pub fn bitmap_font_page_paths(path: &Path) -> Result<Vec<PathBuf>> {
+    let bytes = std::fs::read(path)?;
+    let base_dir = path.parent().unwrap_or_else(|| Path::new("."));
+    let lr2 = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("lr2font"));
+    let text = if lr2 { SHIFT_JIS.decode(&bytes).0 } else { String::from_utf8_lossy(&bytes) };
+    let mut paths = HashMap::new();
+    for line in text.lines().map(str::trim) {
+        if lr2 {
+            let fields =
+                line.trim_start_matches('\u{feff}').split(',').map(str::trim).collect::<Vec<_>>();
+            if fields.first().is_some_and(|command| command.eq_ignore_ascii_case("#T"))
+                && let Some((id, path)) = lr2_page_path(&fields, base_dir)
+            {
+                paths.insert(id, path);
+            }
+        } else if line.starts_with("page ") {
+            let fields = parse_fields(line);
+            let id = parse_i32(&fields, "id")?;
+            let file =
+                fields.get("file").ok_or_else(|| anyhow!("bitmap font page missing file"))?;
+            paths
+                .insert(id, resolve_case_insensitive_path(&base_dir.join(file.replace('\\', "/"))));
+        }
+    }
+    let mut paths: Vec<_> = paths.into_values().collect();
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
+fn lr2_page_path(fields: &[&str], base_dir: &Path) -> Option<(i32, PathBuf)> {
+    let page = parse_lr2_font_i32(fields.get(1).copied())?;
+    let file = fields.get(2).filter(|file| !file.is_empty())?;
+    Some((
+        page,
+        resolve_case_insensitive_path(&base_dir.join(file.trim_matches('"').replace('\\', "/"))),
+    ))
+}
+
 fn parse_lr2_bitmap_font(text: &str, base_dir: &Path) -> Result<BitmapFont> {
     let mut size = 0;
     let mut margin = 0;
@@ -77,15 +120,9 @@ fn parse_lr2_bitmap_font(text: &str, base_dir: &Path) -> Result<BitmapFont> {
                 }
             }
             "T" => {
-                let Some(page) = parse_lr2_font_i32(fields.get(1).copied()) else {
+                let Some((page, path)) = lr2_page_path(&fields, base_dir) else {
                     continue;
                 };
-                let Some(file) = fields.get(2).filter(|file| !file.is_empty()) else {
-                    continue;
-                };
-                let path = resolve_case_insensitive_path(
-                    &base_dir.join(file.trim_matches('"').replace('\\', "/")),
-                );
                 if path.is_file() {
                     page_paths.insert(page, path);
                 }

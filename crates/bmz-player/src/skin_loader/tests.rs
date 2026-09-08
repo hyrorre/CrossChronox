@@ -29,7 +29,13 @@ fn filepath_def(name: &str, path: &str, def: &str) -> SkinFilepathDef {
 }
 
 fn test_font_cache_key(path: &str) -> SkinFontCacheKey {
-    SkinFontCacheKey { path: PathBuf::from(path), modified: None, len: 0, is_bitmap: false }
+    SkinFontCacheKey {
+        path: PathBuf::from(path),
+        modified: None,
+        len: 0,
+        is_bitmap: false,
+        pages: Vec::new(),
+    }
 }
 
 fn unique_test_dir(name: &str) -> PathBuf {
