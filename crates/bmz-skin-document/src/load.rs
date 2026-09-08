@@ -312,19 +312,54 @@ pub fn expand_json_skin_value(
     root_dir: &Path,
     enabled_options: &[i32],
 ) -> Result<JsonValue> {
+    expand_json_skin_value_inner(value, current_dir, root_dir, enabled_options, &mut Vec::new(), 0)
+}
+
+fn expand_include(
+    include: &JsonValue,
+    current_dir: &Path,
+    root_dir: &Path,
+    enabled_options: &[i32],
+    active: &mut Vec<PathBuf>,
+    depth: usize,
+) -> Result<JsonValue> {
+    let path = load_included_json(include, current_dir, root_dir)?;
+    anyhow::ensure!(!active.contains(&path), "cyclic skin json include: {}", path.display());
+    active.push(path.clone());
+    let result = expand_json_skin_value_inner(
+        load_json_value(&path)?,
+        path.parent().unwrap_or(current_dir),
+        root_dir,
+        enabled_options,
+        active,
+        depth + 1,
+    );
+    active.pop();
+    result
+}
+
+fn expand_json_skin_value_inner(
+    value: JsonValue,
+    current_dir: &Path,
+    root_dir: &Path,
+    enabled_options: &[i32],
+    active: &mut Vec<PathBuf>,
+    depth: usize,
+) -> Result<JsonValue> {
+    anyhow::ensure!(depth < 64, "skin json expansion exceeds maximum depth (64)");
     match value {
         JsonValue::Array(items) => {
             let mut expanded = Vec::new();
             for item in items {
                 if let JsonValue::Object(object) = &item {
                     if let Some(include) = object.get("include") {
-                        let included = load_included_json(include, current_dir, root_dir)?;
-                        let included_dir = included.parent().unwrap_or(current_dir);
-                        let included_value = expand_json_skin_value(
-                            load_json_value(&included)?,
-                            included_dir,
+                        let included_value = expand_include(
+                            include,
+                            current_dir,
                             root_dir,
                             enabled_options,
+                            active,
+                            depth,
                         )?;
                         match included_value {
                             JsonValue::Array(values) => expanded.extend(values),
@@ -337,19 +372,23 @@ pub fn expand_json_skin_value(
                     {
                         if test_json_option(object.get("if"), enabled_options) {
                             if let Some(value) = object.get("value") {
-                                expanded.push(expand_json_skin_value(
+                                expanded.push(expand_json_skin_value_inner(
                                     value.clone(),
                                     current_dir,
                                     root_dir,
                                     enabled_options,
+                                    active,
+                                    depth + 1,
                                 )?);
                             }
                             if let Some(values) = object.get("values") {
-                                let values = expand_json_skin_value(
+                                let values = expand_json_skin_value_inner(
                                     values.clone(),
                                     current_dir,
                                     root_dir,
                                     enabled_options,
+                                    active,
+                                    depth + 1,
                                 )?;
                                 match values {
                                     JsonValue::Array(values) => expanded.extend(values),
@@ -360,33 +399,37 @@ pub fn expand_json_skin_value(
                         continue;
                     }
                 }
-                expanded.push(expand_json_skin_value(
+                expanded.push(expand_json_skin_value_inner(
                     item,
                     current_dir,
                     root_dir,
                     enabled_options,
+                    active,
+                    depth + 1,
                 )?);
             }
             Ok(JsonValue::Array(expanded))
         }
         JsonValue::Object(mut object) => {
             if let Some(include) = object.get("include") {
-                let included = load_included_json(include, current_dir, root_dir)?;
-                let included_dir = included.parent().unwrap_or(current_dir);
-                return expand_json_skin_value(
-                    load_json_value(&included)?,
-                    included_dir,
+                return expand_include(
+                    include,
+                    current_dir,
                     root_dir,
                     enabled_options,
+                    active,
+                    depth,
                 );
             }
             if object.contains_key("if") && object.contains_key("value") {
                 return if test_json_option(object.get("if"), enabled_options) {
-                    expand_json_skin_value(
+                    expand_json_skin_value_inner(
                         object.remove("value").unwrap_or(JsonValue::Null),
                         current_dir,
                         root_dir,
                         enabled_options,
+                        active,
+                        depth + 1,
                     )
                 } else {
                     Ok(JsonValue::Null)
@@ -396,12 +439,61 @@ pub fn expand_json_skin_value(
             for (key, value) in object {
                 expanded.insert(
                     key,
-                    expand_json_skin_value(value, current_dir, root_dir, enabled_options)?,
+                    expand_json_skin_value_inner(
+                        value,
+                        current_dir,
+                        root_dir,
+                        enabled_options,
+                        active,
+                        depth + 1,
+                    )?,
                 );
             }
             Ok(JsonValue::Object(expanded))
         }
         other => Ok(other),
+    }
+}
+
+#[cfg(test)]
+mod include_tests {
+    use super::*;
+
+    #[test]
+    fn includes_reject_cycles_and_depth_but_allow_reuse() {
+        let stamp =
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let root =
+            std::env::temp_dir().join(format!("bmz-json-include-{}-{stamp}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let expand = |value| expand_json_skin_value(value, &root, &root, &[]);
+        std::fs::write(root.join("a.json"), r#"{"include":"./b.json"}"#).unwrap();
+        std::fs::write(root.join("b.json"), r#"[{"include":"a.json"}]"#).unwrap();
+        assert!(
+            expand(serde_json::json!({"include":"a.json"}))
+                .unwrap_err()
+                .to_string()
+                .contains("cyclic")
+        );
+        std::fs::write(root.join("b.json"), "[1,2]").unwrap();
+        assert_eq!(
+            expand(serde_json::json!([{"include":"a.json"},{"include":"a.json"}])).unwrap(),
+            serde_json::json!([1, 2, 1, 2])
+        );
+        for i in 0..65 {
+            std::fs::write(
+                root.join(format!("depth{i}.json")),
+                format!(r#"{{"include":"depth{}.json"}}"#, i + 1),
+            )
+            .unwrap();
+        }
+        assert!(
+            expand(serde_json::json!({"include":"depth0.json"}))
+                .unwrap_err()
+                .to_string()
+                .contains("maximum depth")
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 }
 
