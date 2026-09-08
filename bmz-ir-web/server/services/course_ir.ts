@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { isUniqueConstraintError } from '../utils/db_errors'
+import { IrIdempotencyCollisionError } from './ir/idempotency'
 import {
   asRuleMode,
   CLEAR_RANK,
@@ -211,8 +212,6 @@ export async function submitCourseScore(
   user: IrRequestUser,
   payload: CourseScoreSubmission,
 ): Promise<CourseSubmitResponse> {
-  await upsertCourse(payload)
-
   const clearRank = CLEAR_RANK[payload.result.clear] ?? 0
   const verification = await resolveVerification(user.id, payload)
 
@@ -253,24 +252,60 @@ export async function submitCourseScore(
     idempotencyKey: payload.idempotency_key,
   }
 
-  let score: { id: string; serverReceivedAt: Date } = { id: courseScoreId, serverReceivedAt }
-  try {
-    await db.insert(schema.courseScores).values(insert)
-  } catch (error) {
-    if (!isUniqueConstraintError(error)) {
-      throw error
-    }
-    // idempotency 重複。既存 score を採用し、best 更新を再試行する。
-    const existing = await db.query.courseScores.findFirst({
-      columns: { id: true, serverReceivedAt: true },
+  const findExisting = () =>
+    db.query.courseScores.findFirst({
       where: and(
         eq(schema.courseScores.playerId, user.id),
         eq(schema.courseScores.idempotencyKey, payload.idempotency_key),
       ),
     })
+  const checkExisting = (existing: typeof schema.courseScores.$inferSelect) => {
+    // Compare persisted gameplay fields. Evidence and client version can change
+    // on a retry; they must not replace the original verification result.
+    const ignored = new Set([
+      'id',
+      'serverReceivedAt',
+      'clientName',
+      'clientVersion',
+      'platform',
+      'evidence',
+      'verification',
+    ])
+    for (const key of Object.keys(insert) as (keyof typeof insert)[]) {
+      if (ignored.has(key)) continue
+      const actual = existing[key]
+      const expected = insert[key]
+      const normalize = (value: unknown) => (value instanceof Date ? value.getTime() : value)
+      if (stableStringify(normalize(actual)) !== stableStringify(normalize(expected))) {
+        throw new IrIdempotencyCollisionError()
+      }
+    }
+  }
+  const prior = await findExisting()
+  if (prior) checkExisting(prior)
+  await upsertCourse(payload)
+
+  let score: { id: string; serverReceivedAt: Date; verification: IrVerificationStatus } = {
+    id: courseScoreId,
+    serverReceivedAt,
+    verification,
+  }
+  try {
+    if (prior) {
+      score = prior
+    } else {
+      await db.insert(schema.courseScores).values(insert)
+    }
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) {
+      throw error
+    }
+    // idempotency 重複。既存 score を採用し、best 更新を再試行する。
+    const existing = await findExisting()
     if (!existing) {
       throw new Error('failed to insert course score')
     }
+    checkExisting(existing)
     score = existing
   }
 
@@ -282,7 +317,7 @@ export async function submitCourseScore(
     payload,
     score,
     clearRank,
-    verification,
+    score.verification,
   )
   if (bestStatement) {
     await bestStatement

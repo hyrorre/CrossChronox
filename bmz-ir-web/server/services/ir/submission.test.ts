@@ -11,6 +11,7 @@ const db = drizzle(client, { schema })
 mock.module('hub:db', () => ({ db, schema }))
 const { submitScore, prepareBestScoreUpsert } = await import('./submission')
 const { IrIdempotencyCollisionError } = await import('./idempotency')
+const { submitCourseScore, computeCourseHash } = await import('../course_ir')
 const migrations = new URL('../../../../server/db/migrations/sqlite/', import.meta.url)
 for (const name of (await readdir(migrations)).filter((name) => name.endsWith('.sql')).sort()) {
   await client.executeMultiple(await readFile(new URL(name, migrations), 'utf8'))
@@ -23,6 +24,9 @@ const user = { id: 'player', displayName: 'Player' }
 
 afterAll(() => client.close())
 beforeEach(async () => {
+  await db.delete(schema.bestCourseScores)
+  await db.delete(schema.courseScores)
+  await db.delete(schema.irCourses)
   await db.delete(schema.bestScores)
   await db.delete(schema.scores)
   await db.delete(schema.charts)
@@ -59,6 +63,55 @@ function submission(): IrScoreSubmission {
 }
 
 describe('score submission idempotency', () => {
+  test('course retries cannot change stored gameplay data or reconstructed bests', async () => {
+    const payload = {
+      client: { name: 'BMZ', version: 'test', platform: 'windows' },
+      course: { course_hash: computeCourseHash(['a'.repeat(64)], {}), charts: ['a'.repeat(64)] },
+      rule: {
+        gauge: 'Normal',
+        ln_policy: 'AutoLn',
+        rule_mode: 'Beatoraja' as const,
+        scoring: 'bms_ex_score_v1' as const,
+      },
+      result: {
+        clear: 'Normal',
+        course_clear: true,
+        course_failed: false,
+        played_entries: 1,
+        ex_score: 100,
+        max_ex_score: 200,
+        max_combo: 50,
+        bp: 5,
+        judges: {},
+        gauge_value: 80,
+        entries: [],
+        played_at: 1234567890,
+      },
+      play_options: { device_type: 'keyboard' },
+      idempotency_key: 'course-test',
+    }
+    const first = await submitCourseScore(user, payload)
+    const stored = await db.select().from(schema.courseScores)
+    const best = await db.select().from(schema.bestCourseScores)
+    await expect(
+      submitCourseScore(user, { ...payload, result: { ...payload.result, ex_score: 200 } }),
+    ).rejects.toBeInstanceOf(IrIdempotencyCollisionError)
+    expect(await db.select().from(schema.courseScores)).toEqual(stored)
+    expect(await db.select().from(schema.bestCourseScores)).toEqual(best)
+    // A successful retry may repair a missing best, but only from identical data.
+    await db.delete(schema.bestCourseScores)
+    const retry = await submitCourseScore(user, payload)
+    expect(retry.course_score_id).toBe(first.course_score_id)
+    expect((await db.select().from(schema.bestCourseScores))[0]!.exScore).toBe(100)
+    const lookup = spyOn(db.query.courseScores, 'findFirst').mockResolvedValueOnce(undefined)
+    try {
+      await expect(
+        submitCourseScore(user, { ...payload, result: { ...payload.result, bp: 0 } }),
+      ).rejects.toBeInstanceOf(IrIdempotencyCollisionError)
+    } finally {
+      lookup.mockRestore()
+    }
+  })
   test('concurrent prepared best updates preserve independent maxima and their source IDs', async () => {
     const high = submission()
     const low = submission()
