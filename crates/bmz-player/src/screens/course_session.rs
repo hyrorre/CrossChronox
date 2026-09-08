@@ -188,6 +188,10 @@ impl ActiveCourseSession {
                         && judge_counts.poor == 0
                         && judge_counts.pgreat + judge_counts.great + judge_counts.good
                             == total_notes
+                        && self.entry_results.iter().all(|entry| {
+                            let score = &entry.finished.result.score;
+                            score.past_notes == score.combo
+                        })
                     {
                         if judge_counts.good > 0 {
                             ClearType::FullCombo
@@ -326,6 +330,14 @@ mod tests {
         let mut missed = make_session(1, vec![(make_score(9, 1), 10), (make_score(10, 0), 10)]);
         missed.entry_results[1].finished.result.clear_type = ClearType::Max;
         assert_eq!(missed.into_result().final_clear_type, ClearType::Normal);
+        let mut broken = make_session(1, vec![(make_score(10, 0), 10), (make_score(10, 0), 10)]);
+        let first = &mut broken.entry_results[0].finished.result.score;
+        first.empty_poor_breaks_combo = true;
+        first.judges.fast_empty_poor = 1;
+        first.past_notes = 10;
+        first.combo = 9;
+        broken.entry_results[1].finished.result.clear_type = ClearType::Max;
+        assert_eq!(broken.into_result().final_clear_type, ClearType::Normal);
         for (good, great, expected) in
             [(1, 0, ClearType::FullCombo), (0, 1, ClearType::Perfect), (0, 0, ClearType::Max)]
         {
