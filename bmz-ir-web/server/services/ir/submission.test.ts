@@ -9,7 +9,7 @@ import type { IrScoreSubmission } from '../../../shared/types/ir'
 const client = createClient({ url: 'file::memory:' })
 const db = drizzle(client, { schema })
 mock.module('hub:db', () => ({ db, schema }))
-const { submitScore } = await import('./submission')
+const { submitScore, prepareBestScoreUpsert } = await import('./submission')
 const { IrIdempotencyCollisionError } = await import('./idempotency')
 const migrations = new URL('../../../../server/db/migrations/sqlite/', import.meta.url)
 for (const name of (await readdir(migrations)).filter((name) => name.endsWith('.sql')).sort()) {
@@ -59,6 +59,38 @@ function submission(): IrScoreSubmission {
 }
 
 describe('score submission idempotency', () => {
+  test('concurrent prepared best updates preserve independent maxima and their source IDs', async () => {
+    const high = submission()
+    const low = submission()
+    low.idempotency_key = 'lower-score'
+    low.result.ex_score = 100
+    low.result.clear = 'hard'
+    low.rule.gauge = 'hard'
+    const first = await submitScore(user, high, [], 10)
+    const second = await submitScore(user, low, [], 10)
+    await db.delete(schema.bestScores)
+    const prepare = (payload: IrScoreSubmission, id: string, rank: number) =>
+      prepareBestScoreUpsert(user.id, payload, id, 'unverified', {
+        ex_score: payload.result.ex_score,
+        clear_rank: rank,
+        max_combo: payload.result.max_combo,
+        min_bp: payload.result.min_bp,
+        min_cb: payload.result.min_cb,
+        server_received_at: new Date(),
+      })
+    // Both requests observe no best row, then the higher score commits first.
+    const a = await prepare(high, first.score_id!, 4)
+    const b = await prepare(low, second.score_id!, 5)
+    await a.statement!
+    await b.statement!
+    const best = (await db.select().from(schema.bestScores))[0]!
+    expect(best.exScore).toBe(200)
+    expect(best.scoreId).toBe(first.score_id)
+    expect(best.bestExScoreId).toBe(first.score_id)
+    expect(best.clearRank).toBe(5)
+    expect(best.bestClearScoreId).toBe(second.score_id)
+    expect(best.gauge).toBe(high.rule.gauge)
+  })
   test.each([false, true])(
     'checks the concurrent insert conflict path (collision=%s)',
     async (collision) => {

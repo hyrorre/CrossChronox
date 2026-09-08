@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, inArray, ne, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, ne, or, sql, type SQL } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
+import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { db, schema } from 'hub:db'
 import { isUniqueConstraintError } from '../../utils/db_errors'
 import { assertIdempotentSubmission } from './idempotency'
@@ -704,53 +705,43 @@ export async function prepareBestScoreUpsert(
     id: randomUUID(),
     playerId,
     chartSha256: payload.chart.sha256,
-    scoreId: rankingUpdated ? scoreId : (current?.scoreId ?? scoreId),
-    bestExScoreId: rankingUpdated
-      ? scoreId
-      : (current?.bestExScoreId ?? current?.scoreId ?? scoreId),
-    bestClearScoreId: updatedFields.clear
-      ? scoreId
-      : (current?.bestClearScoreId ?? current?.scoreId ?? scoreId),
-    bestMaxComboScoreId: updatedFields.max_combo
-      ? scoreId
-      : (current?.bestMaxComboScoreId ?? current?.scoreId ?? scoreId),
-    bestMinBpScoreId: updatedFields.min_bp
-      ? scoreId
-      : (current?.bestMinBpScoreId ?? current?.scoreId ?? scoreId),
-    bestMinCbScoreId: updatedFields.min_cb
-      ? scoreId
-      : (current?.bestMinCbScoreId ?? current?.scoreId ?? scoreId),
-    exScore: rankingUpdated ? candidate.ex_score : (current?.exScore ?? candidate.ex_score),
-    clearType: updatedFields.clear
-      ? payload.result.clear
-      : (current?.clearType ?? payload.result.clear),
-    clearRank: updatedFields.clear
-      ? candidate.clear_rank
-      : (current?.clearRank ?? candidate.clear_rank),
-    maxCombo: updatedFields.max_combo
-      ? candidate.max_combo
-      : (current?.maxCombo ?? candidate.max_combo),
-    minBp: updatedFields.min_bp ? candidate.min_bp : (current?.minBp ?? candidate.min_bp),
-    minCb: updatedFields.min_cb ? candidate.min_cb : (current?.minCb ?? candidate.min_cb),
-    deviceType: rankingUpdated
-      ? payload.play_options.device_type
-      : (current?.deviceType ?? payload.play_options.device_type),
+    scoreId,
+    bestExScoreId: scoreId,
+    bestClearScoreId: scoreId,
+    bestMaxComboScoreId: scoreId,
+    bestMinBpScoreId: scoreId,
+    bestMinCbScoreId: scoreId,
+    exScore: candidate.ex_score,
+    clearType: payload.result.clear,
+    clearRank: candidate.clear_rank,
+    maxCombo: candidate.max_combo,
+    minBp: candidate.min_bp,
+    minCb: candidate.min_cb,
+    deviceType: payload.play_options.device_type,
     doubleOption: normalizeDoubleOption(payload.play_options.double_option),
-    gauge: rankingUpdated ? payload.rule.gauge : (current?.gauge ?? payload.rule.gauge),
+    gauge: payload.rule.gauge,
     lnPolicy: payload.rule.ln_policy,
-    effectiveLnMode: rankingUpdated
-      ? payload.rule.effective_ln_mode
-      : (current?.effectiveLnMode ?? payload.rule.effective_ln_mode),
+    effectiveLnMode: payload.rule.effective_ln_mode,
     ruleMode: payload.rule.rule_mode,
     scoring: payload.rule.scoring,
-    playedAt: rankingUpdated ? playedAt : (current?.playedAt ?? playedAt),
-    serverReceivedAt: rankingUpdated
-      ? candidate.server_received_at
-      : (current?.serverReceivedAt ?? candidate.server_received_at),
-    verification: rankingUpdated
-      ? verificationStatus
-      : (current?.verification ?? verificationStatus),
+    playedAt,
+    serverReceivedAt: candidate.server_received_at,
+    verification: verificationStatus,
   }
+  // Compare with the row at write time, not the snapshot read above. Both values
+  // and provenance IDs must advance together when concurrent submissions arrive.
+  const table = schema.bestScores
+  const rankingWins = sql`(excluded.ex_score > ${table.exScore} or
+    (excluded.ex_score = ${table.exScore} and (excluded.clear_rank > ${table.clearRank} or
+    (excluded.clear_rank = ${table.clearRank} and (excluded.min_bp < ${table.minBp} or
+    (excluded.min_bp = ${table.minBp} and (excluded.min_cb < ${table.minCb} or
+    (excluded.min_cb = ${table.minCb} and excluded.max_combo > ${table.maxCombo}))))))))`
+  const clearWins = sql`excluded.clear_rank > ${table.clearRank}`
+  const comboWins = sql`excluded.max_combo > ${table.maxCombo}`
+  const bpWins = sql`excluded.min_bp < ${table.minBp}`
+  const cbWins = sql`excluded.min_cb < ${table.minCb}`
+  const choose = (condition: SQL, column: AnySQLiteColumn) =>
+    sql`case when ${condition} then excluded.${sql.identifier(column.name)} else ${column} end`
   const statement = db
     .insert(schema.bestScores)
     .values(values)
@@ -764,23 +755,24 @@ export async function prepareBestScoreUpsert(
         schema.bestScores.ruleMode,
       ],
       set: {
-        scoreId: values.scoreId,
-        bestExScoreId: values.bestExScoreId,
-        bestClearScoreId: values.bestClearScoreId,
-        bestMaxComboScoreId: values.bestMaxComboScoreId,
-        bestMinBpScoreId: values.bestMinBpScoreId,
-        bestMinCbScoreId: values.bestMinCbScoreId,
-        exScore: values.exScore,
-        clearType: values.clearType,
-        clearRank: values.clearRank,
-        maxCombo: values.maxCombo,
-        minBp: values.minBp,
-        minCb: values.minCb,
-        deviceType: values.deviceType,
-        effectiveLnMode: values.effectiveLnMode,
-        playedAt: values.playedAt,
-        serverReceivedAt: values.serverReceivedAt,
-        verification: values.verification,
+        scoreId: choose(rankingWins, table.scoreId),
+        bestExScoreId: choose(rankingWins, table.bestExScoreId),
+        bestClearScoreId: choose(clearWins, table.bestClearScoreId),
+        bestMaxComboScoreId: choose(comboWins, table.bestMaxComboScoreId),
+        bestMinBpScoreId: choose(bpWins, table.bestMinBpScoreId),
+        bestMinCbScoreId: choose(cbWins, table.bestMinCbScoreId),
+        exScore: choose(rankingWins, table.exScore),
+        clearType: choose(clearWins, table.clearType),
+        clearRank: choose(clearWins, table.clearRank),
+        maxCombo: choose(comboWins, table.maxCombo),
+        minBp: choose(bpWins, table.minBp),
+        minCb: choose(cbWins, table.minCb),
+        deviceType: choose(rankingWins, table.deviceType),
+        gauge: choose(rankingWins, table.gauge),
+        effectiveLnMode: choose(rankingWins, table.effectiveLnMode),
+        playedAt: choose(rankingWins, table.playedAt),
+        serverReceivedAt: choose(rankingWins, table.serverReceivedAt),
+        verification: choose(rankingWins, table.verification),
         updatedAt: new Date(),
       },
     })
