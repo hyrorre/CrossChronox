@@ -225,8 +225,10 @@ impl WinitApp {
         snapshot.skin_attempt.merge_known(prepared.skin_attempt);
         apply_play_arrange_to_snapshot(snapshot, &prepared.applied_arrange);
         snapshot.target = options.target.as_string();
-        snapshot.resolved_target_name =
-            options.resolved_target.as_ref().map(|target| target.name.clone());
+        snapshot.resolved_target_name = options
+            .rival_name
+            .clone()
+            .or_else(|| options.resolved_target.as_ref().map(|target| target.name.clone()));
         snapshot.target_ex_score = options
             .resolved_target
             .as_ref()
@@ -330,6 +332,7 @@ impl WinitApp {
             double_option: self.select.double_option,
             hs_fix: self.select.hs_fix_option,
             target: self.select.target_option,
+            rival_name: self.select.select_ir.active_rival_display_name().map(str::to_string),
             arrange_seed: Some(i64::from(option_seeds.p1.value())),
             arrange_seed_2p: option_seeds.p2.map(|seed| i64::from(seed.value())),
             random_trainer_seed,
@@ -347,12 +350,13 @@ impl WinitApp {
             .play
             .active_play
             .as_ref()
-            .is_some_and(|active| active.running.resolved_target.is_some())
-            || self
-                .play
-                .preloaded_play_session
-                .as_ref()
-                .is_some_and(|preloaded| preloaded.session_options.resolved_target.is_some())
+            .map(|active| active.running.resolved_target.is_some())
+            .unwrap_or_else(|| {
+                self.play
+                    .preloaded_play_session
+                    .as_ref()
+                    .is_some_and(|preloaded| preloaded.session_options.resolved_target.is_some())
+            })
         {
             return;
         }
@@ -369,7 +373,15 @@ impl WinitApp {
             })
             .or_else(|| {
                 self.play.preloaded_play_session.as_ref().map(|preloaded| {
-                    (preloaded.preloaded.score_key, preloaded.session_options.target, None)
+                    (
+                        preloaded.preloaded.score_key,
+                        preloaded.session_options.target,
+                        self.boot
+                            .score_db
+                            .best_ex_score(preloaded.preloaded.score_key)
+                            .ok()
+                            .flatten(),
+                    )
                 })
             });
         let Some((score_key, target, local_best_ex_score)) = source else {
@@ -393,17 +405,50 @@ impl WinitApp {
             score_key.rule_mode,
             Some(score_key.chart_sha256),
         );
-        let resolved = self.select.select_ir.target_ex_score_for(
+        let resolved = self.select.select_ir.resolved_target_for(
             &self.boot.profile_config.ir,
             Some(score_key.chart_sha256),
             target,
             local_best_ex_score,
         );
+        let Some(resolved) = resolved else {
+            return;
+        };
+        if let Some(preloaded) = &mut self.play.preloaded_play_session
+            && preloaded.preloaded.score_key == score_key
+            && preloaded.session_options.target == target
+        {
+            preloaded.session_options.resolved_target = Some(resolved.clone());
+        }
+        if let Some(pending) = &mut self.play.pending_play_start
+            && pending.options.target == target
+        {
+            pending.options.resolved_target = Some(resolved.clone());
+        }
+        if let Some(snapshot) = &mut self.play.last_play_snapshot {
+            snapshot.target_ex_score = Some(resolved.ex_score);
+            // 選択ライバル名はIRターゲットより優先する。
+            let rival_name = self
+                .play
+                .active_play
+                .as_ref()
+                .and_then(|active| active.running.rival_name.clone())
+                .or_else(|| {
+                    self.play
+                        .pending_play_start
+                        .as_ref()
+                        .and_then(|pending| pending.options.rival_name.clone())
+                });
+            snapshot.resolved_target_name = rival_name.or_else(|| Some(resolved.name.clone()));
+        }
         if let Some(active) = &mut self.play.active_play
             && active.running.score_key == score_key
             && active.running.target_option == target
         {
-            active.running.target_ex_score = resolved;
+            active.running.target_ex_score = Some(resolved.ex_score);
+            active.running.target_name =
+                active.running.rival_name.clone().unwrap_or_else(|| resolved.name.clone());
+            active.running.resolved_target = Some(resolved);
         }
     }
 }

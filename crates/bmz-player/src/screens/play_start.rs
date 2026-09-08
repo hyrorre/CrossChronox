@@ -170,6 +170,8 @@ pub struct PlayStartOptions {
     pub hs_fix: HsFixOption,
     pub target: TargetOption,
     pub resolved_target: Option<ResolvedTarget>,
+    /// 選択ライバルの表示名。譜面のスコア有無とは独立。
+    pub rival_name: Option<String>,
     pub arrange_seed: Option<i64>,
     pub arrange_seed_2p: Option<i64>,
     /// Fresh play 用 Random Trainer seed。7K の通常 RANDOM かつ記録済み pattern が
@@ -319,6 +321,7 @@ pub fn play_session_options_from_start(
         hs_fix: start_options.hs_fix,
         target: start_options.target,
         resolved_target: start_options.resolved_target,
+        rival_name: start_options.rival_name,
         arrange_seed: start_options.arrange_seed,
         arrange_seed_2p: start_options.arrange_seed_2p,
         random_trainer_seed: start_options.random_trainer_seed,

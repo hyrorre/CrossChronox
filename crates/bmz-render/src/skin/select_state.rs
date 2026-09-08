@@ -14,11 +14,20 @@ pub(super) fn select_target_name(target: &str) -> String {
 pub fn play_target_name(target: &str, resolved_name: Option<&str>) -> String {
     if let Some(name) = resolved_name {
         name.to_string()
-    } else if target.is_empty() || target == "NONE" {
+    } else if target.is_empty()
+        || target == "NONE"
+        || target.starts_with("IR_")
+        || target.starts_with("RIVAL")
+    {
         String::new()
     } else {
         select_target_name(target)
     }
+}
+
+/// Select/Play/Resultに共通のターゲット設定名 (text ref 3)。
+pub fn target_setting_name(target: &str) -> String {
+    select_target_name(target)
 }
 
 pub(super) fn select_target_name_by_offset(target: &str, offset: i32) -> String {

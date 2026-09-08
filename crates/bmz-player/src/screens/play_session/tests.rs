@@ -101,7 +101,7 @@ fn play_target_display_name_survives_placeholder_and_session_preparation() {
         (TargetOption::RankAaa, Some("NONE"), "NONE"),
         (TargetOption::RankAaa, Some("RANK_AAA"), "RANK_AAA"),
         (TargetOption::RankAaa, None, "RANK AAA"),
-        (TargetOption::IrTop, None, "IR TOP"),
+        (TargetOption::IrTop, None, ""),
         (TargetOption::None, None, ""),
     ] {
         let options = PlaySessionOptions {
@@ -127,6 +127,30 @@ fn play_target_display_name_survives_placeholder_and_session_preparation() {
         assert_eq!(prepared.target_option, target);
         assert_eq!(prepared.target_name, expected_name);
         assert_eq!(prepared.resolved_target.as_ref().map(|target| target.name.as_str()), name);
+    }
+}
+
+#[test]
+fn selected_rival_without_score_survives_session_preparation() {
+    let profile = ProfileConfig::new_default("default", "Default", 1);
+    for target in [TargetOption::None, TargetOption::RankAaa, TargetOption::IrTop] {
+        let options = PlaySessionOptions {
+            target,
+            rival_name: Some("未プレイ_ライバル".to_string()),
+            ..Default::default()
+        };
+        let mut snapshot = bmz_render::snapshot::RenderSnapshot::default();
+        apply_placeholder_session_visuals(&mut snapshot, &profile, KeyMode::K7, &options);
+        assert_eq!(snapshot.resolved_target_name.as_deref(), Some("未プレイ_ライバル"));
+        let prepared = build_prepared_play_session_from_preloaded(
+            preloaded_play_session(chart()),
+            &profile,
+            options,
+            Box::new(BufferedInputBackend::default()),
+        );
+        assert_eq!(prepared.target_name, "未プレイ_ライバル");
+        assert_eq!(prepared.target_option, target);
+        assert!(prepared.resolved_target.is_none());
     }
 }
 

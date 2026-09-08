@@ -48,6 +48,7 @@ pub struct SelectSnapshot {
     /// 選曲中に配置が確定している場合だけ `pattern[表示先レーン] = 元レーン` を格納する。
     pub lane_shuffle_pattern: Vec<u8>,
     pub target: String,
+    pub resolved_target_name: Option<String>,
     /// beatoraja STRING_CHARTREPLICATION (86)。
     pub chart_replication_mode: String,
     pub gauge: String,
@@ -201,6 +202,7 @@ impl Default for SelectSnapshot {
             arrange_2p: String::new(),
             lane_shuffle_pattern: Vec::new(),
             target: String::new(),
+            resolved_target_name: None,
             chart_replication_mode: String::new(),
             gauge: String::new(),
             gauge_auto_shift: String::new(),

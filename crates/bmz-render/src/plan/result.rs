@@ -20,6 +20,7 @@ pub(super) fn plan_result(
         let text = SkinTextState {
             player_name: snapshot.player_name.as_str(),
             resolved_target_name: Some(snapshot.target_name.as_str()),
+            target: &snapshot.target,
             title: snapshot.title.as_str(),
             subtitle: snapshot.subtitle.as_str(),
             artist: snapshot.artist.as_str(),

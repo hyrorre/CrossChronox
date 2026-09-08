@@ -51,7 +51,8 @@ pub(super) fn course_result_summary_for_skin(course: &CourseResultSummary) -> Re
     ResultSummary {
         clear_type: course.final_clear_type,
         skin_attempt: last.map_or_else(Default::default, |summary| summary.skin_attempt),
-        target_name: String::new(),
+        target_name: last.map(|summary| summary.target_name.clone()).unwrap_or_default(),
+        target: last.map(|summary| summary.target).unwrap_or_default(),
         arrange: "NORMAL".to_string(),
         arrange_2p: "NORMAL".to_string(),
         lane_shuffle_pattern: Vec::new(),
@@ -330,6 +331,7 @@ pub(super) fn debug_boot_result_summary() -> ResultSummary {
             ..Default::default()
         },
         target_name: "RANK AAA".to_string(),
+        target: crate::select_options::TargetOption::RankAaa,
         arrange: "RANDOM".to_string(),
         arrange_2p: "NORMAL".to_string(),
         lane_shuffle_pattern: vec![3, 1, 4, 2, 7, 5, 6],

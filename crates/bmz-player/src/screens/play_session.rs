@@ -143,6 +143,7 @@ pub struct PlaySessionOptions {
     pub hs_fix: HsFixOption,
     pub target: TargetOption,
     pub resolved_target: Option<ResolvedTarget>,
+    pub rival_name: Option<String>,
     /// beatoraja-compatible 24-bit RANDOM option seed for the 1P side.
     pub arrange_seed: Option<i64>,
     /// beatoraja-compatible 24-bit RANDOM option seed for the 2P side.
@@ -296,6 +297,7 @@ pub struct PreparedPlaySession {
     /// ターゲット設定 ID と区別した、ライバル名を含む表示名。
     pub target_name: String,
     pub resolved_target: Option<ResolvedTarget>,
+    pub rival_name: Option<String>,
     pub practice_mode: bool,
     pub score_save_disabled: bool,
     pub playback_rate_percent: u16,
@@ -404,6 +406,7 @@ impl Default for PlaySessionOptions {
             hs_fix: HsFixOption::Off,
             target: TargetOption::None,
             resolved_target: None,
+            rival_name: None,
             arrange_seed: None,
             arrange_seed_2p: None,
             random_trainer_seed: None,

@@ -64,7 +64,7 @@ pub struct SkinTextState<'a> {
     pub play_level: &'a str,
     pub grade_diff: &'a str,
     pub target: &'a str,
-    /// 解決済みのPlay/Resultターゲット名。Some("")も表示名として優先する。
+    /// ref 1用の解決済みターゲット名。Some("")も表示名として優先する。
     pub resolved_target_name: Option<&'a str>,
     pub select_arrange: &'a str,
     pub select_arrange_2p: &'a str,

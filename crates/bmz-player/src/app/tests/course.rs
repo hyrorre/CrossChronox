@@ -75,6 +75,7 @@ fn course_result_summary_for_skin_uses_aggregate_course_values() {
             clear_type: ClearType::NoPlay,
             skin_attempt: Default::default(),
             target_name: "RANK AAA".to_string(),
+            target: Default::default(),
             arrange: "NORMAL".to_string(),
             arrange_2p: "NORMAL".to_string(),
             lane_shuffle_pattern: Vec::new(),
@@ -303,6 +304,7 @@ fn course_result_summary_for_skin_uses_aggregate_course_values() {
     summary.arrange = "RANDOM".to_string();
     summary.arrange_2p = "MIRROR".to_string();
     summary.target_name = "RANK AAA".to_string();
+    summary.target = crate::select_options::TargetOption::RankAaa;
     let mut runtime_state = lua_runtime_state_for_result(
         false,
         None,

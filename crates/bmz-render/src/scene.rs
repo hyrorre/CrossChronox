@@ -93,6 +93,7 @@ mod tests {
         let snapshot = ResultSnapshot {
             player_name: String::new(),
             target_name: String::new(),
+            target: Default::default(),
             current_fps: 0,
             skin_input: SkinLogicalInputSnapshot::default(),
             skin_attempt: SkinAttemptState::default(),
@@ -184,6 +185,7 @@ mod tests {
         let snapshot = ResultSnapshot {
             player_name: String::new(),
             target_name: String::new(),
+            target: Default::default(),
             current_fps: 0,
             skin_input: SkinLogicalInputSnapshot::default(),
             skin_attempt: SkinAttemptState::default(),

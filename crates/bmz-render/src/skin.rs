@@ -70,6 +70,7 @@ pub use runtime::{
     build_judge_region_state, lane_judge_region,
 };
 pub use select_state::play_target_name;
+pub use select_state::target_setting_name;
 use select_state::*;
 use state_value_gauge_graph::*;
 use state_value_graph::*;

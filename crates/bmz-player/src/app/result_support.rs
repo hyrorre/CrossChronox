@@ -351,7 +351,7 @@ pub(super) fn apply_result_summary_lua_load_state(
     };
     runtime_state.text_values.extend([
         (1, summary.target_name.clone()),
-        (3, summary.target_name.clone()),
+        (3, bmz_render::skin::target_setting_name(&summary.target.as_string())),
         (10, summary.title.clone()),
         (11, summary.subtitle.clone()),
         (12, full_title),
@@ -521,14 +521,17 @@ pub(super) fn lua_runtime_state_for_play(
     extend_bmz_key_mode_lua_state(&mut number_values, &mut option_values, key_mode);
     let target_name = bmz_render::skin::play_target_name(
         &options.target.as_string(),
-        options.resolved_target.as_ref().map(|target| target.name.as_str()),
+        options
+            .rival_name
+            .as_deref()
+            .or_else(|| options.resolved_target.as_ref().map(|target| target.name.as_str())),
     );
     let mut runtime_state = bmz_skin::LuaLoadRuntimeState {
         number_values,
         text_values: BTreeMap::from([
             (1, target_name.clone()),
             (2, player_name.to_string()),
-            (3, target_name),
+            (3, bmz_render::skin::target_setting_name(&options.target.as_string())),
         ]),
         option_values,
         ..Default::default()

@@ -67,6 +67,7 @@ pub fn sample_select_scene() -> AppSceneSnapshot {
         arrange_2p: "NORMAL".to_string(),
         lane_shuffle_pattern: Vec::new(),
         target: "NONE".to_string(),
+        resolved_target_name: None,
         rival_selected: false,
         rival_name: String::new(),
         chart_replication_mode: "RIVALCHART".to_string(),
@@ -208,6 +209,7 @@ pub fn sample_result_scene() -> AppSceneSnapshot {
     AppSceneSnapshot::Result(ResultSnapshot {
         player_name: "Sample Player".to_string(),
         target_name: "RANK AAA".to_string(),
+        target: "RANK_AAA".to_string(),
         current_fps: 60,
         skin_input: Default::default(),
         skin_attempt: Default::default(),

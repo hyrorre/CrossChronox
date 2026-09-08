@@ -99,6 +99,7 @@ macro_rules! skin_document_render_select_render_methods {
                 search_word_alpha: snapshot.search_word_alpha,
                 search_caret_byte_index: snapshot.search_caret_byte_index,
                 rival: &snapshot.rival_name,
+                resolved_target_name: snapshot.resolved_target_name.as_deref(),
                 ir_ranking: &snapshot.ir,
                 ..SkinTextState::default()
             };

@@ -32,9 +32,22 @@ impl WinitApp {
                 .rival_for(&self.boot.profile_config.ir, self.selected_chart_sha256()),
         };
         let rival_selected = active_rival_name.is_some() || rival.is_some();
-        let rival_name = active_rival_name
-            .or_else(|| rival.as_ref().map(|rival| rival.display_name.clone()))
-            .unwrap_or_default();
+        let rival_name = active_rival_name.unwrap_or_default();
+        let resolved_target_name = self
+            .select
+            .select_ir
+            .resolved_target_for(
+                &self.boot.profile_config.ir,
+                self.selected_chart_sha256(),
+                self.select.target_option,
+                match selected {
+                    Some(SelectItem::Chart(row)) => {
+                        row.best_score.as_ref().map(|score| score.ex_score)
+                    }
+                    _ => None,
+                },
+            )
+            .map(|target| target.name);
         let selected_course_ir = self.selected_course_ir_target();
         let select_ir_scope_binding = self
             .renderer
@@ -302,6 +315,7 @@ impl WinitApp {
             // リプレイ／ライバル配置をここへ渡す。
             lane_shuffle_pattern: Vec::new(),
             target: self.select.target_option.as_string(),
+            resolved_target_name,
             chart_replication_mode: self
                 .boot
                 .profile_config

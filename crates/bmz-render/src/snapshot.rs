@@ -240,8 +240,8 @@ pub struct RenderSnapshot {
     pub lane_shuffle_pattern: Vec<u8>,
     /// Play target option id for skin string refs 1 / 3 / 200..=219.
     pub target: String,
-    /// Resolved score target display name for skin string refs 1 / 3.
-    /// None falls back to the target option label; Some("") stays empty.
+    /// Selected rival or resolved target display name for skin string ref 1.
+    /// None falls back to fixed target labels; unresolved IR targets stay empty.
     pub resolved_target_name: Option<String>,
     pub combo: u32,
     pub max_combo: u32,

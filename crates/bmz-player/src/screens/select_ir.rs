@@ -24,7 +24,7 @@ use crate::screens::result_ir::{
     result_ir_ranking_to_skin_snapshot,
 };
 use crate::select_options::DoubleOptionScoreBucket;
-use crate::select_options::TargetOption;
+use crate::select_options::{ResolvedTarget, TargetOption};
 use crate::storage::common::{hash_to_hex, hex_to_hash};
 use crate::storage::network_db::IrRivalScoreRecord;
 
@@ -158,8 +158,8 @@ struct CachedChartIr {
     global_battle_entries: Vec<SelectIrBattleEntry>,
     self_and_rivals_battle_entries: Vec<SelectIrBattleEntry>,
     battle_entries_loaded: bool,
-    global_ex_scores: Vec<u32>,
-    rival_ex_scores: Vec<u32>,
+    global_targets: Vec<ResolvedTarget>,
+    rival_targets: Vec<ResolvedTarget>,
     completed_at: Instant,
 }
 
@@ -363,6 +363,49 @@ mod tests {
     }
 
     #[test]
+    fn resolved_targets_preserve_names_through_fetch_and_result_cache() {
+        let sha = [7u8; 32];
+        let mut raw = raw_global_ranking(sha, 1, 1800, 3);
+        raw.ranking.entries[0].player.display_name = "TOP_名前".to_string();
+        let top = ranking_targets(&raw).pop().unwrap();
+        assert_eq!(top, ResolvedTarget { name: "TOP_名前".to_string(), ex_score: 1800 });
+        let rows = vec![
+            top.clone(),
+            ResolvedTarget { name: "NEXT_名前".to_string(), ex_score: 1600 },
+            ResolvedTarget { name: "Self".to_string(), ex_score: 1400 },
+        ];
+        assert_eq!(next_target_above(&rows, 1500), Some(rows[1].clone()));
+        assert_eq!(next_target_above(&rows, 2000), Some(top));
+        assert_eq!(next_target_above(&[], 0), None);
+
+        let mut select_ir = SelectIrRanking::default();
+        assert!(
+            select_ir
+                .resolved_target_for(&ir_config(true), Some(sha), TargetOption::IrTop, None)
+                .is_none()
+        );
+        let mut ranking = result_global_ranking(1, 1800, 3);
+        ranking.entries[0].player_name = "RANK_AAA".to_string();
+        select_ir.cache_result_global_ranking(&hash_to_hex(&sha), &ranking);
+        assert_eq!(
+            select_ir.resolved_target_for(&ir_config(true), Some(sha), TargetOption::IrTop, None),
+            Some(ResolvedTarget { name: "RANK_AAA".to_string(), ex_score: 1800 })
+        );
+        assert!(
+            select_ir
+                .resolved_target_for(&ir_config(false), Some(sha), TargetOption::IrTop, None)
+                .is_none()
+        );
+        ranking.entries.clear();
+        select_ir.cache_result_global_ranking(&hash_to_hex(&sha), &ranking);
+        assert!(
+            select_ir
+                .resolved_target_for(&ir_config(true), Some(sha), TargetOption::IrTop, None)
+                .is_none()
+        );
+    }
+
+    #[test]
     fn snapshot_keeps_provider_online_without_a_ranking_target() {
         let select_ir = SelectIrRanking::default();
         let sha = [7u8; 32];
@@ -413,8 +456,14 @@ mod tests {
                 global_battle_entries: Vec::new(),
                 self_and_rivals_battle_entries: Vec::new(),
                 battle_entries_loaded: true,
-                global_ex_scores: vec![1800, 1600, 1400],
-                rival_ex_scores: vec![1500, 1200],
+                global_targets: vec![1800, 1600, 1400]
+                    .into_iter()
+                    .map(|ex_score| ResolvedTarget { name: format!("Player {ex_score}"), ex_score })
+                    .collect(),
+                rival_targets: vec![1500, 1200]
+                    .into_iter()
+                    .map(|ex_score| ResolvedTarget { name: format!("Player {ex_score}"), ex_score })
+                    .collect(),
                 completed_at: Instant::now(),
             },
         );
@@ -567,8 +616,14 @@ mod tests {
                 global_battle_entries: old_global_battle_entries,
                 self_and_rivals_battle_entries: old_rival_battle_entries,
                 battle_entries_loaded: true,
-                global_ex_scores: vec![1200],
-                rival_ex_scores: vec![1500],
+                global_targets: vec![1200]
+                    .into_iter()
+                    .map(|ex_score| ResolvedTarget { name: format!("Player {ex_score}"), ex_score })
+                    .collect(),
+                rival_targets: vec![1500]
+                    .into_iter()
+                    .map(|ex_score| ResolvedTarget { name: format!("Player {ex_score}"), ex_score })
+                    .collect(),
                 completed_at: Instant::now(),
             },
         );

@@ -158,6 +158,8 @@ pub struct ResultSnapshot {
     pub player_name: String,
     /// beatoraja STRING_RIVAL/STRING_TARGET (1/3)。
     pub target_name: String,
+    /// プレイ開始時のターゲット設定ID (text ref 3)。
+    pub target: String,
     /// beatoraja NUMBER_CURRENT_FPS (20)。
     pub current_fps: u32,
     pub skin_input: SkinLogicalInputSnapshot,

@@ -32,7 +32,7 @@ fn play_lua_skin_load_preserves_resolved_target_names_for_rival_and_target_refs(
         (TargetOption::RivalIndex(1), Some("IR_TOP"), "IR_TOP"),
         (TargetOption::RankAaa, Some(""), ""),
         (TargetOption::RankAaa, None, "RANK AAA"),
-        (TargetOption::IrTop, None, "IR TOP"),
+        (TargetOption::IrTop, None, ""),
         (TargetOption::None, None, ""),
     ];
     for runtime_mode in [bmz_skin::LuaSkinRuntimeMode::Auto, bmz_skin::LuaSkinRuntimeMode::Compat] {
@@ -60,6 +60,8 @@ fn play_lua_skin_load_preserves_resolved_target_names_for_rival_and_target_refs(
             )
             .unwrap();
             for (index, ref_id) in [(0, 1), (1, 3)] {
+                let setting = bmz_render::skin::target_setting_name(&target.as_string());
+                let expected = if ref_id == 3 { setting.as_str() } else { expected };
                 assert_eq!(
                     loaded.document.text[index].constant_text, expected,
                     "mode={runtime_mode:?}, target={target:?}, name={name:?}, ref={ref_id}"
@@ -74,6 +76,31 @@ fn play_lua_skin_load_preserves_resolved_target_names_for_rival_and_target_refs(
     }
 
     let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn play_lua_state_keeps_selected_rival_separate_from_target_setting() {
+    use crate::select_options::{ResolvedTarget, TargetOption};
+
+    for resolved_target in
+        [None, Some(ResolvedTarget { name: "IR対象者".to_string(), ex_score: 100 })]
+    {
+        let state = lua_runtime_state_for_play(
+            &PlayStartOptions {
+                target: TargetOption::IrTop,
+                rival_name: Some("選択_ライバル".to_string()),
+                resolved_target,
+                ..Default::default()
+            },
+            false,
+            KeyMode::K7,
+            None,
+            "Player",
+            Default::default(),
+        );
+        assert_eq!(state.text_values.get(&1).map(String::as_str), Some("選択_ライバル"));
+        assert_eq!(state.text_values.get(&3).map(String::as_str), Some("IR TOP"));
+    }
 }
 
 #[test]

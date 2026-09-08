@@ -385,8 +385,25 @@ image / imageset refから現在値を取得でき、option 400はCONSTANT有効
 
 イベント79で選んだライバルに選択譜面の
 スコアがあれば、プレイ開始時のターゲットへ自動設定する。未プレイ譜面では通常の
-TARGET設定を使う。`STRING_RIVAL` (`ref=1`) は選択ライバル名を返し、譜面未プレイでも
-名前は維持する。
+TARGET設定を使う。名前の表示と比較スコアの有無は独立して扱う。
+
+### ターゲット名のtext ref (BMZ仕様)
+
+Select / Play / Resultで次の意味に統一する。beatorajaのPlay / Resultでref 1とref 3が
+同じ名前を返す仕様とは異なる。
+
+| ref | 内容 |
+| --- | --- |
+| 1 (`STRING_RIVAL`) | 選択中ライバルの名前を優先し、なければ確定したターゲットの名前。どちらもなければ空文字 |
+| 3 (`STRING_TARGET`) | 選択中のターゲット設定名 (`RANK AAA`, `IR TOP`, `IR NEXT`等)。未選択は`NO TARGET` |
+
+ref 1の選択ライバル名は、その譜面のスコアがなくても維持する。G-BATTLEではそのプレイで
+選択した対戦相手を優先する。固定ランク目標は設定時に名前が確定し、IR系目標は取得した
+ランキングの対象者名を使う。IR未取得・取得失敗・該当データなしの場合、選択ライバルが
+なければref 1は空文字のままにする。名前とEXスコアは同じランキング行から解決し、
+取得がプレイ開始に間に合わなかった場合も表示へ反映する。
+Resultはプレイ時の名前とターゲット設定を保持し、リザルトのランキング取得や選曲側の
+設定変更で置き換えない。JSON refとLuaの`main_state.text`は同じ規則で評価する。
 
 譜面再現モード名はbeatoraja互換の `STRING_CHART_REPLICATION_MODE` (`ref=86`) と、
 BMZの動的text id `bmz_select_chart_replication` から `NONE` / `RIVALCHART` /

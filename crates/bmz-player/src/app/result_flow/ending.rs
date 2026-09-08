@@ -104,6 +104,7 @@ impl WinitApp {
                         play_duration_ms: Some(play_duration_ms),
                         target_ex_score: started.running.target_ex_score,
                         target_name: &started.running.target_name,
+                        target: started.running.target_option,
                         score_key: started.running.score_key,
                         practice_mode: started.running.practice_mode
                             || started.running.score_save_disabled,

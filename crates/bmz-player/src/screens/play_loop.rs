@@ -378,7 +378,12 @@ fn flush_keysound_volumes_commands(
 pub fn consume_running_play_snapshot(
     running: &mut RunningPlaySession,
 ) -> Result<FrameOutput<RenderSnapshot>> {
-    running.gameplay.poll().ok_or_else(|| anyhow!("gameplay runtime has no published frame"))
+    let mut frame = running
+        .gameplay
+        .poll()
+        .ok_or_else(|| anyhow!("gameplay runtime has no published frame"))?;
+    apply_running_play_target_to_snapshot(&mut frame.render_snapshot, running);
+    Ok(frame)
 }
 
 fn apply_running_play_target_to_snapshot(
@@ -386,8 +391,11 @@ fn apply_running_play_target_to_snapshot(
     running: &RunningPlaySession,
 ) {
     snapshot.target = running.target_option.as_string();
-    snapshot.resolved_target_name =
-        running.resolved_target.as_ref().map(|target| target.name.clone());
+    snapshot.resolved_target_name = running
+        .rival_name
+        .clone()
+        .or_else(|| running.resolved_target.as_ref().map(|target| target.name.clone()));
+    snapshot.target_ex_score = running.target_ex_score;
 }
 
 fn apply_running_play_mode_to_snapshot(

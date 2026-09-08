@@ -133,6 +133,7 @@ impl WinitApp {
                 AppSceneSnapshot::Result(ResultSnapshot {
                     player_name: String::new(),
                     target_name: summary.target_name.clone(),
+                    target: summary.target.as_string(),
                     current_fps: 0,
                     skin_input: Default::default(),
                     skin_attempt: summary.skin_attempt,

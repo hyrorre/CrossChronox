@@ -852,6 +852,7 @@ fn finish_session_result_once_when(
         readiness,
     )?;
     finished.summary.target_name = request.target_name.to_string();
+    finished.summary.target = request.target;
     *cached = Some(finished.clone());
     Ok(finished)
 }
@@ -869,6 +870,7 @@ pub struct FinishSessionResultOnceRequest<'a> {
     pub target_ex_score: Option<u32>,
     /// 確定済みの表示名。設定 ID の変換は呼び出し側で済ませる。
     pub target_name: &'a str,
+    pub target: crate::select_options::TargetOption,
     pub score_key: ScoreKey,
     pub practice_mode: bool,
     pub finish_mode: FinishResultMode,
@@ -886,6 +888,7 @@ struct FinishSessionResultJob {
     play_duration_ms: Option<u64>,
     target_ex_score: Option<u32>,
     target_name: String,
+    target: crate::select_options::TargetOption,
     score_key: ScoreKey,
     practice_mode: bool,
     finish_mode: FinishResultMode,
@@ -945,6 +948,7 @@ pub fn spawn_settled_session_result(
         play_duration_ms: request.play_duration_ms,
         target_ex_score: request.target_ex_score,
         target_name: request.target_name.to_string(),
+        target: request.target,
         score_key: request.score_key,
         practice_mode: request.practice_mode,
         finish_mode: request.finish_mode,
@@ -987,6 +991,7 @@ fn finish_session_result_job(job: FinishSessionResultJob) -> Result<FinishedPlay
         job.snapshot.failed_gauge.as_ref(),
     ));
     finished.summary.target_name = job.target_name;
+    finished.summary.target = job.target;
     Ok(finished)
 }
 

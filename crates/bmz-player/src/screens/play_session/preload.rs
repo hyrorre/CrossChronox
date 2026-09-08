@@ -664,6 +664,7 @@ pub fn build_practice_prepared_from_preloaded(
     options.arrange_2p = property.arrange_2p;
     options.double_option = double_option;
     options.playback_rate_percent = property.playback_rate_percent;
+    let rival_name = options.rival_name.clone();
     let practice_mode = options.session_mode.is_practice();
     options.score_save_disabled |= preloaded.score_save_disabled;
     let score_save_disabled = options.score_save_disabled;
@@ -701,8 +702,9 @@ pub fn build_practice_prepared_from_preloaded(
         applied_arrange,
         score_key: preloaded.score_key,
         target_option: TargetOption::None,
-        target_name: String::new(),
+        target_name: rival_name.clone().unwrap_or_default(),
         resolved_target: None,
+        rival_name,
         practice_mode,
         score_save_disabled,
         playback_rate_percent,
@@ -755,9 +757,12 @@ pub fn build_prepared_play_session_from_preloaded(
     options.assist_runtime = preloaded.assist_runtime;
     let target_option = options.target;
     let resolved_target = options.resolved_target.clone();
+    let rival_name = options.rival_name.clone();
     let target_name = bmz_render::skin::play_target_name(
         &target_option.as_string(),
-        resolved_target.as_ref().map(|target| target.name.as_str()),
+        rival_name
+            .as_deref()
+            .or_else(|| resolved_target.as_ref().map(|target| target.name.as_str())),
     );
     let practice_mode = options.session_mode.is_practice();
     let score_save_disabled = options.score_save_disabled;
@@ -792,6 +797,7 @@ pub fn build_prepared_play_session_from_preloaded(
         target_option,
         target_name,
         resolved_target,
+        rival_name,
         practice_mode,
         score_save_disabled,
         playback_rate_percent,

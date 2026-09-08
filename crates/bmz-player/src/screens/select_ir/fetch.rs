@@ -232,8 +232,20 @@ pub(super) fn top_rival_snapshot(rivals: &IrRankingResult) -> Option<SelectRival
     })
 }
 
-pub(super) fn ranking_ex_scores(ranking: &IrRankingResult) -> Vec<u32> {
-    ranking.ranking.entries.iter().map(|entry| entry.score.ex_score).collect()
+pub(super) fn ranking_targets(ranking: &IrRankingResult) -> Vec<ResolvedTarget> {
+    ranking
+        .ranking
+        .entries
+        .iter()
+        .map(|entry| ResolvedTarget {
+            name: target_player_name(&entry.player.display_name),
+            ex_score: entry.score.ex_score,
+        })
+        .collect()
+}
+
+fn target_player_name(name: &str) -> String {
+    if name.is_empty() { "YOU".to_string() } else { name.to_string() }
 }
 
 pub(super) fn battle_entries(ranking: &IrRankingResult) -> Vec<SelectIrBattleEntry> {
@@ -260,22 +272,32 @@ pub(super) fn battle_entries(ranking: &IrRankingResult) -> Vec<SelectIrBattleEnt
         .collect()
 }
 
-pub(super) fn result_ranking_ex_scores(ranking: &ResultIrRanking) -> Vec<u32> {
-    ranking.entries.iter().map(|entry| entry.ex_score).collect()
+pub(super) fn result_ranking_targets(ranking: &ResultIrRanking) -> Vec<ResolvedTarget> {
+    ranking
+        .entries
+        .iter()
+        .map(|entry| ResolvedTarget {
+            name: target_player_name(&entry.player_name),
+            ex_score: entry.ex_score,
+        })
+        .collect()
 }
 
 pub(super) fn elapsed_since_ms(started_at: Instant) -> i32 {
     started_at.elapsed().as_millis().min(i32::MAX as u128) as i32
 }
 
-pub(super) fn next_ex_score_above(scores_desc: &[u32], current_ex_score: u32) -> Option<u32> {
+pub(super) fn next_target_above(
+    scores_desc: &[ResolvedTarget],
+    current_ex_score: u32,
+) -> Option<ResolvedTarget> {
     if scores_desc.is_empty() {
         return None;
     }
-    for (index, &score) in scores_desc.iter().enumerate() {
-        if score <= current_ex_score {
-            return Some(scores_desc[index.saturating_sub(1)]);
+    for (index, score) in scores_desc.iter().enumerate() {
+        if score.ex_score <= current_ex_score {
+            return Some(scores_desc[index.saturating_sub(1)].clone());
         }
     }
-    scores_desc.first().copied()
+    scores_desc.first().cloned()
 }

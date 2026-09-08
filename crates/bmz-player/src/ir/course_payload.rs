@@ -616,6 +616,7 @@ mod tests {
             clear_type,
             skin_attempt: Default::default(),
             target_name: String::new(),
+            target: Default::default(),
             arrange: "NORMAL".to_string(),
             arrange_2p: "NORMAL".to_string(),
             lane_shuffle_pattern: Vec::new(),

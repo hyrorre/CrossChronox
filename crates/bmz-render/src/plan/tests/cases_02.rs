@@ -214,6 +214,7 @@ fn result_plan_renders_gaugegraph_from_result_graph_data() {
     let snapshot = ResultSnapshot {
         player_name: String::new(),
         target_name: String::new(),
+        target: Default::default(),
         current_fps: 0,
         skin_input: Default::default(),
         skin_attempt: Default::default(),
@@ -374,6 +375,7 @@ fn result_plan_renders_timing_distribution_from_result_graph_data() {
     let snapshot = ResultSnapshot {
         player_name: String::new(),
         target_name: String::new(),
+        target: Default::default(),
         current_fps: 0,
         skin_input: Default::default(),
         skin_attempt: Default::default(),
@@ -542,7 +544,7 @@ fn target_text_skin(skin_type: i32) -> SkinContext {
     SkinContext::from_manifest_and_document(SkinManifest::default(), document, [])
 }
 
-fn assert_target_text(plan: &DrawPlan, name: &str) {
+fn assert_target_text(plan: &DrawPlan, name: &str, setting: &str) {
     let texts: Vec<_> = plan
         .commands
         .iter()
@@ -551,18 +553,16 @@ fn assert_target_text(plan: &DrawPlan, name: &str) {
             _ => None,
         })
         .collect();
-    if name.is_empty() {
-        assert_eq!(texts, ["Target name test"]);
-    } else {
-        assert_eq!(texts, [name, name, "Target name test"]);
-    }
+    let expected: Vec<_> =
+        [name, setting, "Target name test"].into_iter().filter(|text| !text.is_empty()).collect();
+    assert_eq!(texts, expected);
 }
 
 #[test]
 fn play_skin_document_receives_target_text() {
     let skin = target_text_skin(0);
     for (target, resolved_name, expected) in [
-        ("IR_TOP", None, "IR TOP"),
+        ("IR_TOP", None, ""),
         ("RANK_AAA", None, "RANK AAA"),
         ("", None, ""),
         ("NONE", None, ""),
@@ -582,7 +582,33 @@ fn play_skin_document_receives_target_text() {
             &skin,
             &mut crate::skin::DynamicTimerRuntime::default(),
         );
-        assert_target_text(&plan, expected);
+        assert_target_text(&plan, expected, &crate::skin::target_setting_name(target));
+    }
+}
+
+#[test]
+fn select_skin_document_separates_rival_name_from_target_setting() {
+    let skin = target_text_skin(5);
+    for (target, rival, resolved, expected, setting) in [
+        ("NONE", "", None, "", "NO TARGET"),
+        ("NONE", "未プレイ_A", None, "未プレイ_A", "NO TARGET"),
+        ("RANK_AAA", "", None, "RANK AAA", "RANK AAA"),
+        ("IR_TOP", "", None, "", "IR TOP"),
+        ("IR_TOP", "", Some("AAA"), "AAA", "IR TOP"),
+        ("IR_TOP", "Selected", Some("TopPlayer"), "Selected", "IR TOP"),
+    ] {
+        let AppSceneSnapshot::Select(mut snapshot) = crate::sample::sample_select_scene() else {
+            unreachable!()
+        };
+        snapshot.target = target.to_string();
+        snapshot.rival_name = rival.to_string();
+        snapshot.resolved_target_name = resolved.map(str::to_string);
+        let plan = DrawPlan::from_scene_with_skin(
+            &AppSceneSnapshot::Select(snapshot),
+            &skin,
+            &mut Default::default(),
+        );
+        assert_target_text(&plan, expected, setting);
     }
 }
 
@@ -594,12 +620,13 @@ fn result_skin_document_receives_resolved_target_text() {
             panic!("sample result scene");
         };
         snapshot.target_name = name.to_string();
+        snapshot.target = "IR_TOP".to_string();
         let plan = DrawPlan::from_scene_with_skin(
             &AppSceneSnapshot::Result(snapshot),
             &skin,
             &mut crate::skin::DynamicTimerRuntime::default(),
         );
-        assert_target_text(&plan, name);
+        assert_target_text(&plan, name, "IR TOP");
     }
 }
 

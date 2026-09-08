@@ -77,6 +77,7 @@ pub(super) fn apply_session_mode_start_policy(options: &mut PlayStartOptions) {
         options.autoplay = true;
     }
     if let Some(target) = options.battle_target.as_ref() {
+        options.rival_name = Some(target.player_name.clone());
         options.resolved_target =
             Some(ResolvedTarget { name: target.player_name.clone(), ex_score: target.ex_score });
     }

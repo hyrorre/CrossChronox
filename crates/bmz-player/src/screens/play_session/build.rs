@@ -157,8 +157,10 @@ pub fn apply_placeholder_session_visuals(
         .map(|target| target.ex_score)
         .or_else(|| options.target.target_ex_score(snapshot.total_notes));
     snapshot.target = options.target.as_string();
-    snapshot.resolved_target_name =
-        options.resolved_target.as_ref().map(|target| target.name.clone());
+    snapshot.resolved_target_name = options
+        .rival_name
+        .clone()
+        .or_else(|| options.resolved_target.as_ref().map(|target| target.name.clone()));
 
     snapshot.note_display_duration_ms =
         crate::screens::play_snapshot::display_duration_ms_for_bpm_hispeed(

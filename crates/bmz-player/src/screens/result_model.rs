@@ -22,8 +22,9 @@ const RESULT_GAUGE_GRAPH_SAMPLE_MS: i32 = 500;
 pub struct ResultSummary {
     pub clear_type: ClearType,
     pub skin_attempt: bmz_render::snapshot::SkinAttemptState,
-    /// beatoraja STRING_RIVAL/STRING_TARGET (1/3) に渡すプレイ時ターゲット名。
+    /// text ref 1 に渡すプレイ時ライバル/ターゲット名。
     pub target_name: String,
+    pub target: crate::select_options::TargetOption,
     pub arrange: String,
     pub arrange_2p: String,
     pub lane_shuffle_pattern: Vec<u8>,
@@ -161,6 +162,7 @@ impl ResultSummary {
                 ..Default::default()
             },
             target_name: String::new(),
+            target: Default::default(),
             arrange: "NORMAL".to_string(),
             arrange_2p: "NORMAL".to_string(),
             lane_shuffle_pattern: Vec::new(),

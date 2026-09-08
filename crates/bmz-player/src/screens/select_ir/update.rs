@@ -132,8 +132,8 @@ impl SelectIrRanking {
                         .map(battle_entries)
                         .unwrap_or_default(),
                     battle_entries_loaded: true,
-                    global_ex_scores: ranking_ex_scores(&global),
-                    rival_ex_scores: rivals.as_ref().map(ranking_ex_scores).unwrap_or_default(),
+                    global_targets: ranking_targets(&global),
+                    rival_targets: rivals.as_ref().map(ranking_targets).unwrap_or_default(),
                     completed_at,
                 },
                 Err(error) => {
@@ -148,8 +148,8 @@ impl SelectIrRanking {
                         global_battle_entries: Vec::new(),
                         self_and_rivals_battle_entries: Vec::new(),
                         battle_entries_loaded: true,
-                        global_ex_scores: Vec::new(),
-                        rival_ex_scores: Vec::new(),
+                        global_targets: Vec::new(),
+                        rival_targets: Vec::new(),
                         completed_at,
                     }
                 }
@@ -295,10 +295,10 @@ impl SelectIrRanking {
             );
             return;
         };
-        let (rival, rival_ex_scores) = self
+        let (rival, rival_targets) = self
             .cache
             .get(&sha256)
-            .map(|entry| (entry.rival.clone(), entry.rival_ex_scores.clone()))
+            .map(|entry| (entry.rival.clone(), entry.rival_targets.clone()))
             .unwrap_or_default();
         self.insert_entry(
             sha256,
@@ -315,8 +315,8 @@ impl SelectIrRanking {
                 global_battle_entries: Vec::new(),
                 self_and_rivals_battle_entries: Vec::new(),
                 battle_entries_loaded: false,
-                global_ex_scores: result_ranking_ex_scores(ranking),
-                rival_ex_scores,
+                global_targets: result_ranking_targets(ranking),
+                rival_targets,
                 completed_at: Instant::now(),
             },
         );

@@ -263,6 +263,7 @@ fn result_plan_uses_skin_document_for_result_and_course_result_types() {
         let snapshot = ResultSnapshot {
             player_name: String::new(),
             target_name: String::new(),
+            target: Default::default(),
             current_fps: 0,
             skin_input: Default::default(),
             skin_attempt: Default::default(),
@@ -502,6 +503,7 @@ fn result_plan_supplies_result_judge_graph_data_to_skin_document() {
     let snapshot = ResultSnapshot {
         player_name: String::new(),
         target_name: String::new(),
+        target: Default::default(),
         current_fps: 0,
         skin_input: Default::default(),
         skin_attempt: Default::default(),

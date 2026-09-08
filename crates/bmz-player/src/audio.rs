@@ -129,6 +129,7 @@ pub struct RunningPlaySession {
     /// 実譜面と実スコアキーが確定してから EX 目標値を解決するための設定値。
     pub target_option: TargetOption,
     pub resolved_target: Option<crate::select_options::ResolvedTarget>,
+    pub rival_name: Option<String>,
     pub applied_arrange: AppliedArrange,
     pub practice_mode: bool,
     pub score_save_disabled: bool,
@@ -230,7 +231,10 @@ impl RunningPlaySession {
             best_ghost: self.best_ghost.clone(),
             target_ex_score: self.target_ex_score,
             target: self.target_option.as_string(),
-            resolved_target_name: self.resolved_target.as_ref().map(|target| target.name.clone()),
+            resolved_target_name: self
+                .rival_name
+                .clone()
+                .or_else(|| self.resolved_target.as_ref().map(|target| target.name.clone())),
             applied_arrange: self.applied_arrange.clone(),
             source_ln_profile: self.source_ln_profile,
             skin_attempt: self.skin_attempt,
@@ -476,6 +480,7 @@ pub fn open_prepared_play_audio(
         target_name: prepared.target_name,
         target_option: prepared.target_option,
         resolved_target: prepared.resolved_target,
+        rival_name: prepared.rival_name,
         applied_arrange: prepared.applied_arrange,
         practice_mode: prepared.practice_mode,
         score_save_disabled: prepared.score_save_disabled,

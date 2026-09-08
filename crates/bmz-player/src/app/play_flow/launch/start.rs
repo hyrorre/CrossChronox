@@ -44,6 +44,7 @@ impl WinitApp {
         presentation: PlayEntryPresentation,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         self.ensure_skin_ready(SkinKind::Decide);
         self.prepare_play_skin_for_scene(chart_id, &options);
         if self.play.play_media_cache.as_ref().is_some_and(|cache| cache.chart_id != chart_id) {
@@ -75,6 +76,7 @@ impl WinitApp {
         mut options: PlayStartOptions,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         self.ensure_skin_ready(SkinKind::Decide);
         // Decide preload を通らない direct boot / replay / retry も新しい
         // Play scene entry として必ずロード時Randomを再評価する。
@@ -234,6 +236,7 @@ impl WinitApp {
         presentation: PlayEntryPresentation,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         if let Some(score_key) = self.play_skin_score_key_for_chart_id(chart_id, &options) {
             snapshot.rule_mode_index = crate::skin_extension::rule_mode_index(score_key.rule_mode);
             snapshot.ln_score_policy_index =
@@ -465,8 +468,9 @@ impl WinitApp {
         // RANDOM lane ref (450..469) を解決できないため、確定patternも必要。
         apply_play_arrange_to_snapshot(&mut snapshot, &active_play.running.applied_arrange);
         snapshot.target = active_play.running.target_option.as_string();
-        snapshot.resolved_target_name =
-            active_play.running.resolved_target.as_ref().map(|target| target.name.clone());
+        snapshot.resolved_target_name = active_play.running.rival_name.clone().or_else(|| {
+            active_play.running.resolved_target.as_ref().map(|target| target.name.clone())
+        });
         snapshot.stagefile_background = self.play.play_stagefile_loaded;
         snapshot.stagefile_image_size = self.play.play_stagefile_size;
         snapshot.backbmp_background = self.play.play_backbmp_loaded;

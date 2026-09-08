@@ -4,6 +4,7 @@ use crate::config::profile_config::SevenToNineRuleMode;
 impl WinitApp {
     pub(super) fn begin_decide_for_chart(&mut self, chart_id: i64, mut options: PlayStartOptions) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         self.apply_rival_play_overrides(chart_id, &mut options);
         let snapshot = self.decide_snapshot_for_chart(chart_id);
         self.begin_decide_for_chart_with_snapshot(
@@ -17,6 +18,7 @@ impl WinitApp {
     }
 
     pub(super) fn apply_rival_play_overrides(&self, chart_id: i64, options: &mut PlayStartOptions) {
+        options.rival_name = self.select.select_ir.active_rival_display_name().map(str::to_string);
         if options.session_mode.is_practice()
             || options.replay_player.is_some()
             || self.play.active_course.is_some()
@@ -100,6 +102,7 @@ impl WinitApp {
         chart_metadata: ChartListItem,
     ) {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         let mut snapshot = self.decide_snapshot_for_chart_with_metadata(chart_id, &chart_metadata);
         self.apply_course_skin_context(&mut snapshot);
         let title_override =
@@ -221,6 +224,7 @@ impl WinitApp {
         mut options: PlayStartOptions,
     ) -> u64 {
         self.normalize_key_mode_conversion_options(chart_id, &mut options);
+        self.resolve_play_target_from_cache(chart_id, &mut options);
         // 通常開始・practice・retry は、残っているコース次曲先読みを置き換える。
         // コース側は worker 開始後に同じ generation の launch 情報を設定し直す。
         self.play.pending_course_stage_launch = None;
@@ -536,6 +540,36 @@ impl WinitApp {
             ln_policy_setting,
             rule_mode,
         )
+    }
+
+    pub(super) fn resolve_play_target_from_cache(
+        &self,
+        chart_id: i64,
+        options: &mut PlayStartOptions,
+    ) {
+        options.rival_name = options
+            .battle_target
+            .as_ref()
+            .map(|target| target.player_name.clone())
+            .or_else(|| self.select.select_ir.active_rival_display_name().map(str::to_string));
+        if options.resolved_target.is_some() || !options.target.uses_ir_ranking() {
+            return;
+        }
+        let Some(chart) = self
+            .boot
+            .library_db
+            .list_charts_by_ids(&[chart_id])
+            .ok()
+            .and_then(|mut rows| rows.pop())
+        else {
+            return;
+        };
+        options.resolved_target = self.select.select_ir.resolved_target_for(
+            &self.boot.profile_config.ir,
+            Some(chart.sha256),
+            options.target,
+            self.play_skin_previous_best_ex_score_for_chart(&chart, options),
+        );
     }
 
     pub(super) fn normalize_key_mode_conversion_options(

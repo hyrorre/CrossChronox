@@ -261,29 +261,41 @@ impl SelectIrRanking {
         self.active_rival_name()
     }
 
-    pub fn target_ex_score_for(
+    pub fn resolved_target_for(
+        &self,
+        ir_config: &IrConfig,
+        selected: Option<[u8; 32]>,
+        target: TargetOption,
+        local_best_ex_score: Option<u32>,
+    ) -> Option<ResolvedTarget> {
+        enabled_provider(ir_config)?;
+        let entry = self.cache.get(&selected?)?;
+        match target {
+            TargetOption::IrTop => entry.global_targets.first().cloned(),
+            TargetOption::IrNext => {
+                next_target_above(&entry.global_targets, local_best_ex_score.unwrap_or(0))
+            }
+            TargetOption::RivalTop => entry.rival_targets.first().cloned(),
+            TargetOption::RivalNext => {
+                next_target_above(&entry.rival_targets, local_best_ex_score.unwrap_or(0))
+            }
+            TargetOption::RivalIndex(index) => {
+                entry.rival_targets.get(index.saturating_sub(1) as usize).cloned()
+            }
+            _ => None,
+        }
+    }
+
+    #[cfg(test)]
+    pub(super) fn target_ex_score_for(
         &self,
         ir_config: &IrConfig,
         selected: Option<[u8; 32]>,
         target: TargetOption,
         local_best_ex_score: Option<u32>,
     ) -> Option<u32> {
-        enabled_provider(ir_config)?;
-        let entry = self.cache.get(&selected?)?;
-        match target {
-            TargetOption::IrTop => entry.global_ex_scores.first().copied(),
-            TargetOption::IrNext => {
-                next_ex_score_above(&entry.global_ex_scores, local_best_ex_score.unwrap_or(0))
-            }
-            TargetOption::RivalTop => entry.rival_ex_scores.first().copied(),
-            TargetOption::RivalNext => {
-                next_ex_score_above(&entry.rival_ex_scores, local_best_ex_score.unwrap_or(0))
-            }
-            TargetOption::RivalIndex(index) => {
-                entry.rival_ex_scores.get(index.saturating_sub(1) as usize).copied()
-            }
-            _ => None,
-        }
+        self.resolved_target_for(ir_config, selected, target, local_best_ex_score)
+            .map(|target| target.ex_score)
     }
 
     /// ログイン状態が変わったとき等にキャッシュを破棄する。
