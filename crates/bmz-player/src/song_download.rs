@@ -182,8 +182,7 @@ pub async fn download_chart(request: ChartDownloadRequest) -> Result<ChartDownlo
     let hash_hint = match &request.action {
         MissingChartAction::Ipfs { api_url, cids } => {
             for (index, cid) in cids.iter().enumerate() {
-                let url = ipfs_download_url(api_url, cid)?;
-                let response = client.get(url).send().await?.error_for_status()?;
+                let response = request_ipfs_archive(&client, api_url, cid).await?;
                 save_response(response, &archive_path).await?;
                 let package_dir = staging_dir.join(format!(".package-{index}"));
                 std::fs::create_dir(&package_dir)?;
@@ -246,6 +245,26 @@ pub async fn download_charts(requests: Vec<ChartDownloadRequest>) -> ChartDownlo
         }
     }
     result
+}
+
+async fn request_ipfs_archive(
+    client: &reqwest::Client,
+    api_url: &str,
+    cid: &str,
+) -> Result<reqwest::Response> {
+    let url = ipfs_download_url(api_url, cid)?;
+    // Keep beatoraja-compatible GET endpoints and custom templates unchanged.
+    // Only the generated RPC endpoint may retry a method rejection as POST.
+    let response = client.get(url.clone()).send().await?;
+    let response = if response.status() == reqwest::StatusCode::METHOD_NOT_ALLOWED
+        && !api_url.contains("{cid}")
+    {
+        drop(response);
+        client.post(url).send().await?
+    } else {
+        response
+    };
+    Ok(response.error_for_status()?)
 }
 
 fn ipfs_download_url(api_url: &str, cid: &str) -> Result<Url> {
@@ -605,6 +624,77 @@ mod tests {
         assert_eq!(url.path(), "/api/v0/get");
         assert!(url.query().unwrap().contains("archive=true"));
         assert!(url.query().unwrap().contains("compress=true"));
+    }
+
+    #[tokio::test]
+    async fn ipfs_rpc_retries_only_method_rejections_and_preserves_templates() {
+        use std::io::{Read, Write};
+        for (template, statuses, expected) in [
+            (false, vec![200], vec!["GET"]),
+            (false, vec![405, 200], vec!["GET", "POST"]),
+            (true, vec![405], vec!["GET"]),
+            (false, vec![500], vec!["GET"]),
+        ] {
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap();
+            let final_status = *statuses.last().unwrap();
+            let server = std::thread::spawn(move || {
+                let mut requests = Vec::new();
+                for status in statuses {
+                    let (mut stream, _) = listener.accept().unwrap();
+                    stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                    let mut request = Vec::new();
+                    let mut byte = [0];
+                    while !request.ends_with(b"\r\n\r\n") {
+                        assert_eq!(stream.read(&mut byte).unwrap(), 1);
+                        request.push(byte[0]);
+                    }
+                    requests.push(
+                        String::from_utf8(request).unwrap().lines().next().unwrap().to_string(),
+                    );
+                    write!(stream, "HTTP/1.1 {status} Response\r\nContent-Length: 7\r\nConnection: close\r\n\r\narchive").unwrap();
+                }
+                requests
+            });
+            let api = if template {
+                format!("http://{address}/custom/{{cid}}")
+            } else {
+                format!("http://{address}")
+            };
+            let client = reqwest::Client::builder()
+                .no_proxy()
+                .timeout(Duration::from_secs(3))
+                .build()
+                .unwrap();
+            let result = request_ipfs_archive(&client, &api, &metadata().ipfs).await;
+            if final_status == 200 {
+                assert_eq!(result.unwrap().text().await.unwrap(), "archive");
+            } else {
+                assert_eq!(
+                    result
+                        .unwrap_err()
+                        .downcast_ref::<reqwest::Error>()
+                        .unwrap()
+                        .status()
+                        .unwrap()
+                        .as_u16(),
+                    final_status
+                );
+            }
+            let requests = server.join().unwrap();
+            assert_eq!(
+                requests
+                    .iter()
+                    .map(|line| line.split_whitespace().next().unwrap())
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            if !template {
+                assert!(requests.iter().all(|line| line.contains("/api/v0/get?arg=")
+                    && line.contains("archive=true")
+                    && line.contains("compress=true")));
+            }
+        }
     }
 
     #[test]
