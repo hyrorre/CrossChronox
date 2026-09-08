@@ -183,8 +183,7 @@ pub(super) fn rebuild_score_aggregates(conn: &Connection) -> Result<()> {
             WHEN 'Lr2Oraja' THEN 'Lr2Oraja'
             WHEN 'Dx' THEN 'Dx'
             ELSE 'Beatoraja'
-        END = score_best.rule_mode
-        AND h.course_score_id IS NULL";
+        END = score_best.rule_mode";
     const CLEAR_RANK: &str = "CASE h.clear_type
         WHEN 'NoPlay' THEN 0
         WHEN 'Failed' THEN 1
@@ -199,6 +198,7 @@ pub(super) fn rebuild_score_aggregates(conn: &Connection) -> Result<()> {
         WHEN 'Max' THEN 10
         ELSE 0
     END";
+    let affected = format!("EXISTS (SELECT 1 FROM cleanup_removed AS h WHERE {SCORE_KEY})");
     let score_source = format!(
         "SELECT h.id FROM score_history AS h
          WHERE {SCORE_KEY}
@@ -230,7 +230,7 @@ pub(super) fn rebuild_score_aggregates(conn: &Connection) -> Result<()> {
     conn.execute(
         &format!(
             "DELETE FROM score_best
-             WHERE NOT EXISTS (SELECT 1 FROM score_history AS h WHERE {SCORE_KEY})"
+             WHERE {affected} AND NOT EXISTS (SELECT 1 FROM score_history AS h WHERE {SCORE_KEY})"
         ),
         [],
     )?;
@@ -265,7 +265,7 @@ pub(super) fn rebuild_score_aggregates(conn: &Connection) -> Result<()> {
                 END,
                 best_score_history_id = ({score_source}),
                 play_count = {play_count},
-                clear_count = {clear_count}",
+                clear_count = {clear_count} WHERE {affected}",
             clear_type = clear_value("clear_type"),
             gauge_type = clear_value("gauge_type"),
             gauge_value = clear_value("gauge_value"),
@@ -322,9 +322,145 @@ pub(super) fn rebuild_score_aggregates(conn: &Connection) -> Result<()> {
             COALESCE(SUM(fast_empty_poor), 0),
             COALESCE(SUM(slow_empty_poor), 0),
             COALESCE(MAX(played_at), 0)
-         FROM score_history
-         WHERE course_score_id IS NULL",
+         FROM score_history",
         params![preserved_playtime_seconds],
+    )?;
+    Ok(())
+}
+
+// Cleanup must not reconstruct history-less assisted plays from score_history.
+// Keep the original aggregates and subtract only the histories being removed.
+// Temporary tables live inside the caller's transaction, including on failure.
+pub(super) fn preserve_cleanup_aggregates(conn: &Connection, ids: &[i64]) -> Result<()> {
+    conn.execute_batch(
+        "CREATE TEMP TABLE cleanup_stats AS SELECT * FROM player_stats;
+         CREATE TEMP TABLE cleanup_removed AS SELECT * FROM score_history WHERE 0;
+         CREATE TEMP TABLE cleanup_history AS
+            SELECT chart_sha256, ln_policy, double_option, rule_mode, clear_type, COUNT(*) AS plays
+            FROM score_history GROUP BY chart_sha256, ln_policy, double_option, rule_mode, clear_type;",
+    )?;
+    for ids in ids.chunks(500) {
+        let placeholders = std::iter::repeat_n("?", ids.len()).collect::<Vec<_>>().join(",");
+        conn.execute(
+            &format!("INSERT INTO cleanup_removed SELECT * FROM score_history WHERE id IN ({placeholders}) AND id NOT IN (SELECT id FROM cleanup_removed)"),
+            params_from_iter(ids.iter()),
+        )?;
+    }
+    conn.execute_batch(
+        "CREATE TEMP TABLE cleanup_best AS SELECT o.* FROM score_best o
+         WHERE EXISTS (SELECT 1 FROM cleanup_removed h
+             WHERE h.chart_sha256 = o.chart_sha256 AND h.ln_policy = o.ln_policy
+             AND h.double_option = o.double_option
+             AND CASE h.rule_mode WHEN 'Lr2Oraja' THEN 'Lr2Oraja' WHEN 'Dx' THEN 'Dx'
+                 ELSE 'Beatoraja' END = o.rule_mode);",
+    )?;
+    Ok(())
+}
+
+pub(super) fn restore_cleanup_aggregates(conn: &Connection) -> Result<()> {
+    const MATCH: &str = "h.chart_sha256 = o.chart_sha256 AND h.ln_policy = o.ln_policy
+        AND h.double_option = o.double_option
+        AND CASE h.rule_mode WHEN 'Lr2Oraja' THEN 'Lr2Oraja' WHEN 'Dx' THEN 'Dx'
+            ELSE 'Beatoraja' END = o.rule_mode";
+    const BEST_MATCH: &str = "o.chart_sha256 = score_best.chart_sha256
+        AND o.ln_policy = score_best.ln_policy AND o.double_option = score_best.double_option
+        AND o.rule_mode = score_best.rule_mode";
+    let affected = format!("EXISTS (SELECT 1 FROM cleanup_removed h WHERE {MATCH})");
+    let unrecorded = format!(
+        "o.play_count > (SELECT COALESCE(SUM(plays), 0) FROM cleanup_history h WHERE {MATCH})"
+    );
+    // Keep a neutral row when the last numeric history was removed but assisted
+    // plays still exist. Unaffected keys are never rewritten.
+    conn.execute(
+        &format!("INSERT OR IGNORE INTO score_best SELECT o.* FROM cleanup_best o WHERE {affected} AND {unrecorded}"),
+        [],
+    )?;
+    let numeric_columns = [
+        "ex_score",
+        "bp",
+        "cb",
+        "max_combo",
+        "fast_pgreat",
+        "slow_pgreat",
+        "fast_great",
+        "slow_great",
+        "fast_good",
+        "slow_good",
+        "fast_bad",
+        "slow_bad",
+        "fast_poor",
+        "slow_poor",
+        "fast_empty_poor",
+        "slow_empty_poor",
+    ];
+    let reset =
+        numeric_columns.iter().map(|column| format!("{column} = 0")).collect::<Vec<_>>().join(",");
+    conn.execute(
+        &format!("UPDATE score_best SET {reset}, best_score_history_id = NULL, replay_path = '', ghost = ''
+            WHERE best_score_history_id IN (SELECT id FROM cleanup_removed)"),
+        [],
+    )?;
+    for (column, condition) in
+        [("play_count", "1"), ("clear_count", "h.clear_type NOT IN ('NoPlay', 'Failed')")]
+    {
+        conn.execute(
+            &format!(
+                "UPDATE score_best SET {column} = (SELECT MAX(0, o.{column} -
+                (SELECT COUNT(*) FROM cleanup_removed h WHERE {MATCH} AND {condition}))
+                FROM cleanup_best o WHERE {BEST_MATCH})
+                WHERE EXISTS (SELECT 1 FROM cleanup_best o WHERE {BEST_MATCH} AND {affected})"
+            ),
+            [],
+        )?;
+    }
+    // A lamp with no history provenance cannot be reconstructed. Preserve it
+    // when it belongs to unrecorded plays; ordinary history lamps still rebuild.
+    for column in ["clear_type", "gauge_type", "gauge_value"] {
+        conn.execute(
+            &format!("UPDATE score_best SET {column} = (SELECT o.{column} FROM cleanup_best o WHERE {BEST_MATCH})
+                WHERE EXISTS (SELECT 1 FROM cleanup_best o WHERE {BEST_MATCH} AND {affected} AND {unrecorded}
+                    AND NOT EXISTS (SELECT 1 FROM cleanup_history h WHERE {MATCH} AND h.clear_type = o.clear_type))"),
+            [],
+        )?;
+    }
+    // Profile counters include assisted plays too. Subtraction preserves those
+    // contributions, unlike replacing the counters with sums of remaining rows.
+    conn.execute_batch(
+        "DELETE FROM player_stats; INSERT INTO player_stats SELECT * FROM cleanup_stats;",
+    )?;
+    for column in [
+        "play_count",
+        "clear_count",
+        "fast_pgreat",
+        "slow_pgreat",
+        "fast_great",
+        "slow_great",
+        "fast_good",
+        "slow_good",
+        "fast_bad",
+        "slow_bad",
+        "fast_poor",
+        "slow_poor",
+        "fast_empty_poor",
+        "slow_empty_poor",
+    ] {
+        let removed = match column {
+            "play_count" => "COUNT(*)".to_string(),
+            "clear_count" => {
+                "SUM(CASE WHEN clear_type NOT IN ('NoPlay', 'Failed') THEN 1 ELSE 0 END)"
+                    .to_string()
+            }
+            _ => format!("SUM({column})"),
+        };
+        conn.execute(&format!("UPDATE player_stats SET {column} = MAX(0, {column} - (SELECT COALESCE({removed}, 0) FROM cleanup_removed))"), [])?;
+    }
+    // Without unrecorded plays, maxima can be recomputed exactly. Otherwise keep
+    // the existing maximum: older schemas did not retain its assisted provenance.
+    conn.execute_batch(
+        "UPDATE player_stats SET max_combo = (SELECT COALESCE(MAX(max_combo), 0) FROM score_history)
+         WHERE (SELECT play_count FROM cleanup_stats) = (SELECT COALESCE(SUM(plays), 0) FROM cleanup_history);
+         DROP TABLE cleanup_best; DROP TABLE cleanup_stats;
+         DROP TABLE cleanup_removed; DROP TABLE cleanup_history;",
     )?;
     Ok(())
 }

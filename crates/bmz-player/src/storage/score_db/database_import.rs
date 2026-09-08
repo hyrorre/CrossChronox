@@ -196,14 +196,16 @@ impl ScoreDatabase {
             return Ok(0);
         }
         let tx = self.conn.transaction()?;
+        preserve_cleanup_aggregates(&tx, history_ids)?;
         let removed_history = delete_score_history_ids(&tx, history_ids)?;
         rebuild_score_aggregates(&tx)?;
+        restore_cleanup_aggregates(&tx)?;
         tx.commit()?;
         Ok(removed_history)
     }
 
     /// 指定した旧 Local 候補を削除し、通常譜面の score_best と player_stats を
-    /// 残存履歴から再集計する。コース stage 履歴は集計から除外したまま維持する。
+    /// 残存履歴から再集計し、履歴外の実績とコース stage の実績を保全する。
     pub fn purge_legacy_beatoraja_imports(
         &mut self,
         plan: &LegacyBeatorajaCleanupPlan,

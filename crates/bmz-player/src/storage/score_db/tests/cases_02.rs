@@ -1,6 +1,55 @@
 use super::*;
 
 #[test]
+fn cleanup_preserves_assisted_and_course_aggregates() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    configure_connection(&conn).unwrap();
+    run_migrations(&mut conn, SCORE_MIGRATIONS).unwrap();
+    let mut db = ScoreDatabase { conn };
+    let baseline = record(20, ClearType::NoPlay);
+    let removed = db.insert_score(&baseline).unwrap();
+    let remaining = db.insert_score(&baseline).unwrap();
+    let mut assisted = record(100, ClearType::LightAssistEasy);
+    assisted.score.max_combo = 100;
+    db.update_score_clear_only(&assisted).unwrap();
+    assisted.chart_sha256 = [8; 32];
+    db.update_score_clear_only(&assisted).unwrap();
+    let mut course = record(40, ClearType::FullCombo);
+    course.chart_sha256 = [9; 32];
+    let course_history = db.insert_score(&course).unwrap();
+    let course_id = insert_test_course_score(&mut db, "cleanup-course");
+    db.conn()
+        .execute(
+            "UPDATE score_history SET course_score_id = ?1 WHERE id = ?2",
+            params![course_id, course_history],
+        )
+        .unwrap();
+
+    db.purge_score_history_ids_and_rebuild(&[removed]).unwrap();
+    let best = db.best_scores_for_charts(&[key([7; 32])]).unwrap().pop().unwrap();
+    assert_eq!((best.ex_score, best.play_count, best.clear_count), (20, 2, 1));
+    assert_eq!(best.clear_type, "LightAssistEasy");
+    let untouched = db.best_scores_for_charts(&[key([8; 32])]).unwrap().pop().unwrap();
+    assert_eq!((untouched.ex_score, untouched.play_count), (0, 1));
+    assert_eq!(untouched.clear_type, "LightAssistEasy");
+    let course_best = db.best_scores_for_charts(&[key([9; 32])]).unwrap().pop().unwrap();
+    assert_eq!((course_best.ex_score, course_best.play_count), (40, 1));
+    let stats = db.player_stats().unwrap();
+    assert_eq!((stats.play_count, stats.clear_count, stats.max_combo), (4, 3, 100));
+    assert_eq!(stats.slow_pgreat, 130);
+
+    db.purge_score_history_ids_and_rebuild(&[remaining]).unwrap();
+    let best = db.best_scores_for_charts(&[key([7; 32])]).unwrap().pop().unwrap();
+    assert_eq!((best.ex_score, best.play_count, best.clear_count), (0, 1, 1));
+    assert_eq!(best.clear_type, "LightAssistEasy");
+    // Rebuilding an affected key must retain its remaining course-stage history.
+    let ordinary_course_key = db.insert_score(&course).unwrap();
+    db.purge_score_history_ids_and_rebuild(&[ordinary_course_key]).unwrap();
+    let best = db.best_scores_for_charts(&[key([9; 32])]).unwrap().pop().unwrap();
+    assert_eq!((best.ex_score, best.play_count), (40, 1));
+}
+
+#[test]
 fn score_best_keeps_independent_bp_cb_and_max_combo_records() {
     let mut conn = Connection::open_in_memory().unwrap();
     configure_connection(&conn).unwrap();
