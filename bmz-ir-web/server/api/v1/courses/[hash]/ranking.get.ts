@@ -1,8 +1,9 @@
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { db, schema } from 'hub:db'
 import { asRuleMode, normalizeGaugeName, requireHex } from '../../../../services/ir'
 import { resolveIrUser } from '../../../../utils/auth'
+import { fetchCourseRankingRows } from '../../../../services/course_ranking'
 
 /** コースランキング (global のみ)。EX score 降順、同点同順位。 */
 export default defineEventHandler(async (event) => {
@@ -42,43 +43,7 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(schema.courseScores.ruleMode, ruleMode))
   }
 
-  const rows = await db
-    .select({
-      player_id: schema.courseScores.playerId,
-      course_score_id: schema.courseScores.id,
-      ex_score: schema.courseScores.exScore,
-      clear_type: schema.courseScores.clearType,
-      clear_rank: schema.courseScores.clearRank,
-      course_clear: schema.courseScores.courseClear,
-      max_combo: schema.courseScores.maxCombo,
-      bp: schema.courseScores.bp,
-      device_type: schema.courseScores.deviceType,
-      rule_mode: schema.courseScores.ruleMode,
-      played_at: schema.courseScores.playedAt,
-      server_received_at: schema.courseScores.serverReceivedAt,
-      verification: schema.courseScores.verification,
-    })
-    .from(schema.courseScores)
-    .where(and(...conditions))
-    .orderBy(
-      desc(schema.courseScores.exScore),
-      desc(schema.courseScores.clearRank),
-      asc(schema.courseScores.bp),
-      desc(schema.courseScores.maxCombo),
-      desc(schema.courseScores.serverReceivedAt),
-    )
-    .limit(Math.min(1000, limit * 10))
-
-  const bestRowsByPlayer = new Map<string, (typeof rows)[number]>()
-  for (const row of rows) {
-    if (!bestRowsByPlayer.has(row.player_id)) {
-      bestRowsByPlayer.set(row.player_id, row)
-    }
-    if (bestRowsByPlayer.size >= limit) {
-      break
-    }
-  }
-  const bestRows = [...bestRowsByPlayer.values()]
+  const bestRows = await fetchCourseRankingRows(conditions, limit)
   const playerIds = [...new Set(bestRows.map((row) => row.player_id))]
   const profiles =
     playerIds.length > 0

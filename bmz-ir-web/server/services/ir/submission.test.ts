@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
+import { eq } from 'drizzle-orm'
 import { readdir, readFile } from 'node:fs/promises'
 import * as schema from '../../db/schema'
 import type { IrScoreSubmission } from '../../../shared/types/ir'
@@ -12,6 +13,7 @@ mock.module('hub:db', () => ({ db, schema }))
 const { submitScore, prepareBestScoreUpsert } = await import('./submission')
 const { IrIdempotencyCollisionError } = await import('./idempotency')
 const { submitCourseScore, computeCourseHash } = await import('../course_ir')
+const { fetchCourseRankingRows } = await import('../course_ranking')
 const migrations = new URL('../../../../server/db/migrations/sqlite/', import.meta.url)
 for (const name of (await readdir(migrations)).filter((name) => name.endsWith('.sql')).sort()) {
   await client.executeMultiple(await readFile(new URL(name, migrations), 'utf8'))
@@ -111,6 +113,27 @@ describe('score submission idempotency', () => {
     } finally {
       lookup.mockRestore()
     }
+    await db
+      .insert(schema.users)
+      .values({ id: 'second', email: 'second@example.invalid', passwordHash: '' })
+      .onConflictDoNothing()
+    await db.insert(schema.profiles).values({ id: 'second' }).onConflictDoNothing()
+    for (let i = 0; i < 20; i++) {
+      await submitCourseScore(user, {
+        ...payload,
+        idempotency_key: `repeat-${i}`,
+        result: { ...payload.result, ex_score: 200 },
+      })
+    }
+    await submitCourseScore({ id: 'second' }, payload)
+    const rows = await fetchCourseRankingRows(
+      [eq(schema.courseScores.courseHash, payload.course.course_hash)],
+      2,
+    )
+    expect(rows.map((row) => [row.player_id, row.ex_score])).toEqual([
+      ['player', 200],
+      ['second', 100],
+    ])
   })
   test('concurrent prepared best updates preserve independent maxima and their source IDs', async () => {
     const high = submission()
