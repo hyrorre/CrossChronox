@@ -288,6 +288,7 @@ pub fn decode_beatoraja_skin_request(
                 size: decoded.size,
                 cache_key: decoded.cache_key,
                 is_video: decoded.is_video,
+                texture_lease: decoded.texture_lease,
             }
         })
         .collect();

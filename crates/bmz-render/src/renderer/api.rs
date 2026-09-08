@@ -98,6 +98,29 @@ impl Renderer {
         }
     }
 
+    pub fn active_skin_texture_ids(&self) -> std::collections::HashSet<crate::skin::SkinTextureId> {
+        [
+            &self.play_skin_context,
+            &self.select_skin_context,
+            &self.decide_skin_context,
+            &self.result_skin_context,
+        ]
+        .into_iter()
+        .flat_map(|context| context.texture_ids())
+        .collect()
+    }
+
+    pub fn remove_image_texture(&mut self, id: TextureId) {
+        if id == TextureId(0) {
+            return;
+        }
+        self.pending_textures.retain(|texture| texture.id != id);
+        if let Some(gpu) = &mut self.gpu {
+            gpu.image_textures.remove(&id);
+            gpu.image_bind_group_cache.retain(|(texture, _), _| *texture != id);
+        }
+    }
+
     pub fn load_png_texture(&mut self, id: TextureId, path: &std::path::Path) -> Result<()> {
         let asset = load_png_rgba(path)?;
         self.upsert_image_asset(id, &asset)

@@ -94,6 +94,7 @@ fn decode_source_task(
         SourceDecodeTask::Builtin { index, source_id, path, asset } => {
             let size = SkinImageSize { width: asset.width as f32, height: asset.height as f32 };
             Some(DecodedSourceResult {
+                texture_lease: None,
                 index,
                 source_id,
                 path,
@@ -238,6 +239,7 @@ fn cached_source_result(
         size: cached.size,
         is_video,
         cached_texture: Some(cached.texture),
+        texture_lease: Some(cached.lease),
         cache_key,
         source_status: None,
         texture_status: Some(texture_status),
@@ -263,6 +265,7 @@ fn asset_source_result(
         size,
         is_video,
         cached_texture: None,
+        texture_lease: None,
         cache_key,
         source_status: Some(source_status),
         texture_status: Some(texture_status),

@@ -19,6 +19,7 @@ pub(super) enum FontCacheStatus {
 
 /// GPU アップロード済みの 1 ソース。upload worker が `DecodedSource` から生成する。
 pub struct PreparedSource {
+    pub texture_lease: Option<Arc<()>>,
     pub source_id: String,
     pub path: PathBuf,
     pub texture: SkinTextureId,
@@ -211,7 +212,7 @@ pub fn upload_decoded_skin_with_texture_cache(
         .into_iter()
         .filter_map(|source| {
             upload_stats.source_count += 1;
-            let DecodedSource { source_id, path, texture, asset, size, cache_key, is_video } =
+            let DecodedSource { source_id, path, texture, asset, size, cache_key, is_video, texture_lease } =
                 source;
             let Some(asset) = asset else {
                 upload_stats.texture_cache_hits += 1;
@@ -219,6 +220,7 @@ pub fn upload_decoded_skin_with_texture_cache(
                     upload_stats.video_texture_cache_hits += 1;
                 }
                 return Some(PreparedSource {
+                    texture_lease,
                     source_id,
                     path,
                     texture,
@@ -239,7 +241,7 @@ pub fn upload_decoded_skin_with_texture_cache(
             }
             match (texture_cache, cache_key.as_ref()) {
                 (Some(texture_cache), Some(cache_key)) => {
-                    if let Ok(cache) = texture_cache.lock()
+                    if let Ok(mut cache) = texture_cache.lock()
                         && let Some(cached) = cache.get(cache_key)
                     {
                         upload_stats.texture_cache_hits += 1;
@@ -247,6 +249,7 @@ pub fn upload_decoded_skin_with_texture_cache(
                             upload_stats.video_texture_cache_hits += 1;
                         }
                         return Some(PreparedSource {
+                            texture_lease: Some(cached.lease),
                             source_id,
                             path,
                             texture: cached.texture,
@@ -274,11 +277,15 @@ pub fn upload_decoded_skin_with_texture_cache(
                     }
                 }
             }
-            let texture = texture_cache
+            let (texture, texture_lease) = texture_cache
                 .and_then(|cache| {
-                    cache.lock().ok().map(|mut cache| cache.allocate_texture_id(kind))
+                    cache.lock().ok().map(|mut cache| {
+                        let texture = cache.allocate_texture_id(kind);
+                        let lease = cache.lease_texture(texture);
+                        (texture, Some(lease))
+                    })
                 })
-                .unwrap_or(texture);
+                .unwrap_or((texture, None));
             let prepared = match uploader.upload(asset.width, asset.height, &asset.pixels) {
                 Ok(prepared) => prepared,
                 Err(error) => {
@@ -295,6 +302,7 @@ pub fn upload_decoded_skin_with_texture_cache(
                     upload_stats.uploaded_video_source_bytes.saturating_add(asset.pixels.len());
             }
             Some(PreparedSource {
+                texture_lease,
                 source_id,
                 path,
                 texture,
@@ -390,7 +398,16 @@ pub fn install_decoded_source(
     renderer: &mut Renderer,
     source: DecodedSource,
 ) -> Option<SkinDocumentTexture> {
-    let DecodedSource { source_id, path, texture, asset, size, cache_key: _, is_video: _ } = source;
+    let DecodedSource {
+        source_id,
+        path,
+        texture,
+        asset,
+        size,
+        cache_key: _,
+        is_video: _,
+        texture_lease: _texture_lease,
+    } = source;
     let Some(asset) = asset else {
         tracing::debug!(
             source_id = %source_id,

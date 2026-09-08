@@ -274,6 +274,7 @@ pub struct DecodedSource {
     pub size: SkinImageSize,
     pub cache_key: Option<SkinSourceAssetCacheKey>,
     pub is_video: bool,
+    pub texture_lease: Option<Arc<()>>,
 }
 
 pub type SharedSkinSourceAssetCache = Arc<Mutex<SkinSourceAssetCache>>;

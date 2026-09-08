@@ -73,6 +73,14 @@ impl SkinContext {
         }
     }
 
+    pub fn texture_ids(&self) -> Vec<SkinTextureId> {
+        let mut ids: Vec<_> = self.document_sources.values().map(|source| source.texture).collect();
+        if let Ok(sources) = self.runtime_document_sources.lock() {
+            ids.extend(sources.values().map(|source| source.texture));
+        }
+        ids
+    }
+
     pub(super) fn state_with_lua_runtime(
         &self,
         state: &SkinDrawState,

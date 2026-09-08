@@ -424,8 +424,16 @@ impl WinitApp {
         let mut document_textures = Vec::with_capacity(prepared.len());
         let mut video_sources = Vec::new();
         for source in prepared {
-            let PreparedSource { source_id, path, texture, prepared, size, is_video, cache_key } =
-                source;
+            let PreparedSource {
+                source_id,
+                path,
+                texture,
+                prepared,
+                size,
+                is_video,
+                cache_key,
+                texture_lease: _texture_lease,
+            } = source;
             if let Some(prepared) = prepared {
                 self.renderer.insert_prepared_texture(TextureId(texture.0), prepared);
                 if let Some(cache_key) = cache_key
@@ -470,6 +478,14 @@ impl WinitApp {
         );
         self.skin.pending_skin_render_probe =
             Some(PendingSkinRenderProbe { kind, generation, applied_at: Instant::now() });
+        // Reclaim both cache metadata and GPU resources after replacing the scene.
+        // Pending worker results hold leases, including cache hits without pixels.
+        let active = self.renderer.active_skin_texture_ids();
+        if let Ok(mut cache) = self.skin.skin_pipeline.gpu_texture_cache.lock() {
+            for texture in cache.evict_unused(&active) {
+                self.renderer.remove_image_texture(TextureId(texture.0));
+            }
+        }
         self.frame.request_immediate_frame();
         tracing::debug!(
             path = %path.display(),

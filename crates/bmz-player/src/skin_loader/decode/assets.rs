@@ -7,6 +7,7 @@ pub(in crate::skin_loader) enum SourceDecodeTask {
 }
 
 pub(in crate::skin_loader) struct DecodedSourceResult {
+    pub(in crate::skin_loader) texture_lease: Option<Arc<()>>,
     pub(in crate::skin_loader) index: usize,
     pub(in crate::skin_loader) source_id: String,
     pub(in crate::skin_loader) path: PathBuf,

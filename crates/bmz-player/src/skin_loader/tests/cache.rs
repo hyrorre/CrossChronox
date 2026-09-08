@@ -836,6 +836,41 @@ fn skin_gpu_texture_cache_reuses_inserted_source_textures() {
 }
 
 #[test]
+fn skin_gpu_cache_evicts_lru_but_pins_active_and_pending_textures() {
+    let mut cache = SkinGpuTextureCache::default();
+    cache.limit_bytes = 8;
+    let keys: Vec<_> = (0..3)
+        .map(|i| SkinSourceAssetCacheKey {
+            path: PathBuf::from(format!("image-{i}.png")),
+            modified: None,
+            len: 4,
+            is_video: false,
+        })
+        .collect();
+    let ids: Vec<_> = keys
+        .iter()
+        .map(|key| {
+            let id = cache.allocate_texture_id(SkinKind::Play);
+            cache.insert(key.clone(), id, SkinImageSize { width: 1.0, height: 1.0 });
+            id
+        })
+        .collect();
+    drop(cache.get(&keys[0])); // newest access; entry 1 is the least recently used
+    assert_eq!(cache.evict_unused(&HashSet::new()), vec![ids[1]]);
+    assert_eq!(cache.allocate_texture_id(SkinKind::Play), ids[1]);
+    let pending = cache.get(&keys[2]).unwrap();
+    cache.limit_bytes = 0;
+    let active = HashSet::from([ids[0]]);
+    assert!(cache.evict_unused(&active).is_empty());
+    drop(pending);
+    assert_eq!(cache.evict_unused(&active), vec![ids[2]]);
+    assert!(cache.get(&keys[2]).is_none());
+    assert!(cache.get(&keys[0]).is_some());
+    assert_eq!(cache.evict_unused(&HashSet::new()), vec![ids[0]]);
+    assert!(cache.entries.is_empty());
+}
+
+#[test]
 fn decode_uses_gpu_texture_cache_to_skip_source_decode() {
     let root = unique_test_dir("bmz-source-texture-cache-hit");
     std::fs::create_dir_all(&root).unwrap();

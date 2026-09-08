@@ -257,21 +257,42 @@ impl Default for SkinFontCache {
     }
 }
 
-#[derive(Default)]
 pub struct SkinGpuTextureCache {
     pub(super) entries: HashMap<SkinSourceAssetCacheKey, CachedSkinGpuTexture>,
     pub(super) next_texture_ids: HashMap<SkinKind, u32>,
+    allocations: HashMap<SkinTextureId, std::sync::Weak<()>>,
+    free_texture_ids: Vec<SkinTextureId>,
+    access_clock: u64,
+    pub(super) limit_bytes: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Default for SkinGpuTextureCache {
+    fn default() -> Self {
+        Self {
+            entries: HashMap::new(),
+            next_texture_ids: HashMap::new(),
+            allocations: HashMap::new(),
+            free_texture_ids: Vec::new(),
+            access_clock: 0,
+            limit_bytes: 256 * 1024 * 1024,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct CachedSkinGpuTexture {
     pub texture: SkinTextureId,
     pub size: SkinImageSize,
+    pub lease: Arc<()>,
+    last_used: u64,
 }
 
 impl SkinGpuTextureCache {
-    pub fn get(&self, key: &SkinSourceAssetCacheKey) -> Option<CachedSkinGpuTexture> {
-        self.entries.get(key).copied()
+    pub fn get(&mut self, key: &SkinSourceAssetCacheKey) -> Option<CachedSkinGpuTexture> {
+        self.access_clock = self.access_clock.wrapping_add(1);
+        let entry = self.entries.get_mut(key)?;
+        entry.last_used = self.access_clock;
+        Some(entry.clone())
     }
 
     pub fn insert(
@@ -280,10 +301,63 @@ impl SkinGpuTextureCache {
         texture: SkinTextureId,
         size: SkinImageSize,
     ) {
-        self.entries.insert(key, CachedSkinGpuTexture { texture, size });
+        self.access_clock = self.access_clock.wrapping_add(1);
+        let lease = self.lease_texture(texture);
+        self.entries.insert(
+            key,
+            CachedSkinGpuTexture { texture, size, lease, last_used: self.access_clock },
+        );
+    }
+
+    pub(super) fn lease_texture(&mut self, texture: SkinTextureId) -> Arc<()> {
+        if let Some(lease) = self.allocations.get(&texture).and_then(std::sync::Weak::upgrade) {
+            return lease;
+        }
+        let lease = Arc::new(());
+        self.allocations.insert(texture, Arc::downgrade(&lease));
+        lease
+    }
+
+    /// Active scenes and pending decode/upload leases cannot be evicted.
+    /// The caller removes returned IDs from the renderer while holding this lock.
+    pub fn evict_unused(&mut self, active: &HashSet<SkinTextureId>) -> Vec<SkinTextureId> {
+        let bytes = |entry: &CachedSkinGpuTexture| {
+            (entry.size.width as usize).saturating_mul(entry.size.height as usize).saturating_mul(4)
+        };
+        let mut total = self.entries.values().map(bytes).fold(0usize, usize::saturating_add);
+        while total > self.limit_bytes {
+            let Some(key) = self
+                .entries
+                .iter()
+                .filter(|(_, entry)| {
+                    !active.contains(&entry.texture) && Arc::strong_count(&entry.lease) == 1
+                })
+                .min_by_key(|(_, entry)| entry.last_used)
+                .map(|(key, _)| key.clone())
+            else {
+                break;
+            };
+            if let Some(entry) = self.entries.remove(&key) {
+                total = total.saturating_sub(bytes(&entry));
+            }
+        }
+        let removed: Vec<_> = self
+            .allocations
+            .iter()
+            .filter(|(texture, lease)| !active.contains(texture) && lease.strong_count() == 0)
+            .map(|(texture, _)| *texture)
+            .collect();
+        for texture in &removed {
+            self.allocations.remove(texture);
+        }
+        self.free_texture_ids.extend(removed.iter().copied());
+        removed
     }
 
     pub(super) fn allocate_texture_id(&mut self, kind: SkinKind) -> SkinTextureId {
+        if let Some(texture) = self.free_texture_ids.pop() {
+            return texture;
+        }
         let next = self.next_texture_ids.entry(kind).or_insert_with(|| kind.first_texture_id());
         let texture = SkinTextureId(*next);
         *next = next.saturating_add(1);
@@ -293,5 +367,7 @@ impl SkinGpuTextureCache {
     pub fn clear(&mut self) {
         self.entries.clear();
         self.next_texture_ids.clear();
+        self.allocations.clear();
+        self.free_texture_ids.clear();
     }
 }

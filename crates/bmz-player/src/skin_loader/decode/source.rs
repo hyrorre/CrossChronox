@@ -43,7 +43,7 @@ pub(in crate::skin_loader) fn lookup_source_texture_cache(
     let key = skin_source_asset_cache_key(path, is_video);
     match (texture_cache, key.as_ref()) {
         (Some(texture_cache), Some(key)) => {
-            if let Ok(cache) = texture_cache.lock()
+            if let Ok(mut cache) = texture_cache.lock()
                 && let Some(texture) = cache.get(key)
             {
                 return (Some(texture), Some(key.clone()), TextureCacheStatus::Hit);
