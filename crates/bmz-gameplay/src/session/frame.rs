@@ -337,8 +337,15 @@ fn advance_battle_opponent(session: &mut GameSession, now: TimeUs) {
         let outcome = opponent.judge.process_input(&opponent.chart, input);
         display_judgements.extend(apply_battle_opponent_outcome(opponent, outcome));
     }
-    let mine_outcome =
-        opponent.judge.process_mine_passes(&opponent.chart, now, &opponent.lane_keyon_started_at);
+    let mut mine_keyon = opponent.lane_keyon_started_at;
+    if let Some(autoplay) = &opponent.autoplay {
+        for lane in Lane::ALL {
+            if autoplay.is_lane_enabled(lane) {
+                mine_keyon[lane.index()] = None;
+            }
+        }
+    }
+    let mine_outcome = opponent.judge.process_mine_passes(&opponent.chart, now, &mine_keyon);
     display_judgements.extend(apply_battle_opponent_outcome(opponent, mine_outcome));
     let miss_outcome = opponent.judge.process_misses(&opponent.chart, now);
     display_judgements.extend(apply_battle_opponent_outcome(opponent, miss_outcome));

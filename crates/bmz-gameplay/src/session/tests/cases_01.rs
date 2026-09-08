@@ -132,7 +132,10 @@ fn independent_battle_opponent_replay_advances_without_taking_primary_lanes() {
 
 #[test]
 fn independent_battle_opponent_without_replay_uses_autoplay() {
-    let opponent_chart = Arc::new(chart_with_keysound());
+    let mut opponent_chart = chart_with_keysound();
+    opponent_chart.lane_notes[Lane::Key1.index()]
+        .extend(chart_with_mine(TimeUs(100_000), 8.0).lane_notes[Lane::Key1.index()].clone());
+    let opponent_chart = Arc::new(opponent_chart);
     let window = JudgeWindow::symmetric(16_000, 40_000, 80_000, 120_000, 500_000, 200_000, 16_000);
     let mut session = session_with_autoplay(chart_with_keysound());
     session.autoplay = None;
@@ -158,6 +161,12 @@ fn independent_battle_opponent_without_replay_uses_autoplay() {
     let mut audio = TestAudio::default();
 
     advance_session_frame(&mut session, &mut audio);
+
+    let before_mine = session.battle_opponent.as_ref().unwrap().gauge.current().value;
+    session.audio_clock =
+        AudioClock::with_position(48_000, 0, 100_000, Arc::new(AtomicU64::new(0)), true);
+    advance_session_frame(&mut session, &mut audio);
+    assert_eq!(session.battle_opponent.as_ref().unwrap().gauge.current().value, before_mine);
 
     let opponent = session.battle_opponent.as_ref().unwrap();
     assert_eq!(opponent.score.ex_score(), 2);
