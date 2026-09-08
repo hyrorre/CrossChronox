@@ -1,6 +1,82 @@
 use super::*;
 
 #[test]
+fn play_lua_skin_load_preserves_resolved_target_names_for_rival_and_target_refs() {
+    use crate::select_options::{ResolvedTarget, TargetOption};
+
+    let unique = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+    let root = std::env::temp_dir()
+        .join(format!("bmz-player-play-lua-target-{}-{unique}", std::process::id()));
+    std::fs::create_dir_all(&root).unwrap();
+    let path = root.join("play.luaskin");
+    std::fs::write(
+        &path,
+        r#"
+            local main_state = require("main_state")
+            return {
+                type = 0,
+                text = {
+                    { id = "rival", constantText = main_state.text(1) },
+                    { id = "target", constantText = main_state.text(3) }
+                }
+            }
+        "#,
+    )
+    .unwrap();
+
+    let cases = [
+        (TargetOption::RivalIndex(1), Some("Rival One"), "Rival One"),
+        (TargetOption::RivalIndex(1), Some("ライバル_1"), "ライバル_1"),
+        (TargetOption::RivalIndex(1), Some("AAA"), "AAA"),
+        (TargetOption::RivalIndex(1), Some("NONE"), "NONE"),
+        (TargetOption::RivalIndex(1), Some("IR_TOP"), "IR_TOP"),
+        (TargetOption::RankAaa, Some(""), ""),
+        (TargetOption::RankAaa, None, "RANK AAA"),
+        (TargetOption::IrTop, None, "IR TOP"),
+        (TargetOption::None, None, ""),
+    ];
+    for runtime_mode in [bmz_skin::LuaSkinRuntimeMode::Auto, bmz_skin::LuaSkinRuntimeMode::Compat] {
+        for (target, name, expected) in cases {
+            let options = PlayStartOptions {
+                target,
+                resolved_target: name
+                    .map(|name| ResolvedTarget { name: name.to_string(), ex_score: 100 }),
+                ..PlayStartOptions::default()
+            };
+            let mut runtime_state = lua_runtime_state_for_play(
+                &options,
+                false,
+                KeyMode::K7,
+                None,
+                "Player",
+                Default::default(),
+            );
+            runtime_state.runtime_mode = runtime_mode;
+            let loaded = bmz_skin::load_lua_skin_with_runtime_state(
+                &path,
+                &BTreeMap::new(),
+                &BTreeMap::new(),
+                &runtime_state,
+            )
+            .unwrap();
+            for (index, ref_id) in [(0, 1), (1, 3)] {
+                assert_eq!(
+                    loaded.document.text[index].constant_text, expected,
+                    "mode={runtime_mode:?}, target={target:?}, name={name:?}, ref={ref_id}"
+                );
+                assert_eq!(
+                    loaded.dependencies.text_values.get(&ref_id).map(String::as_str),
+                    Some(expected),
+                    "load dependency: mode={runtime_mode:?}, ref={ref_id}"
+                );
+            }
+        }
+    }
+
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
 fn play_lua_runtime_state_exposes_play_mode_and_score_save_options() {
     let normal = lua_runtime_state_for_play(
         &PlayStartOptions::default(),

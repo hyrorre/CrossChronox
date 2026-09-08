@@ -560,7 +560,7 @@ fn finish_session_result_once_reuses_cached_result() {
             played_at: 1_700_000_103,
             applied_arrange: &AppliedArrange::default(),
             target_ex_score: None,
-            target_name: "RANK_AAA",
+            target_name: "RANK AAA",
             score_key: score_key(&session),
             practice_mode: false,
             finish_mode: FinishResultMode::Normal,
@@ -582,7 +582,7 @@ fn finish_session_result_once_reuses_cached_result() {
             played_at: 1_700_000_104,
             applied_arrange: &AppliedArrange::default(),
             target_ex_score: None,
-            target_name: "RANK_AAA",
+            target_name: "RANK AAA",
             score_key: score_key(&session),
             practice_mode: false,
             finish_mode: FinishResultMode::Normal,
@@ -860,7 +860,7 @@ fn finish_settled_session_result_accepts_playing_session_after_judgement() {
             played_at: 1_700_000_111,
             applied_arrange: &AppliedArrange::default(),
             target_ex_score: None,
-            target_name: "RANK_AAA",
+            target_name: "ライバル_AAA",
             score_key: score_key(&session),
             practice_mode: true,
             finish_mode: FinishResultMode::Normal,
@@ -870,7 +870,7 @@ fn finish_settled_session_result_accepts_playing_session_after_judgement() {
     .unwrap();
 
     assert!(cached.is_some());
-    assert_eq!(finished.summary.target_name, "RANK AAA");
+    assert_eq!(finished.summary.target_name, "ライバル_AAA");
 
     std::fs::remove_dir_all(root).unwrap();
 }
@@ -940,7 +940,7 @@ fn spawned_settled_session_result_persists_on_background_worker() {
     };
 
     assert!(finished.stored.score_history_id > 0);
-    assert_eq!(finished.summary.target_name, "RANK AAA");
+    assert_eq!(finished.summary.target_name, "RANK_AAA");
     assert!(!finished.summary.graph.note_graph_buckets.is_empty());
     assert!(root.join(&finished.stored.replay_path).is_file());
 

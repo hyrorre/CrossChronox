@@ -146,14 +146,20 @@ pub(super) fn skin_main_state_text(
     state: &SkinTextState<'_>,
 ) -> String {
     match ref_id {
+        1 | 3 if state.resolved_target_name.is_some() => {
+            play_target_name(state.target, state.resolved_target_name)
+        }
         1 => {
             if state.rival.is_empty() {
-                select_play_target_name(state.target)
+                play_target_name(state.target, None)
             } else {
                 state.rival.to_string()
             }
         }
         2 => state.player_name.to_string(),
+        3 if draw_state.is_some_and(|state| state.play_screen) => {
+            play_target_name(state.target, None)
+        }
         3 => select_target_name(state.target),
         10 => state.title.to_string(),
         11 => state.subtitle.to_string(),

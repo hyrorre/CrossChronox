@@ -10,8 +10,15 @@ pub(super) fn select_target_name(target: &str) -> String {
     String::new()
 }
 
-pub(super) fn select_play_target_name(target: &str) -> String {
-    if target.is_empty() || target == "NONE" { String::new() } else { select_target_name(target) }
+/// Play/Resultの解決済み表示名は、ターゲット設定IDとして再解釈しない。
+pub fn play_target_name(target: &str, resolved_name: Option<&str>) -> String {
+    if let Some(name) = resolved_name {
+        name.to_string()
+    } else if target.is_empty() || target == "NONE" {
+        String::new()
+    } else {
+        select_target_name(target)
+    }
 }
 
 pub(super) fn select_target_name_by_offset(target: &str, offset: i32) -> String {

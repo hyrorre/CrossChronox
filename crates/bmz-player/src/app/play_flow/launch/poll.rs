@@ -224,11 +224,9 @@ impl WinitApp {
         );
         snapshot.skin_attempt.merge_known(prepared.skin_attempt);
         apply_play_arrange_to_snapshot(snapshot, &prepared.applied_arrange);
-        snapshot.target = options
-            .resolved_target
-            .as_ref()
-            .map(|target| target.name.clone())
-            .unwrap_or_else(|| options.target.as_string());
+        snapshot.target = options.target.as_string();
+        snapshot.resolved_target_name =
+            options.resolved_target.as_ref().map(|target| target.name.clone());
         snapshot.target_ex_score = options
             .resolved_target
             .as_ref()

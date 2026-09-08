@@ -40,6 +40,7 @@ pub struct RuntimeRenderConfig {
     pub best_ghost: Option<Vec<u8>>,
     pub target_ex_score: Option<u32>,
     pub target: String,
+    pub resolved_target_name: Option<String>,
     pub applied_arrange: AppliedArrange,
     pub source_ln_profile: crate::ln_policy::ChartLnProfile,
     pub skin_attempt: bmz_render::snapshot::SkinAttemptState,
@@ -146,24 +147,26 @@ impl GameplayClient {
         let times = bmz_gameplay::session::compute_frame_times(&runtime.session);
         let projection_pool = PlayfieldProjection::pool(&runtime.session, &config.cache);
         self.projection = Some(projection_pool[0].clone());
-        self.latest_frame =
-            Some(Arc::new(crate::screens::play_loop::frame_output_from_session_frame_cached(
-                &runtime.session,
-                bmz_gameplay::session::SessionFrame {
-                    times,
-                    judgements: Vec::new(),
-                    mine_hits: Vec::new(),
-                    keysound_volumes: Vec::new(),
-                    skin_events: Vec::new(),
-                    state: runtime.session.state,
-                },
-                config.best_ex_score,
-                config.best_ghost.as_deref(),
-                config.target_ex_score,
-                &config.bga_frames,
-                &config.cache,
-                false,
-            )));
+        let mut initial_frame = crate::screens::play_loop::frame_output_from_session_frame_cached(
+            &runtime.session,
+            bmz_gameplay::session::SessionFrame {
+                times,
+                judgements: Vec::new(),
+                mine_hits: Vec::new(),
+                keysound_volumes: Vec::new(),
+                skin_events: Vec::new(),
+                state: runtime.session.state,
+            },
+            config.best_ex_score,
+            config.best_ghost.as_deref(),
+            config.target_ex_score,
+            &config.bga_frames,
+            &config.cache,
+            false,
+        );
+        initial_frame.render_snapshot.target.clone_from(&config.target);
+        initial_frame.render_snapshot.resolved_target_name.clone_from(&config.resolved_target_name);
+        self.latest_frame = Some(Arc::new(initial_frame));
         let latest = Arc::new(Mutex::new(None));
         let stop = Arc::new(AtomicBool::new(false));
         let (commands, receiver) = mpsc::sync_channel(COMMAND_CAPACITY);
@@ -435,6 +438,7 @@ fn run(
             &config.applied_arrange,
         );
         snapshot.target.clone_from(&config.target);
+        snapshot.resolved_target_name.clone_from(&config.resolved_target_name);
         snapshot.skin_attempt = config.skin_attempt;
         snapshot.rule_mode_index =
             crate::skin_extension::rule_mode_index(config.score_key.rule_mode);

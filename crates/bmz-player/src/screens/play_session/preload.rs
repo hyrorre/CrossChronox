@@ -664,7 +664,6 @@ pub fn build_practice_prepared_from_preloaded(
     options.arrange_2p = property.arrange_2p;
     options.double_option = double_option;
     options.playback_rate_percent = property.playback_rate_percent;
-    let target = TargetOption::None.as_string();
     let practice_mode = options.session_mode.is_practice();
     options.score_save_disabled |= preloaded.score_save_disabled;
     let score_save_disabled = options.score_save_disabled;
@@ -702,7 +701,7 @@ pub fn build_practice_prepared_from_preloaded(
         applied_arrange,
         score_key: preloaded.score_key,
         target_option: TargetOption::None,
-        target,
+        target_name: String::new(),
         resolved_target: None,
         practice_mode,
         score_save_disabled,
@@ -756,10 +755,10 @@ pub fn build_prepared_play_session_from_preloaded(
     options.assist_runtime = preloaded.assist_runtime;
     let target_option = options.target;
     let resolved_target = options.resolved_target.clone();
-    let target = resolved_target
-        .as_ref()
-        .map(|target| target.name.clone())
-        .unwrap_or_else(|| options.target.as_string());
+    let target_name = bmz_render::skin::play_target_name(
+        &target_option.as_string(),
+        resolved_target.as_ref().map(|target| target.name.as_str()),
+    );
     let practice_mode = options.session_mode.is_practice();
     let score_save_disabled = options.score_save_disabled;
     let playback_rate_percent = options.playback_rate_percent;
@@ -791,7 +790,7 @@ pub fn build_prepared_play_session_from_preloaded(
         applied_arrange: preloaded.applied_arrange,
         score_key: preloaded.score_key,
         target_option,
-        target,
+        target_name,
         resolved_target,
         practice_mode,
         score_save_disabled,

@@ -293,7 +293,8 @@ pub struct PreparedPlaySession {
     pub applied_arrange: AppliedArrange,
     pub score_key: ScoreKey,
     pub target_option: TargetOption,
-    pub target: String,
+    /// ターゲット設定 ID と区別した、ライバル名を含む表示名。
+    pub target_name: String,
     pub resolved_target: Option<ResolvedTarget>,
     pub practice_mode: bool,
     pub score_save_disabled: bool,

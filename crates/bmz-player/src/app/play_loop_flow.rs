@@ -153,7 +153,7 @@ impl WinitApp {
                             chart_length_ms: Some(chart_length_ms),
                             play_duration_ms: Some(play_duration_ms),
                             target_ex_score: active_play.running.target_ex_score,
-                            target_name: &active_play.running.target,
+                            target_name: &active_play.running.target_name,
                             score_key: active_play.running.score_key,
                             practice_mode: active_play.running.practice_mode
                                 || active_play.running.score_save_disabled,
@@ -261,7 +261,7 @@ impl WinitApp {
                 chart_length_ms: Some(chart_length_ms),
                 play_duration_ms: Some(play_duration_ms),
                 target_ex_score: active_play.running.target_ex_score,
-                target_name: &active_play.running.target,
+                target_name: &active_play.running.target_name,
                 score_key: active_play.running.score_key,
                 practice_mode: active_play.running.practice_mode
                     || active_play.running.score_save_disabled,

@@ -519,9 +519,17 @@ pub(super) fn lua_runtime_state_for_play(
         (170, i32::try_from(previous_best_ex_score).unwrap_or(i32::MAX)),
     ]);
     extend_bmz_key_mode_lua_state(&mut number_values, &mut option_values, key_mode);
+    let target_name = bmz_render::skin::play_target_name(
+        &options.target.as_string(),
+        options.resolved_target.as_ref().map(|target| target.name.as_str()),
+    );
     let mut runtime_state = bmz_skin::LuaLoadRuntimeState {
         number_values,
-        text_values: BTreeMap::from([(2, player_name.to_string())]),
+        text_values: BTreeMap::from([
+            (1, target_name.clone()),
+            (2, player_name.to_string()),
+            (3, target_name),
+        ]),
         option_values,
         ..Default::default()
     };

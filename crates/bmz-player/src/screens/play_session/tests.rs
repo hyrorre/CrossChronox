@@ -93,6 +93,44 @@ fn preloaded_play_session(chart: PlayableChart) -> PreloadedPlaySession {
 }
 
 #[test]
+fn play_target_display_name_survives_placeholder_and_session_preparation() {
+    let profile = ProfileConfig::new_default("default", "Default", 1);
+    for (target, name, expected_name) in [
+        (TargetOption::RankAaa, Some("ライバル_AAA"), "ライバル_AAA"),
+        (TargetOption::RankAaa, Some("AAA"), "AAA"),
+        (TargetOption::RankAaa, Some("NONE"), "NONE"),
+        (TargetOption::RankAaa, Some("RANK_AAA"), "RANK_AAA"),
+        (TargetOption::RankAaa, None, "RANK AAA"),
+        (TargetOption::IrTop, None, "IR TOP"),
+        (TargetOption::None, None, ""),
+    ] {
+        let options = PlaySessionOptions {
+            target,
+            resolved_target: name
+                .map(|name| ResolvedTarget { name: name.to_string(), ex_score: 123 }),
+            ..Default::default()
+        };
+        let mut snapshot = bmz_render::snapshot::RenderSnapshot::default();
+        apply_placeholder_session_visuals(&mut snapshot, &profile, KeyMode::K7, &options);
+        assert_eq!(snapshot.target, target.as_string());
+        assert_eq!(snapshot.resolved_target_name.as_deref(), name);
+        if name.is_some() {
+            assert_eq!(snapshot.target_ex_score, Some(123));
+        }
+
+        let prepared = build_prepared_play_session_from_preloaded(
+            preloaded_play_session(chart()),
+            &profile,
+            options,
+            Box::new(BufferedInputBackend::default()),
+        );
+        assert_eq!(prepared.target_option, target);
+        assert_eq!(prepared.target_name, expected_name);
+        assert_eq!(prepared.resolved_target.as_ref().map(|target| target.name.as_str()), name);
+    }
+}
+
+#[test]
 fn cloned_preload_reuses_loaded_pcm_without_playback_state() {
     let mut preloaded = preloaded_play_session(chart());
     preloaded.audio.insert_sample(

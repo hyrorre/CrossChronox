@@ -464,7 +464,9 @@ impl WinitApp {
         // READY前から実際の配置をスキンへ渡す。arrange名だけでは
         // RANDOM lane ref (450..469) を解決できないため、確定patternも必要。
         apply_play_arrange_to_snapshot(&mut snapshot, &active_play.running.applied_arrange);
-        snapshot.target = active_play.running.target.clone();
+        snapshot.target = active_play.running.target_option.as_string();
+        snapshot.resolved_target_name =
+            active_play.running.resolved_target.as_ref().map(|target| target.name.clone());
         snapshot.stagefile_background = self.play.play_stagefile_loaded;
         snapshot.stagefile_image_size = self.play.play_stagefile_size;
         snapshot.backbmp_background = self.play.play_backbmp_loaded;

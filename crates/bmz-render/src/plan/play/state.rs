@@ -239,6 +239,7 @@ pub(super) fn build_play_skin_text(snapshot: &RenderSnapshot) -> SkinTextState<'
         difficulty_name: &snapshot.difficulty_name,
         play_level: &snapshot.play_level,
         target: &snapshot.target,
+        resolved_target_name: snapshot.resolved_target_name.as_deref(),
         table_level: &snapshot.table_text_secondary,
         table_text_primary: &snapshot.table_text_primary,
         table_text_secondary: &snapshot.table_text_secondary,

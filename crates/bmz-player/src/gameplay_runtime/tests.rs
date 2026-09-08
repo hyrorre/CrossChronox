@@ -214,6 +214,7 @@ fn config(session: &GameSession, probe: Arc<RuntimeProbe>) -> RuntimeRenderConfi
         best_ghost: None,
         target_ex_score: None,
         target: String::new(),
+        resolved_target_name: None,
         applied_arrange: AppliedArrange::default(),
         source_ln_profile: crate::ln_policy::ChartLnProfile::from_chart(&session.chart),
         skin_attempt: Default::default(),
@@ -238,6 +239,28 @@ fn wait_until(mut condition: impl FnMut() -> bool) {
 
 fn run_with_render_stall(stall_ms: u64) -> (String, u64) {
     run_mode_with_render_stall(stall_ms, 0)
+}
+
+#[test]
+fn runtime_publishes_target_id_and_resolved_name_from_the_first_frame() {
+    let session = prepared(SharedInputBackend::default());
+    let audio = AudioEngineHandle::new(AudioEngine::new(1_000_000));
+    let mut render_config = config(&session, Arc::new(RuntimeProbe::default()));
+    render_config.target = "RANK_AAA".to_string();
+    render_config.resolved_target_name = Some("ライバル_AAA".to_string());
+    let mut client = GameplayClient::new(session);
+    client.start(audio, render_config).unwrap();
+
+    let initial = &client.latest_frame.as_ref().unwrap().render_snapshot;
+    assert_eq!(initial.target, "RANK_AAA");
+    assert_eq!(initial.resolved_target_name.as_deref(), Some("ライバル_AAA"));
+
+    let published = client.worker.as_ref().unwrap().latest.clone();
+    wait_until(|| published.lock().unwrap().is_some());
+    let frame = client.poll().unwrap();
+    assert_eq!(frame.render_snapshot.target, "RANK_AAA");
+    assert_eq!(frame.render_snapshot.resolved_target_name.as_deref(), Some("ライバル_AAA"));
+    client.shutdown();
 }
 
 fn run_mode_with_render_stall(stall_ms: u64, mode: u8) -> (String, u64) {

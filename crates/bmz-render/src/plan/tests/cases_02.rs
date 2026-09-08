@@ -517,35 +517,90 @@ fn play_plan_uses_supplied_skin_context() {
     )));
 }
 
-#[test]
-fn play_skin_document_receives_target_text() {
-    let document: SkinDocument = serde_json::from_str(
+fn target_text_skin(skin_type: i32) -> SkinContext {
+    let mut document: SkinDocument = serde_json::from_str(
         r#"
             {
                 "type": 0,
                 "w": 100,
                 "h": 100,
-                "text": [{ "id": "target", "size": 12, "ref": 1 }],
+                "text": [
+                    { "id": "rival", "size": 12, "ref": 1 },
+                    { "id": "target", "size": 12, "ref": 3 },
+                    { "id": "sentinel", "size": 12, "constantText": "Target name test" }
+                ],
                 "destination": [
-                    { "id": "target", "dst": [{ "x": 10, "y": 20, "w": 60, "h": 12 }] }
+                    { "id": "rival", "dst": [{ "x": 10, "y": 40, "w": 60, "h": 12 }] },
+                    { "id": "target", "dst": [{ "x": 10, "y": 20, "w": 60, "h": 12 }] },
+                    { "id": "sentinel", "dst": [{ "x": 10, "y": 60, "w": 60, "h": 12 }] }
                 ]
             }
             "#,
     )
     .unwrap();
-    let skin = SkinContext::from_manifest_and_document(SkinManifest::default(), document, []);
-    let snapshot = RenderSnapshot { target: "IR_TOP".to_string(), ..RenderSnapshot::default() };
+    document.skin_type = skin_type;
+    SkinContext::from_manifest_and_document(SkinManifest::default(), document, [])
+}
 
-    let plan = DrawPlan::from_scene_with_skin(
-        &AppSceneSnapshot::Play(snapshot),
-        &skin,
-        &mut crate::skin::DynamicTimerRuntime::default(),
-    );
+fn assert_target_text(plan: &DrawPlan, name: &str) {
+    let texts: Vec<_> = plan
+        .commands
+        .iter()
+        .filter_map(|command| match command {
+            DrawCommand::Text { text, .. } => Some(text.as_str()),
+            _ => None,
+        })
+        .collect();
+    if name.is_empty() {
+        assert_eq!(texts, ["Target name test"]);
+    } else {
+        assert_eq!(texts, [name, name, "Target name test"]);
+    }
+}
 
-    assert!(plan.commands.iter().any(|command| matches!(
-        command,
-        DrawCommand::Text { text, .. } if text == "IR TOP"
-    )));
+#[test]
+fn play_skin_document_receives_target_text() {
+    let skin = target_text_skin(0);
+    for (target, resolved_name, expected) in [
+        ("IR_TOP", None, "IR TOP"),
+        ("RANK_AAA", None, "RANK AAA"),
+        ("", None, ""),
+        ("NONE", None, ""),
+        ("RIVAL_2", Some("ライバル_A"), "ライバル_A"),
+        ("RIVAL_2", Some("AAA"), "AAA"),
+        ("IR_TOP", Some("NONE"), "NONE"),
+        ("IR_TOP", Some("RIVAL_2"), "RIVAL_2"),
+        ("RANK_AAA", Some(""), ""),
+    ] {
+        let snapshot = RenderSnapshot {
+            target: target.to_string(),
+            resolved_target_name: resolved_name.map(str::to_string),
+            ..RenderSnapshot::default()
+        };
+        let plan = DrawPlan::from_scene_with_skin(
+            &AppSceneSnapshot::Play(snapshot),
+            &skin,
+            &mut crate::skin::DynamicTimerRuntime::default(),
+        );
+        assert_target_text(&plan, expected);
+    }
+}
+
+#[test]
+fn result_skin_document_receives_resolved_target_text() {
+    let skin = target_text_skin(7);
+    for name in ["ライバル_A", "AAA", "NONE", "RIVAL_2", "RANK AAA", ""] {
+        let AppSceneSnapshot::Result(mut snapshot) = crate::sample::sample_result_scene() else {
+            panic!("sample result scene");
+        };
+        snapshot.target_name = name.to_string();
+        let plan = DrawPlan::from_scene_with_skin(
+            &AppSceneSnapshot::Result(snapshot),
+            &skin,
+            &mut crate::skin::DynamicTimerRuntime::default(),
+        );
+        assert_target_text(&plan, name);
+    }
 }
 
 #[test]

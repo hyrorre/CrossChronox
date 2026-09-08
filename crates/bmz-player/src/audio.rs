@@ -124,8 +124,8 @@ pub struct RunningPlaySession {
     pub best_ghost: Option<Vec<u8>>,
     /// プレイ開始時のターゲット設定を譜面ノーツ数で解決した EX スコア。
     pub target_ex_score: Option<u32>,
-    /// プレイ開始時のターゲット設定 ID。play skin の STRING_TARGET 系に渡す。
-    pub target: String,
+    /// プレイ開始時に確定したターゲット表示名。ライバル名は変換せず保持する。
+    pub target_name: String,
     /// 実譜面と実スコアキーが確定してから EX 目標値を解決するための設定値。
     pub target_option: TargetOption,
     pub resolved_target: Option<crate::select_options::ResolvedTarget>,
@@ -229,7 +229,8 @@ impl RunningPlaySession {
             best_ex_score: self.best_ex_score,
             best_ghost: self.best_ghost.clone(),
             target_ex_score: self.target_ex_score,
-            target: self.target.clone(),
+            target: self.target_option.as_string(),
+            resolved_target_name: self.resolved_target.as_ref().map(|target| target.name.clone()),
             applied_arrange: self.applied_arrange.clone(),
             source_ln_profile: self.source_ln_profile,
             skin_attempt: self.skin_attempt,
@@ -472,7 +473,7 @@ pub fn open_prepared_play_audio(
         best_ex_score: None,
         best_ghost: None,
         target_ex_score,
-        target: prepared.target,
+        target_name: prepared.target_name,
         target_option: prepared.target_option,
         resolved_target: prepared.resolved_target,
         applied_arrange: prepared.applied_arrange,

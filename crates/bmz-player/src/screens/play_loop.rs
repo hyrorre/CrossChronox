@@ -385,7 +385,9 @@ fn apply_running_play_target_to_snapshot(
     snapshot: &mut RenderSnapshot,
     running: &RunningPlaySession,
 ) {
-    snapshot.target = running.target.clone();
+    snapshot.target = running.target_option.as_string();
+    snapshot.resolved_target_name =
+        running.resolved_target.as_ref().map(|target| target.name.clone());
 }
 
 fn apply_running_play_mode_to_snapshot(

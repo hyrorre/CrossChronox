@@ -340,6 +340,43 @@ fn skin_state_text_formats_bmz_number_ref_extension() {
 }
 
 #[test]
+fn lua_text_values_preserve_resolved_target_names_and_select_option_labels() {
+    let play = SkinDrawState { play_screen: true, ..Default::default() };
+    for name in ["ライバル_A", "AAA", "NONE", "RIVAL_2", "IR_TOP", ""] {
+        let text = SkinTextState {
+            target: "RANK_AAA",
+            rival: "Previous rival",
+            resolved_target_name: Some(name),
+            ..Default::default()
+        };
+        let values = lua_main_state_text_values(&play, &text);
+        assert_eq!(values[&1], name);
+        assert_eq!(values[&3], name);
+        assert_eq!(values[&209], "RANK AAA-");
+        assert_eq!(values[&210], "RANK MAX-");
+        assert_eq!(play_target_name(text.target, Some(name)), name);
+    }
+
+    for (target, expected) in
+        [("IR_TOP", "IR TOP"), ("RANK_AAA", "RANK AAA"), ("NONE", ""), ("", "")]
+    {
+        let text = SkinTextState { target, ..Default::default() };
+        let values = lua_main_state_text_values(&play, &text);
+        assert_eq!(values[&1], expected);
+        assert_eq!(values[&3], expected);
+        assert_eq!(play_target_name(target, None), expected);
+    }
+
+    let select = SkinDrawState { select_screen: true, ..Default::default() };
+    let values = lua_main_state_text_values(
+        &select,
+        &SkinTextState { target: "NONE", rival: "Selected rival", ..Default::default() },
+    );
+    assert_eq!(values[&1], "Selected rival");
+    assert_eq!(values[&3], "NO TARGET");
+}
+
+#[test]
 fn text_render_item_applies_search_word_alpha_multiplier_for_ref_30() {
     let document: SkinDocument =
         serde_json::from_value(serde_json::json!({ "w": 1920, "h": 1080 })).unwrap();

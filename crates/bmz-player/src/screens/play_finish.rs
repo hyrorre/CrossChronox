@@ -851,7 +851,7 @@ fn finish_session_result_once_when(
         },
         readiness,
     )?;
-    finished.summary.target_name = request.target_name.replace('_', " ");
+    finished.summary.target_name = request.target_name.to_string();
     *cached = Some(finished.clone());
     Ok(finished)
 }
@@ -867,6 +867,7 @@ pub struct FinishSessionResultOnceRequest<'a> {
     pub chart_length_ms: Option<u64>,
     pub play_duration_ms: Option<u64>,
     pub target_ex_score: Option<u32>,
+    /// 確定済みの表示名。設定 ID の変換は呼び出し側で済ませる。
     pub target_name: &'a str,
     pub score_key: ScoreKey,
     pub practice_mode: bool,
@@ -985,7 +986,7 @@ fn finish_session_result_job(job: FinishSessionResultJob) -> Result<FinishedPlay
         &job.snapshot.result_judgements,
         job.snapshot.failed_gauge.as_ref(),
     ));
-    finished.summary.target_name = job.target_name.replace('_', " ");
+    finished.summary.target_name = job.target_name;
     Ok(finished)
 }
 

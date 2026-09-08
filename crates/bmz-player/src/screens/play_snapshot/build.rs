@@ -347,6 +347,7 @@ pub(crate) fn build_render_state_with_target_and_bga_frames_cached(
         arrange_2p: "NORMAL".to_string(),
         lane_shuffle_pattern: Vec::new(),
         target: String::new(),
+        resolved_target_name: None,
         combo: session.display_combo(),
         max_combo: session.display_max_combo(),
         ex_score: session.score.ex_score(),
