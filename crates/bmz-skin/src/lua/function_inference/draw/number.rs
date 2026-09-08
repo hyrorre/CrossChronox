@@ -89,19 +89,40 @@ pub(in crate::lua) fn infer_main_state_number_expr(
     }
     let baseline = call_number_expr_with_values(function, main_state_probe, BTreeMap::new())?;
     let mut terms = Vec::new();
-    for ref_id in refs {
+    for &ref_id in &refs {
         let value = call_number_expr_with_values(
             function,
             main_state_probe,
             BTreeMap::from([(ref_id, 1)]),
         )?;
-        let coefficient = value - baseline;
+        let coefficient = value.checked_sub(baseline)?;
         if coefficient != 0 {
             terms.push((ref_id, coefficient));
         }
     }
     if terms.is_empty() {
         return None;
+    }
+    // Values at zero and one only establish a candidate, not linearity.
+    // Rank boundaries and rounded ratios can agree at those points while
+    // diverging during play. Validate individual and combined inputs before
+    // replacing the callback, retaining zero-coefficient refs in the probes.
+    for sample in [-1, 2, 5, 37, 1000] {
+        for varied_ref in refs.iter().map(Some).chain(std::iter::once(None)) {
+            let values = refs
+                .iter()
+                .map(|&ref_id| {
+                    let value = if varied_ref.is_none_or(|id| *id == ref_id) { sample } else { 0 };
+                    (ref_id, value)
+                })
+                .collect::<BTreeMap<_, _>>();
+            let expected = terms.iter().try_fold(baseline, |sum, (ref_id, coefficient)| {
+                sum.checked_add(coefficient.checked_mul(i64::from(values[ref_id]))?)
+            })?;
+            if call_number_expr_with_values(function, main_state_probe, values)? != expected {
+                return None;
+            }
+        }
     }
     Some(format_number_expr(baseline, &terms))
 }

@@ -84,6 +84,7 @@ pub(super) fn handle_function_field(
                 false
             } else {
                 infer_value_field(
+                    lua,
                     function,
                     path,
                     metadata.object_id.as_deref(),
@@ -133,6 +134,7 @@ pub(super) fn handle_function_field(
 }
 
 fn infer_value_field(
+    lua: &Lua,
     function: &Function,
     path: &str,
     object_id: Option<&str>,
@@ -226,7 +228,8 @@ fn infer_value_field(
     {
         insert_expr(object, "constantText", text);
         true
-    } else if let Some(value_expr) = infer_constant_number_at_load(function, main_state_probe) {
+    } else if let Some(value_expr) = infer_constant_number_at_load(lua, function, main_state_probe)
+    {
         insert_expr(object, "value_expr", value_expr);
         true
     } else if matches!(object_id, Some("Number_Info_Level_Insane")) {

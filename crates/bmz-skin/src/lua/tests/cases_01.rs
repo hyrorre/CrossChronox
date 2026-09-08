@@ -46,7 +46,7 @@ fn infers_select_score_availability_from_mz_select_local_guard() {
 }
 
 #[test]
-fn load_constant_fallback_preserves_existing_stub_behavior() {
+fn load_constant_number_fallback_rejects_runtime_state() {
     let lua = Lua::new();
     let probe = Arc::new(Mutex::new(MainStateProbe::default()));
     lua.globals().set("main_state", create_main_state_stub(&lua, probe.clone()).unwrap()).unwrap();
@@ -78,9 +78,9 @@ fn load_constant_fallback_preserves_existing_stub_behavior() {
     let constant = lua.load("return function() return 42 end").eval::<Function>().unwrap();
 
     assert!(infer_constant_draw_at_load(&draw, &probe).is_some());
-    assert!(infer_constant_number_at_load(&value, &probe).is_some());
-    assert!(infer_constant_number_at_load(&timer_value, &probe).is_some());
-    assert_eq!(infer_constant_number_at_load(&constant, &probe).as_deref(), Some("42"));
+    assert!(infer_constant_number_at_load(&lua, &value, &probe).is_none());
+    assert!(infer_constant_number_at_load(&lua, &timer_value, &probe).is_none());
+    assert_eq!(infer_constant_number_at_load(&lua, &constant, &probe).as_deref(), Some("42"));
 }
 
 #[test]

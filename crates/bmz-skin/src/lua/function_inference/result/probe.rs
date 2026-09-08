@@ -1,14 +1,40 @@
 use super::*;
 
 pub(in crate::lua) fn infer_constant_number_at_load(
+    lua: &Lua,
     function: &Function,
     main_state_probe: &Arc<Mutex<MainStateProbe>>,
 ) -> Option<String> {
+    // A numeric result at load time does not prove that a callback is constant.
+    // Captured helpers, mutable locals and _ENV can all supply runtime state,
+    // including dependencies hidden behind a branch not visited by the probes.
+    // Only fold Lua functions with no upvalues; leave the rest to runtime.
+    if function.info().what != "Lua" {
+        return None;
+    }
+    // SAFETY: the helper only inspects its argument and balances the Lua stack.
+    let helper = unsafe { lua.create_c_function(has_function_upvalue).ok()? };
+    if helper.call::<bool>(function.clone()).ok()? {
+        return None;
+    }
     main_state_probe.lock().ok()?.end_recording();
     match function.call::<Value>(()).ok()? {
         Value::Integer(value) => Some(value.to_string()),
         Value::Number(value) if value.is_finite() => Some(value.to_string()),
         _ => None,
+    }
+}
+
+unsafe extern "C-unwind" fn has_function_upvalue(state: *mut mlua::lua_State) -> std::ffi::c_int {
+    // SAFETY: mlua supplies a live state and the caller passes a Function in
+    // slot 1. lua_getupvalue pushes one value only when an upvalue exists.
+    unsafe {
+        let has_upvalue = !mlua::ffi::lua_getupvalue(state, 1, 1).is_null();
+        if has_upvalue {
+            mlua::ffi::lua_pop(state, 1);
+        }
+        mlua::ffi::lua_pushboolean(state, i32::from(has_upvalue));
+        1
     }
 }
 

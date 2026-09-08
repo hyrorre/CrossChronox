@@ -648,6 +648,170 @@ fn lua_scene_state_syncs_existing_module_practice_boolean() {
 }
 
 #[test]
+fn lua_next_rank_value_tracks_score_in_auto_and_compat_modes() {
+    for mode in [LuaSkinRuntimeMode::Auto, LuaSkinRuntimeMode::Compat] {
+        let mut loaded = load_runtime_value_fixture(
+            "bmz-skin-next-rank-value",
+            mode,
+            r#"
+                local function next_rank_info()
+                    local notes = main_state.number(74)
+                    local score = main_state.exscore()
+                    if notes <= 0 then return 7, 0 end
+                    score = math.max(0, math.floor(score))
+                    for _, target in ipairs({
+                        {2, 7}, {3, 6}, {4, 5}, {5, 4},
+                        {6, 3}, {7, 2}, {8, 1}, {9, 0}
+                    }) do
+                        local border = math.ceil(notes * 2 * target[1] / 9)
+                        if score < border then return target[2], border - score end
+                    end
+                    return 0, 0
+                end
+                local number_value = function()
+                    local _, diff = next_rank_info()
+                    return diff
+                end
+                local text_value = "unused"
+            "#,
+        );
+        // The fixture deliberately uses an arbitrary object ID, not diff_rank.
+        let expr = &loaded.document.value[0].value_expr;
+        assert!(
+            expr.starts_with("bmz:lua_value_callback:"),
+            "{mode:?}: {:?}",
+            loaded.document.value[0]
+        );
+        let callback = expr.rsplit(':').next().unwrap().parse::<usize>().unwrap();
+        let runtime = loaded.lua_runtime.as_mut().unwrap();
+        let mut state = TestLuaMainState::default();
+        for (notes, score, expected) in [
+            (0, 0, 0),
+            (37, 0, 17),
+            (37, 16, 1),
+            (37, 17, 8),
+            (37, 49, 1),
+            (37, 50, 8),
+            (37, 65, 1),
+            (37, 66, 8),
+            (37, 73, 1),
+            (37, 74, 0),
+            (9, 0, 4),
+        ] {
+            state.numbers.insert(74, notes);
+            state.numbers.insert(71, score);
+            runtime.begin_frame();
+            assert_eq!(
+                runtime.evaluate_number(callback, &state),
+                Some(f64::from(expected)),
+                "{mode:?}: notes={notes}, score={score}"
+            );
+        }
+    }
+}
+
+#[test]
+fn lua_numeric_closure_keeps_mutable_state_in_runtime() {
+    let mut loaded = load_runtime_value_fixture(
+        "bmz-skin-numeric-closure",
+        LuaSkinRuntimeMode::Auto,
+        r#"
+            local count = 0
+            local number_value = function()
+                count = count + 1
+                return count
+            end
+            local text_value = "unused"
+        "#,
+    );
+    let expr = &loaded.document.value[0].value_expr;
+    assert!(expr.starts_with("bmz:lua_value_callback:"), "{expr}");
+    let callback = expr.rsplit(':').next().unwrap().parse::<usize>().unwrap();
+    let runtime = loaded.lua_runtime.as_mut().unwrap();
+    let state = TestLuaMainState::default();
+    assert_eq!(runtime.evaluate_number(callback, &state), Some(1.0));
+    assert_eq!(runtime.evaluate_number(callback, &state), Some(2.0));
+}
+
+#[test]
+fn wmii_beatoraja_branch_next_rank_updates_when_available() {
+    let library = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/skins");
+    if !library.join("WMII_FHD/play/play7ac.luaskin").is_file() {
+        return;
+    }
+    let root = unique_test_dir("bmz-skin-wmii-beatoraja-branch");
+    fs::create_dir_all(&root).unwrap();
+    let path = root.join("skin.luaskin");
+    for entry in ["play7ac", "play7wide"] {
+        // Select the original skin's beatoraja branch without modifying assets.
+        fs::write(
+            &path,
+            format!(
+                r#"
+                    bmz = nil
+                    package.path = "skin/WMII_FHD/play/?.lua"
+                    local skin = require("{entry}_main")
+                    if skin_config then return skin.main() else return skin.header end
+                "#
+            ),
+        )
+        .unwrap();
+        let context = SkinPathContext::new(&path, [root.clone(), library.clone()]).unwrap();
+        for mode in [LuaSkinRuntimeMode::Auto, LuaSkinRuntimeMode::Compat] {
+            for color in ["WHITE/RED", "WHITE ONLY"] {
+                let mut loaded = load_lua_skin_with_path_context(
+                    &context,
+                    &BTreeMap::from([("GHOST COLOR".to_string(), color.to_string())]),
+                    &BTreeMap::new(),
+                    &LuaLoadRuntimeState {
+                        runtime_mode: mode,
+                        option_values: BTreeMap::from([(32, true), (33, false)]),
+                        ..Default::default()
+                    },
+                    &BTreeMap::new(),
+                )
+                .unwrap();
+                let value =
+                    loaded.document.value.iter().find(|v| v.id == "diff_rank_next").unwrap_or_else(
+                        || {
+                            panic!(
+                                "{entry}: {:?}",
+                                loaded.document.value.iter().map(|v| &v.id).collect::<Vec<_>>()
+                            )
+                        },
+                    );
+                assert!(value.value_expr.starts_with("bmz:lua_value_callback:"), "{value:?}");
+                let callback =
+                    value.value_expr.rsplit(':').next().unwrap().parse::<usize>().unwrap();
+                let runtime = loaded.lua_runtime.as_mut().unwrap();
+                let mut state = TestLuaMainState::default();
+                state.numbers.insert(74, 37);
+                for (score, expected) in [(16, 1.0), (17, 8.0), (73, 1.0), (74, 0.0)] {
+                    state.numbers.insert(71, score);
+                    runtime.begin_frame();
+                    assert_eq!(
+                        runtime.evaluate_number(callback, &state),
+                        Some(expected),
+                        "{entry}/{mode:?}/{color}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn lua_literal_numeric_function_stays_compiled() {
+    let loaded = load_runtime_value_fixture(
+        "bmz-skin-literal-number",
+        LuaSkinRuntimeMode::Auto,
+        "local number_value = function() return 42.5 end; local text_value = 'unused'",
+    );
+    assert_eq!(loaded.document.value[0].value_expr, "42.5");
+    assert!(loaded.lua_runtime.is_none());
+}
+
+#[test]
 fn lua_compat_mode_evaluates_number_and_text_functions_from_current_state() {
     let mut loaded = load_runtime_value_fixture(
         "bmz-skin-compat-values",
