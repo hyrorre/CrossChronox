@@ -216,6 +216,7 @@ impl DrawPlan {
         skin: &SkinContext,
         dynamic_timers: &mut crate::skin::DynamicTimerRuntime,
     ) -> Self {
+        skin.begin_frame();
         match scene {
             AppSceneSnapshot::Select(snapshot) => plan_select(snapshot, skin, dynamic_timers),
             AppSceneSnapshot::Decide(snapshot) => plan_decide(snapshot, skin, dynamic_timers),

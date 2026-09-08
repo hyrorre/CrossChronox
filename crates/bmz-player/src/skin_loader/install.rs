@@ -108,6 +108,14 @@ impl LuaMainState for RenderLuaMainState<'_> {
 }
 
 impl SkinLuaDrawRuntime for LuaSkinDrawRuntimeAdapter {
+    fn begin_frame(&self) {
+        if let Ok(mut slot) = self.runtime.lock()
+            && let Some(runtime) = slot.as_mut()
+        {
+            runtime.begin_frame();
+        }
+    }
+
     fn evaluate_draw(
         &self,
         callback_id: usize,

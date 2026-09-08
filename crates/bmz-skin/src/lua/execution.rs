@@ -404,7 +404,7 @@ pub(super) fn build_lua_skin_runtime(request: LuaSkinRuntimeRequest<'_>) -> Resu
         skin_path: input.to_path_buf(),
         failed_callbacks: BTreeSet::new(),
         failure_log_count: 0,
-        last_frame_time_us: None,
+        pending_frame_start: true,
     })
 }
 

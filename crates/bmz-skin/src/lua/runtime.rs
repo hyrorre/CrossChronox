@@ -80,7 +80,7 @@ pub struct LuaSkinRuntime {
     pub(super) skin_path: PathBuf,
     pub(super) failed_callbacks: BTreeSet<usize>,
     pub(super) failure_log_count: usize,
-    pub(super) last_frame_time_us: Option<i32>,
+    pub(super) pending_frame_start: bool,
 }
 
 impl fmt::Debug for LuaSkinRuntime {
@@ -95,6 +95,12 @@ impl fmt::Debug for LuaSkinRuntime {
 }
 
 impl LuaSkinRuntime {
+    /// Begin one render frame, independently of the skin's playback clock.
+    /// Every callback until the next call shares the same aggregate budget.
+    pub fn begin_frame(&mut self) {
+        self.pending_frame_start = true;
+    }
+
     pub fn callback_count(&self) -> usize {
         self.callbacks.len()
     }
@@ -110,7 +116,7 @@ impl LuaSkinRuntime {
     }
 
     pub fn evaluate_draw(&mut self, callback_id: usize, state: &dyn LuaMainState) -> bool {
-        self.begin_runtime_callback(state.time_us());
+        self.begin_runtime_callback();
         let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
             self.evaluate_callback_inner(callback_id, LuaRuntimeCallbackKind::Draw, state)
         }));
@@ -139,7 +145,7 @@ impl LuaSkinRuntime {
     }
 
     pub fn evaluate_number(&mut self, callback_id: usize, state: &dyn LuaMainState) -> Option<f64> {
-        self.begin_runtime_callback(state.time_us());
+        self.begin_runtime_callback();
         let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
             self.evaluate_callback_inner(callback_id, LuaRuntimeCallbackKind::Value, state)
         }));
@@ -169,7 +175,7 @@ impl LuaSkinRuntime {
         callback_id: usize,
         state: &dyn LuaMainState,
     ) -> Option<String> {
-        self.begin_runtime_callback(state.time_us());
+        self.begin_runtime_callback();
         let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
             self.evaluate_callback_inner(callback_id, LuaRuntimeCallbackKind::Value, state)
         }));
@@ -192,11 +198,8 @@ impl LuaSkinRuntime {
         }
     }
 
-    fn begin_runtime_callback(&mut self, frame_time_us: i32) {
-        let new_frame = self.last_frame_time_us != Some(frame_time_us);
-        if new_frame {
-            self.last_frame_time_us = Some(frame_time_us);
-        }
+    fn begin_runtime_callback(&mut self) {
+        let new_frame = std::mem::take(&mut self.pending_frame_start);
         self.instruction_budget.begin_runtime_callback(new_frame);
     }
 

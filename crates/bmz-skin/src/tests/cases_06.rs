@@ -804,6 +804,29 @@ fn lua_runtime_draw_instruction_limit_falls_back_to_false() {
 }
 
 #[test]
+fn lua_runtime_frame_budget_recovers_even_when_playback_time_is_frozen() {
+    let mut loaded = load_runtime_draw_fixture(
+        "bmz-skin-runtime-frozen-frame",
+        "local count = 0; local draw = function() count = count + 1; local n = 0; for i = 1, 10000 do n = n + i end; return count % 2 == 1 end",
+    );
+    let runtime = loaded.lua_runtime.as_mut().expect("runtime fallback");
+    let state = TestLuaMainState::default();
+    runtime.begin_frame();
+    for _ in 0..1000 {
+        runtime.evaluate_draw(0, &state);
+        if runtime.failure_log_count() > 0 {
+            break;
+        }
+    }
+    assert_eq!(runtime.failure_log_count(), 1, "callbacks share a per-frame ceiling");
+    assert!(!runtime.evaluate_draw(0, &state));
+    runtime.begin_frame();
+    let first = runtime.evaluate_draw(0, &state);
+    let second = runtime.evaluate_draw(0, &state);
+    assert_ne!(first, second, "a new frame restores callbacks at the same playback time");
+}
+
+#[test]
 fn lua_to_json_rejects_runtime_draw_callbacks() {
     let root = unique_test_dir("bmz-skin-runtime-json-convert");
     fs::create_dir_all(&root).unwrap();

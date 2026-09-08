@@ -67,6 +67,12 @@ impl SkinContext {
         self.lua_draw_runtime = runtime;
     }
 
+    pub fn begin_frame(&self) {
+        if let Some(runtime) = &self.lua_draw_runtime {
+            runtime.begin_frame();
+        }
+    }
+
     pub(super) fn state_with_lua_runtime(
         &self,
         state: &SkinDrawState,

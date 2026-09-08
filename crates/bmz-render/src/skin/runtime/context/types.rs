@@ -3,6 +3,8 @@ use super::*;
 /// Renderer-facing interface for Lua runtime sidecars. Implementations own the
 /// VM outside `SkinDocument`; the renderer only supplies a read-only frame state.
 pub trait SkinLuaDrawRuntime: std::fmt::Debug + Send + Sync {
+    fn begin_frame(&self) {}
+
     fn evaluate_draw(
         &self,
         callback_id: usize,
