@@ -18,7 +18,11 @@ impl Renderer {
             self.default_font_search_paths.clone(),
         )?;
         for texture in self.pending_textures.drain(..) {
-            gpu.upsert_rgba_texture(texture.id, texture.width, texture.height, &texture.rgba);
+            if let Err(error) =
+                gpu.upsert_rgba_texture(texture.id, texture.width, texture.height, &texture.rgba)
+            {
+                tracing::warn!(texture_id = texture.id.0, %error, "skipping unsupported pending texture");
+            }
         }
         self.gpu = Some(gpu);
         Ok(())
@@ -43,7 +47,7 @@ impl Renderer {
     ) -> Result<()> {
         validate_rgba_texture(width, height, &rgba)?;
         if let Some(gpu) = &mut self.gpu {
-            gpu.upsert_rgba_texture(id, width, height, &rgba);
+            gpu.upsert_rgba_texture(id, width, height, &rgba)?;
         } else {
             self.pending_textures.push(PendingTexture { id, width, height, rgba });
         }
@@ -59,7 +63,7 @@ impl Renderer {
     ) -> Result<()> {
         validate_rgba_texture(width, height, rgba)?;
         if let Some(gpu) = &mut self.gpu {
-            gpu.upsert_rgba_texture(id, width, height, rgba);
+            gpu.upsert_rgba_texture(id, width, height, rgba)?;
         } else {
             self.pending_textures.push(PendingTexture { id, width, height, rgba: rgba.to_vec() });
         }

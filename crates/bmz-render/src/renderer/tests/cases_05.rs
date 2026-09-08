@@ -1,6 +1,15 @@
 use super::*;
 
 #[test]
+fn gpu_texture_validation_rejects_oversized_images_before_allocation() {
+    assert!(validate_rgba_texture_for_device(4, 5, 1, &[0; 20]).is_err());
+    assert!(validate_rgba_texture_for_device(4, 1, 5, &[0; 20]).is_err());
+    assert!(validate_rgba_texture_for_device(4, 4, 4, &[0; 64]).is_ok());
+    assert!(validate_rgba_texture_for_device(4, 0, 1, &[]).is_err());
+    assert!(validate_rgba_texture_for_device(4, 1, 1, &[0; 3]).is_err());
+}
+
+#[test]
 fn renderer_queues_texture_assets_before_surface_attach() {
     let mut renderer = Renderer::default();
     let asset = crate::assets::RgbaImageAsset { width: 1, height: 1, pixels: vec![255, 0, 0, 255] };

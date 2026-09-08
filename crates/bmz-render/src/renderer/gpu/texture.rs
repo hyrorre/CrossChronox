@@ -7,17 +7,24 @@ impl WgpuRenderer {
         width: u32,
         height: u32,
         rgba: &[u8],
-    ) {
+    ) -> Result<()> {
+        validate_rgba_texture_for_device(
+            self.device.limits().max_texture_dimension_2d,
+            width,
+            height,
+            rgba,
+        )?;
         if let Some(texture) = self.image_textures.get(&id)
             && texture.width == width
             && texture.height == height
         {
             write_rgba_texture(&self.queue, &texture.texture, width, height, rgba);
-            return;
+            return Ok(());
         }
-        let texture = create_rgba_texture(&self.device, &self.queue, id, width, height, rgba);
+        let texture = create_rgba_texture(&self.device, &self.queue, id, width, height, rgba)?;
         self.image_textures.insert(id, texture);
         self.image_bind_group_cache.retain(|(texture_id, _), _| *texture_id != id);
+        Ok(())
     }
 
     pub(in crate::renderer) fn image_bind_group(

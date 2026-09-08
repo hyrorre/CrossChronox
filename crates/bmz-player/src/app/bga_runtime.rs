@@ -299,7 +299,26 @@ pub(super) fn load_worker(
                 let texture_id = TextureId(bga_texture_id(asset.id));
                 let image_rgba_bytes = image.pixels.len() as u64;
                 let upload_start = Instant::now();
-                let prepared = uploader.upload(image.width, image.height, &image.pixels);
+                let prepared = match uploader.upload(image.width, image.height, &image.pixels) {
+                    Ok(prepared) => prepared,
+                    Err(error) => {
+                        stats.failed_assets += 1;
+                        if tx
+                            .send(PendingBgaImageResult::Failed {
+                                generation,
+                                asset_id: asset.id,
+                                path,
+                                file_bytes,
+                                decode_us: image_decode_us,
+                                error: error.to_string(),
+                            })
+                            .is_err()
+                        {
+                            return;
+                        }
+                        continue;
+                    }
+                };
                 let image_upload_us = upload_start.elapsed().as_micros();
                 stats.upload_us += image_upload_us;
                 stats.loaded_assets += 1;

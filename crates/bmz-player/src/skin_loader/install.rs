@@ -279,6 +279,13 @@ pub fn upload_decoded_skin_with_texture_cache(
                     cache.lock().ok().map(|mut cache| cache.allocate_texture_id(kind))
                 })
                 .unwrap_or(texture);
+            let prepared = match uploader.upload(asset.width, asset.height, &asset.pixels) {
+                Ok(prepared) => prepared,
+                Err(error) => {
+                    tracing::warn!(%source_id, path = %path.display(), %error, "skipping unsupported skin texture");
+                    return None;
+                }
+            };
             upload_stats.uploaded_source_count += 1;
             upload_stats.uploaded_source_bytes =
                 upload_stats.uploaded_source_bytes.saturating_add(asset.pixels.len());
@@ -287,7 +294,6 @@ pub fn upload_decoded_skin_with_texture_cache(
                 upload_stats.uploaded_video_source_bytes =
                     upload_stats.uploaded_video_source_bytes.saturating_add(asset.pixels.len());
             }
-            let prepared = uploader.upload(asset.width, asset.height, &asset.pixels);
             Some(PreparedSource {
                 source_id,
                 path,

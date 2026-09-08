@@ -113,7 +113,8 @@ pub(super) fn create_default_image_textures(
     let mut textures = HashMap::new();
     textures.insert(
         TextureId(0),
-        create_rgba_texture(device, queue, TextureId(0), 1, 1, &[255, 255, 255, 255]),
+        create_rgba_texture(device, queue, TextureId(0), 1, 1, &[255, 255, 255, 255])
+            .expect("valid fallback texture"),
     );
     textures
 }
@@ -129,7 +130,7 @@ pub struct GpuUploader {
 
 impl GpuUploader {
     /// RGBA8 バイト列を GPU テクスチャへアップロードして `PreparedTexture` を返す。
-    pub fn upload(&self, width: u32, height: u32, rgba: &[u8]) -> PreparedTexture {
+    pub fn upload(&self, width: u32, height: u32, rgba: &[u8]) -> Result<PreparedTexture> {
         create_rgba_texture(&self.device, &self.queue, TextureId(0), width, height, rgba)
     }
 }
@@ -141,7 +142,13 @@ pub(super) fn create_rgba_texture(
     width: u32,
     height: u32,
     rgba: &[u8],
-) -> PreparedTexture {
+) -> Result<PreparedTexture> {
+    validate_rgba_texture_for_device(
+        device.limits().max_texture_dimension_2d,
+        width,
+        height,
+        rgba,
+    )?;
     let texture = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("bmz-render image texture"),
         size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
@@ -155,7 +162,20 @@ pub(super) fn create_rgba_texture(
     write_rgba_texture(queue, &texture, width, height, rgba);
     let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
     tracing::debug!(texture_id = id.0, width, height, "registered render image texture");
-    PreparedTexture { texture, view, width, height }
+    Ok(PreparedTexture { texture, view, width, height })
+}
+
+pub(super) fn validate_rgba_texture_for_device(
+    limit: u32,
+    width: u32,
+    height: u32,
+    rgba: &[u8],
+) -> Result<()> {
+    anyhow::ensure!(
+        width <= limit && height <= limit,
+        "image dimensions {width}x{height} exceed GPU texture limit {limit}"
+    );
+    validate_rgba_texture(width, height, rgba)
 }
 
 pub(super) fn write_rgba_texture(
