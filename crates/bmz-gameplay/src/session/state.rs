@@ -327,6 +327,8 @@ pub struct BattleOpponentSession {
     pub gauge_max_started_at: Option<TimeUs>,
     pub full_combo_started_at: Option<TimeUs>,
     pub lane_keyon_started_at: [Option<TimeUs>; LANE_COUNT],
+    pub lane_hcn_timer: [Option<HcnLaneTimer>; LANE_COUNT],
+    pub last_hcn_gauge_at: Option<TimeUs>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

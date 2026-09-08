@@ -487,6 +487,8 @@ pub fn build_game_session_with_input_backend(
                 gauge_max_started_at: None,
                 full_combo_started_at: None,
                 lane_keyon_started_at: Default::default(),
+                lane_hcn_timer: Default::default(),
+                last_hcn_gauge_at: None,
             }
         });
 

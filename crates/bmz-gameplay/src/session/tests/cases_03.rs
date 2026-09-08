@@ -127,6 +127,8 @@ fn viewer_seek_prefills_independent_battle_opponent() {
         gauge_max_started_at: None,
         full_combo_started_at: None,
         lane_keyon_started_at: Default::default(),
+        lane_hcn_timer: Default::default(),
+        last_hcn_gauge_at: None,
     });
     let opponent_gauge_before = session.battle_opponent.as_ref().unwrap().gauge.current().value;
 

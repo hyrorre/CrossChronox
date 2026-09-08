@@ -91,6 +91,8 @@ fn independent_battle_opponent_replay_advances_without_taking_primary_lanes() {
         gauge_max_started_at: None,
         full_combo_started_at: None,
         lane_keyon_started_at: Default::default(),
+        lane_hcn_timer: Default::default(),
+        last_hcn_gauge_at: None,
     });
     session.display_only_lane_mask[Lane::Key8.index()] = true;
     let synthetic = apply_judge_outcome(
@@ -157,6 +159,8 @@ fn independent_battle_opponent_without_replay_uses_autoplay() {
         gauge_max_started_at: None,
         full_combo_started_at: None,
         lane_keyon_started_at: Default::default(),
+        lane_hcn_timer: Default::default(),
+        last_hcn_gauge_at: None,
     });
     let mut audio = TestAudio::default();
 
@@ -181,6 +185,67 @@ fn independent_battle_opponent_without_replay_uses_autoplay() {
             .any(|event| event.judgement.lane == Lane::Key8
                 && event.judgement.judge == Judge::PGreat)
     );
+}
+
+#[test]
+fn independent_battle_opponent_applies_hcn_hold_and_release_ticks() {
+    for release in [false, true] {
+        let chart = Arc::new(chart_with_hcn_long_note());
+        let mut session = session_with_autoplay((*chart).clone());
+        session.gauge = GaugeState::new(bmz_core::clear::GaugeType::Normal, 160.0, 100);
+        session.battle_opponent = Some(BattleOpponentSession {
+            chart: Arc::clone(&chart),
+            key_mode: chart.metadata.key_mode,
+            scored_total_notes: 2,
+            judge: JudgeEngine::new(session.base_judge_window),
+            base_judge_windows: session.base_judge_windows,
+            rule_mode: RuleMode::Beatoraja,
+            score: ScoreState::default(),
+            gauge: session.gauge.clone(),
+            autoplay: (!release).then(AutoplayController::default),
+            replay_player: release.then(|| ReplayPlayer {
+                events: [(InputKind::Press, 0), (InputKind::Release, 100_000)]
+                    .into_iter()
+                    .map(|(kind, time)| bmz_core::replay::ReplayEvent {
+                        lane: Lane::Key1,
+                        kind,
+                        time: TimeUs(time),
+                        device_kind: InputDeviceKind::Keyboard,
+                        scratch_direction: None,
+                    })
+                    .collect(),
+                next_index: 0,
+            }),
+            display_uses_primary_arrangement: false,
+            publish_display_judgements: false,
+            gauge_increase_started_at: None,
+            gauge_max_started_at: None,
+            full_combo_started_at: None,
+            lane_keyon_started_at: Default::default(),
+            lane_hcn_timer: Default::default(),
+            last_hcn_gauge_at: None,
+        });
+        let mut audio = TestAudio::default();
+        let mut baseline = 0.0;
+        for now in [0, 100_000, 200_000, 400_001, 600_001] {
+            session.audio_clock =
+                AudioClock::with_position(48_000, 0, now, Arc::new(AtomicU64::new(0)), true);
+            advance_session_frame(&mut session, &mut audio);
+            let opponent = session.battle_opponent.as_ref().unwrap();
+            if now == 100_000 {
+                baseline = opponent.gauge.current().value;
+            }
+            if !release {
+                assert_eq!(opponent.gauge.current().value, session.gauge.current().value);
+            }
+        }
+        let opponent = session.battle_opponent.as_ref().unwrap();
+        if release {
+            assert!(opponent.gauge.current().value < baseline);
+        } else {
+            assert!(opponent.gauge.current().value > baseline);
+        }
+    }
 }
 
 #[test]

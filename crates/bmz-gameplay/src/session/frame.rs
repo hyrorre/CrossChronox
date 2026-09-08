@@ -349,6 +349,7 @@ fn advance_battle_opponent(session: &mut GameSession, now: TimeUs) {
     display_judgements.extend(apply_battle_opponent_outcome(opponent, mine_outcome));
     let miss_outcome = opponent.judge.process_misses(&opponent.chart, now);
     display_judgements.extend(apply_battle_opponent_outcome(opponent, miss_outcome));
+    update_battle_opponent_hcn(opponent, now);
     update_battle_opponent_skin_timers(opponent, &display_judgements, now);
 
     if !publish_display_judgements {
