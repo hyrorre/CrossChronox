@@ -551,7 +551,7 @@ pub(super) const fn playback_overlay_suffix(
     replay_playback: bool,
 ) -> Option<&'static str> {
     if replay_playback {
-        return Some("replay");
+        return Some("REPLAY");
     }
     match mode {
         SessionMode::Normal if autoplay => Some("AUTOPLAY"),

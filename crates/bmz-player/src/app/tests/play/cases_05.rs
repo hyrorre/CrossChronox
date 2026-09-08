@@ -212,8 +212,8 @@ fn playback_overlay_suffix_exposes_each_non_normal_session_mode() {
 #[test]
 fn playback_overlay_suffix_uses_effective_playback_flags() {
     assert_eq!(playback_overlay_suffix(SessionMode::Normal, true, false), Some("AUTOPLAY"));
-    assert_eq!(playback_overlay_suffix(SessionMode::Normal, false, true), Some("replay"));
-    assert_eq!(playback_overlay_suffix(SessionMode::Autoplay, true, true), Some("replay"));
+    assert_eq!(playback_overlay_suffix(SessionMode::Normal, false, true), Some("REPLAY"));
+    assert_eq!(playback_overlay_suffix(SessionMode::Autoplay, true, true), Some("REPLAY"));
 }
 
 #[test]
