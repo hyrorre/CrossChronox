@@ -7,9 +7,9 @@ pub(in crate::ui) fn build_profile_manager_section(
     text: Localizer,
 ) -> bool {
     let mut save_app_config = false;
-    egui::CollapsingHeader::new(tr!(text, "profile-manager-title"))
+    SettingsSection::new(SettingsPage::Profile, tr!(text, "profile-manager-title"))
+        .scope(tr!(text, "settings-scope-app"))
         .id_salt("profile_manager")
-        .default_open(false)
         .show(ui, |ui| {
             if !editable {
                 ui.disable();

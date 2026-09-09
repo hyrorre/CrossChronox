@@ -8,9 +8,10 @@ pub(in crate::ui::profile_panel) fn build_profile_ui_section(
     let show_fps = &mut *section.show_fps;
     let unrestricted = section.unrestricted;
     let mut text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-ui-title")).id_salt("profile_ui").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::General, tr!(text, "profile-ui-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .id_salt("profile_ui")
+        .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
             }
@@ -39,7 +40,6 @@ pub(in crate::ui::profile_panel) fn build_profile_ui_section(
                 &mut profile.ui.confirm_on_exit,
                 tr!(text, "profile-ui-confirm-exit-unimplemented"),
             );
-        },
-    );
+        });
     section.text = text;
 }

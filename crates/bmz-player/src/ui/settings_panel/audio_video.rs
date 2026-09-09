@@ -27,9 +27,10 @@ pub(super) fn build_audio_video_settings_sections(
         save_profile,
         obs_enabled_changed,
     } = context;
-    egui::CollapsingHeader::new(tr!(text, "settings-audio-title")).id_salt("settings_audio").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Audio, tr!(text, "settings-audio-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .id_salt("settings_audio")
+        .show(ui, |ui| {
             let available_audio_backends = crate::audio::available_audio_backends();
             if !available_audio_backends.contains(&config.audio.backend) {
                 config.audio.backend = AudioBackend::Auto;
@@ -207,12 +208,12 @@ pub(super) fn build_audio_video_settings_sections(
                 *apply_audio = true;
             }
             ui.label(tr!(text, "settings-audio-apply-help"));
-        },
-    );
+        });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-video-title")).id_salt("settings_video").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Video, tr!(text, "settings-video-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .id_salt("settings_video")
+        .show(ui, |ui| {
             egui::ComboBox::new("video_window_mode", tr!(text, "settings-video-window-mode"))
                 .selected_text(window_mode_label(&config.video.mode, text))
                 .show_ui(ui, |ui| {
@@ -359,10 +360,11 @@ pub(super) fn build_audio_video_settings_sections(
                     }
                 });
             ui.label(tr!(text, "settings-video-apply-help"));
-        },
-    );
+        });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-screenshot-title"))
+    SettingsSection::new(SettingsPage::Integration, tr!(text, "settings-screenshot-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .subpage(3)
         .id_salt("settings_screenshot")
         .show(ui, |ui| {
             ui.horizontal(|ui| {

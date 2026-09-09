@@ -5,8 +5,6 @@ pub(in crate::ui) struct ProfileSettingsPanelActions {
 }
 
 pub(in crate::ui) struct ProfileSettingsPanelContext<'a> {
-    pub(in crate::ui) ctx: &'a egui::Context,
-    pub(in crate::ui) open: &'a mut bool,
     pub(in crate::ui) profile: &'a mut ProfileConfig,
     pub(in crate::ui) app_config: &'a mut AppConfig,
     pub(in crate::ui) show_fps: &'a mut bool,

@@ -10,9 +10,10 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
     let profile = &mut *section.profile;
     let unrestricted = section.unrestricted;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-play-title")).id_salt("profile_play").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Play, tr!(text, "profile-play-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .id_salt("profile_play")
+        .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
             }
@@ -254,9 +255,10 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                     }
                 });
             }
-            egui::CollapsingHeader::new("ASSIST / MODIFIERS").id_salt("profile_play_assist").show(
-                ui,
-                |ui| {
+            SettingsSection::new(SettingsPage::Play, "ASSIST / MODIFIERS")
+                .scope(tr!(text, "settings-scope-profile"))
+                .id_salt("profile_play_assist")
+                .show(ui, |ui| {
                     let assist = &mut profile.play.assist;
                     ui.checkbox(&mut assist.expand_judge, "EXPAND JUDGE");
                     ui.checkbox(&mut assist.judge_area, "JUDGE AREA");
@@ -370,8 +372,7 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                             ui.add(egui::Slider::new(value, 0..=400).text(label));
                         }
                     }
-                },
-            );
+                });
             ui.checkbox(&mut profile.play.note_retention, tr!(text, "profile-play-note-retention"));
             ui.checkbox(&mut profile.play.show_ln_tail_cap, tr!(text, "profile-play-ln-tail-cap"));
             ui.checkbox(&mut profile.play.guide_se, tr!(text, "profile-play-guide-se"));
@@ -383,6 +384,5 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                 egui::Slider::new(&mut profile.play.play_exit_hold_ms, 100..=5000)
                     .text(tr!(text, "profile-play-exit-hold-duration")),
             );
-        },
-    );
+        });
 }

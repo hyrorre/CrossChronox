@@ -35,9 +35,7 @@ impl EguiLayer {
             debug_log_autoscroll: true,
             show_fps,
             show_settings: false,
-            show_profile_settings: false,
             key_config: EguiKeyConfigUiState::default(),
-            show_skin: false,
             show_course_editor: false,
             course_editor: CourseEditorUiState::default(),
             skin_ui_path_cache: SkinUiPathCache::default(),
@@ -87,7 +85,8 @@ impl EguiLayer {
     /// 選曲スキンの beatoraja event 14 からスキン設定を直接開く。
     pub fn open_skin_settings(&mut self) {
         self.visible = true;
-        self.show_skin = true;
+        self.show_settings = true;
+        SettingsNavigation::select(&self.ctx, SettingsPage::Skin);
         tracing::info!("egui skin settings opened from select");
     }
 
@@ -253,18 +252,18 @@ impl EguiLayer {
         let text = Localizer::new(profile_config.ui.locale());
         let raw_input = self.state.take_egui_input(window);
         let ctx = self.ctx.clone();
+        SettingsFeedback::profile_changed(&ctx, &profile_config.id);
         let show_debug = &mut self.show_debug;
         let show_random_trainer = &mut self.show_random_trainer;
         let show_settings = &mut self.show_settings;
-        let show_profile_settings = &mut self.show_profile_settings;
-        let show_skin = &mut self.show_skin;
         let show_course_editor = &mut self.show_course_editor;
         let show_fps = &mut self.show_fps;
         let show_license_notice = &mut self.show_license_notice;
         let license_notice_text = &mut self.license_notice_text;
         let mut obs_enabled_changed = false;
         let mut save_app_config = false;
-        let mut save_profile_config = false;
+        let mut save_profile_config = self.ir_login.poll(profile_config, text);
+        self.ir_device_key.poll(text);
         let mut key_config_action = None;
         let mut reset_skin_config = false;
         let mut skin_reload_request = SkinReloadRequest::default();
@@ -326,8 +325,6 @@ impl EguiLayer {
                         debug: show_debug,
                         random_trainer: show_random_trainer,
                         settings: show_settings,
-                        profile_settings: show_profile_settings,
-                        skin: show_skin,
                         course_editor: show_course_editor,
                         license_notice: show_license_notice,
                     },
@@ -352,84 +349,98 @@ impl EguiLayer {
                     text,
                 );
                 build_random_trainer_panel(ctx, show_random_trainer, random_trainer, text);
-                let settings_actions = build_settings_panel(
-                    ctx,
-                    window,
-                    show_settings,
-                    if settings_editable {
-                        app_config
-                    } else {
-                        readonly_app_config.as_mut().expect("read-only config must exist")
-                    },
-                    profile_config,
-                    show_fps,
-                    settings_editable,
-                    difficulty_tables,
-                    text,
-                    SettingsPanelState {
-                        new_root_path: &mut self.settings_new_root_path,
-                        add_root_error: &mut self.settings_add_root_error,
-                        new_table_url: &mut self.settings_new_table_url,
-                        add_table_error: &mut self.settings_add_table_error,
-                        score_import_path: &mut self.score_import_path,
-                        score_import_kind: &mut self.score_import_kind,
-                        score_import_device_type: &mut self.score_import_device_type,
-                        score_import_status: &self.score_import_status,
-                        score_import_error: &self.score_import_error,
-                        replay_import_path: &mut self.replay_import_path,
-                        replay_import_device_type: &mut self.replay_import_device_type,
-                        replay_import_overwrite: &mut self.replay_import_overwrite,
-                        replay_import_status: &self.replay_import_status,
-                        replay_import_error: &self.replay_import_error,
-                        replay_import_progress: self.replay_import_progress,
-                        audio_device_picker: &mut self.audio_device_picker,
-                        obs_scene_picker: &mut self.obs_scene_picker,
-                        obs_connection_status,
-                        connected_gamepads,
-                    },
-                );
-                obs_enabled_changed |= settings_actions.obs_enabled_changed;
-                save_app_config |= settings_actions.save;
-                save_profile_config |= settings_actions.save_profile;
-                check_for_update |= settings_actions.check_update;
-                trigger_song_rescan |= settings_actions.rescan;
-                song_scan_requests.extend(settings_actions.song_scan_requests);
-                table_fetch_urls.extend(settings_actions.table_fetch_urls);
-                apply_audio_output |= settings_actions.apply_audio;
-                score_import_request = settings_actions.score_import_request;
-                replay_import_request = settings_actions.replay_import_request;
-                cancel_replay_import = settings_actions.cancel_replay_import;
-                let profile_settings_actions =
-                    build_profile_settings_panel(ProfileSettingsPanelContext {
-                        ctx,
-                        open: show_profile_settings,
-                        profile: profile_config,
-                        app_config,
-                        show_fps,
-                        ir_login,
-                        ir_device_key: &mut self.ir_device_key,
-                        profile_manager: &mut self.profile_manager,
-                        key_config: &mut self.key_config,
-                        profile_root,
-                        unrestricted: settings_editable,
-                        text,
+                let profile_name = profile_config.display_name.clone();
+                let save_all =
+                    build_settings_window(ctx, show_settings, &profile_name, text, |ui| {
+                        let before_app = serde_json::to_value(&*app_config).ok();
+                        let before_profile = serde_json::to_value(&*profile_config).ok();
+                        let settings_actions = build_settings_panel(
+                            ui,
+                            window,
+                            if settings_editable {
+                                app_config
+                            } else {
+                                readonly_app_config.as_mut().expect("read-only config must exist")
+                            },
+                            profile_config,
+                            show_fps,
+                            settings_editable,
+                            difficulty_tables,
+                            text,
+                            SettingsPanelState {
+                                new_root_path: &mut self.settings_new_root_path,
+                                add_root_error: &mut self.settings_add_root_error,
+                                new_table_url: &mut self.settings_new_table_url,
+                                add_table_error: &mut self.settings_add_table_error,
+                                score_import_path: &mut self.score_import_path,
+                                score_import_kind: &mut self.score_import_kind,
+                                score_import_device_type: &mut self.score_import_device_type,
+                                score_import_status: &self.score_import_status,
+                                score_import_error: &self.score_import_error,
+                                replay_import_path: &mut self.replay_import_path,
+                                replay_import_device_type: &mut self.replay_import_device_type,
+                                replay_import_overwrite: &mut self.replay_import_overwrite,
+                                replay_import_status: &self.replay_import_status,
+                                replay_import_error: &self.replay_import_error,
+                                replay_import_progress: self.replay_import_progress,
+                                audio_device_picker: &mut self.audio_device_picker,
+                                obs_scene_picker: &mut self.obs_scene_picker,
+                                obs_connection_status,
+                                connected_gamepads,
+                            },
+                        );
+                        obs_enabled_changed |= settings_actions.obs_enabled_changed;
+                        save_app_config |= settings_actions.save;
+                        save_profile_config |= settings_actions.save_profile;
+                        check_for_update |= settings_actions.check_update;
+                        trigger_song_rescan |= settings_actions.rescan;
+                        song_scan_requests.extend(settings_actions.song_scan_requests);
+                        table_fetch_urls.extend(settings_actions.table_fetch_urls);
+                        apply_audio_output |= settings_actions.apply_audio;
+                        score_import_request = settings_actions.score_import_request;
+                        replay_import_request = settings_actions.replay_import_request;
+                        cancel_replay_import = settings_actions.cancel_replay_import;
+                        let profile_settings_actions = build_profile_settings_panel(
+                            ui,
+                            ProfileSettingsPanelContext {
+                                profile: profile_config,
+                                app_config,
+                                show_fps,
+                                ir_login,
+                                ir_device_key: &mut self.ir_device_key,
+                                profile_manager: &mut self.profile_manager,
+                                key_config: &mut self.key_config,
+                                profile_root,
+                                unrestricted: settings_editable,
+                                text,
+                            },
+                        );
+                        save_profile_config |= profile_settings_actions.save;
+                        save_app_config |= profile_settings_actions.save_app_config;
+                        key_config_action = profile_settings_actions.key_config_action;
+                        let skin_actions = build_skin_panel(
+                            ui,
+                            &mut profile_config.skin,
+                            skin_meta,
+                            skin_catalog,
+                            app_paths,
+                            &mut self.skin_ui_path_cache,
+                            text,
+                        );
+                        save_profile_config |= skin_actions.save;
+                        reset_skin_config |= skin_actions.reset;
+                        skin_reload_request.union(skin_actions.reload);
+                        SettingsFeedback::changed(
+                            ctx,
+                            before_app != serde_json::to_value(&*app_config).ok(),
+                            before_profile != serde_json::to_value(&*profile_config).ok(),
+                        );
                     });
-                save_profile_config |= profile_settings_actions.save;
-                save_app_config |= profile_settings_actions.save_app_config;
-                key_config_action = profile_settings_actions.key_config_action;
-                let skin_actions = build_skin_panel(
-                    ctx,
-                    show_skin,
-                    &mut profile_config.skin,
-                    skin_meta,
-                    skin_catalog,
-                    app_paths,
-                    &mut self.skin_ui_path_cache,
-                    text,
-                );
-                save_profile_config |= skin_actions.save;
-                reset_skin_config |= skin_actions.reset;
-                skin_reload_request.union(skin_actions.reload);
+                save_app_config |= save_all;
+                save_profile_config |= save_all;
+                if !*show_settings || !SettingsNavigation::load(ctx).accepts_key_capture() {
+                    self.key_config.listening = None;
+                }
                 course_editor_action = build_course_editor_panel(
                     ctx,
                     show_course_editor,

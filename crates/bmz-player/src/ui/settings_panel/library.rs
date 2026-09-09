@@ -27,9 +27,9 @@ pub(super) fn build_library_settings_sections(
         replay_import_request,
         cancel_replay_import,
     } = actions;
-    egui::CollapsingHeader::new(tr!(text, "settings-song-folders"))
+    SettingsSection::new(SettingsPage::Library, tr!(text, "settings-song-folders"))
+        .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_song_folders")
-        .default_open(true)
         .show(ui, |ui| {
             let mut root_action = None;
             let root_len = config.songs.roots.len();
@@ -167,9 +167,10 @@ pub(super) fn build_library_settings_sections(
             ui.label(tr!(text, "settings-song-scan-help"));
         });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-scan-title")).id_salt("settings_scan").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Library, tr!(text, "settings-scan-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .id_salt("settings_scan")
+        .show(ui, |ui| {
             ui.checkbox(
                 &mut config.scan.follow_symlinks,
                 tr!(text, "settings-scan-follow-symlinks"),
@@ -191,10 +192,10 @@ pub(super) fn build_library_settings_sections(
                 &mut config.scan.rescan_missing_files,
                 tr!(text, "settings-scan-remove-missing"),
             );
-        },
-    );
+        });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-select-title"))
+    SettingsSection::new(SettingsPage::Select, tr!(text, "settings-select-title"))
+        .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_select")
         .show(ui, |ui| {
             ui.add(
@@ -208,7 +209,9 @@ pub(super) fn build_library_settings_sections(
             ui.label(tr!(text, "settings-select-scroll-help"));
         });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-tables-title"))
+    SettingsSection::new(SettingsPage::Library, tr!(text, "settings-tables-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .subpage(1)
         .id_salt("settings_tables")
         .show(ui, |ui| {
             ui.checkbox(
@@ -342,7 +345,9 @@ pub(super) fn build_library_settings_sections(
             ui.label(tr!(text, "settings-tables-help"));
         });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-downloads-title"))
+    SettingsSection::new(SettingsPage::Library, tr!(text, "settings-downloads-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .subpage(2)
         .id_salt("settings_downloads")
         .show(ui, |ui| {
             ui.label(tr!(text, "settings-downloads-disclaimer"));
@@ -406,5 +411,6 @@ pub(super) fn build_library_settings_sections(
         state.replay_import_progress,
         replay_import_request,
         cancel_replay_import,
+        text,
     );
 }

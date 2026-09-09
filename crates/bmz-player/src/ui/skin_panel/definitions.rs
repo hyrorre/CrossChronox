@@ -1,4 +1,4 @@
-/// 1 シーン分のスキン設定可能項目を折りたたみ表示・編集する。
+/// 1 シーン分のスキン設定可能項目を表示・編集する。
 ///
 /// - property: ComboBox で選択肢を選び `options` へ書き込む。
 /// - filepath: `path` グロブにマッチするファイルを ComboBox で選び `files` へ書き込む。
@@ -23,241 +23,258 @@ pub(in crate::ui) fn build_scene_skin_defs(
 ) -> SceneSkinEdit {
     let mut changed = false;
     let mut offsets_changed = false;
-    egui::CollapsingHeader::new(skin_scene_defs_label(slot, text))
-        .id_salt(slot.defs_header_id())
-        .show(ui, |ui| {
-            if defs.is_empty() {
-                ui.label(tr!(text, "skin-no-settings"));
-                return;
+    let editor = SkinEditorState::load(ui.ctx());
+    ui.push_id(slot.defs_header_id(), |ui| {
+        ui.strong(skin_scene_defs_label(slot, text));
+        if defs.is_empty() {
+            ui.label(tr!(text, "skin-no-settings"));
+            return;
+        }
+        // 選択中のスロットだけ正規化・path 解決する。
+        let synced = sync_skin_offsets_with_defs(&defs.offset, offsets);
+        changed |= synced;
+        offsets_changed |= synced;
+        let path_context = if defs.filepath.is_empty() {
+            None
+        } else {
+            path_cache.get_or_resolve(slot, app_paths, skin_path)
+        };
+        changed |= fill_missing_skin_defaults_with_context(defs, path_context, options, files);
+        let any_match = match editor.section {
+            SkinEditorSection::Options => {
+                defs.property.iter().any(|prop| editor.matches(&prop.name))
             }
-            // 折りたたまれた別スロットの offset 正規化や Lua path 解決を避ける。
-            let synced = sync_skin_offsets_with_defs(&defs.offset, offsets);
-            changed |= synced;
-            offsets_changed |= synced;
-            let path_context = if defs.filepath.is_empty() {
-                None
-            } else {
-                path_cache.get_or_resolve(slot, app_paths, skin_path)
-            };
-            changed |= fill_missing_skin_defaults_with_context(defs, path_context, options, files);
-            if !defs.property.is_empty() {
-                ui.strong(tr!(text, "skin-options"));
-                // property / filepath は同名 (例: "シャッター") を持ちうるので、egui の
-                // ComboBox ID 衝突を防ぐためにカテゴリで名前空間を切る。
-                ui.push_id("property", |ui| {
-                    let row_height = ui.spacing().interact_size.y;
-                    for (index, prop) in defs.property.iter().enumerate() {
-                        show_culled_skin_row(ui, (index, prop.name.as_str()), row_height, |ui| {
-                            let mut selected = options
-                                .get(&prop.name)
-                                .cloned()
-                                .unwrap_or_else(|| property_default(prop));
-                            let before = selected.clone();
-                            ui.horizontal(|ui| {
-                                let previous = previous_property_selection(prop, &selected);
-                                if ui
-                                    .add_enabled(previous.is_some(), egui::Button::new("◀"))
-                                    .on_hover_text(tr!(text, "skin-option-previous"))
-                                    .clicked()
-                                    && let Some(previous) = previous
-                                {
-                                    selected = previous.to_string();
-                                }
-                                egui::ComboBox::from_id_salt("selection")
-                                    .selected_text(&selected)
-                                    .show_ui(ui, |ui| {
-                                        for item in &prop.item {
-                                            ui.selectable_value(
-                                                &mut selected,
-                                                item.name.clone(),
-                                                &item.name,
-                                            );
-                                        }
-                                    });
-                                let next = next_property_selection(prop, &selected);
-                                if ui
-                                    .add_enabled(next.is_some(), egui::Button::new("▶"))
-                                    .on_hover_text(tr!(text, "skin-option-next"))
-                                    .clicked()
-                                    && let Some(next) = next
-                                {
-                                    selected = next.to_string();
-                                }
-                                ui.label(&prop.name);
-                            });
-                            if selected != before {
-                                options.insert(prop.name.clone(), selected);
-                                changed = true;
-                            }
-                        });
-                    }
-                });
-            }
-            if !defs.filepath.is_empty() {
-                ui.strong(tr!(text, "skin-file-selection"));
-                ui.push_id("filepath", |ui| {
-                    let row_height = ui.spacing().interact_size.y;
-                    for (index, filepath) in defs.filepath.iter().enumerate() {
-                        show_culled_skin_row(
-                            ui,
-                            (index, filepath.name.as_str()),
-                            row_height,
-                            |ui| {
-                                let mut selected =
-                                    files.get(&filepath.name).cloned().unwrap_or_default();
-                                let before = selected.clone();
-                                ui.horizontal(|ui| {
-                                    let can_step = path_context.is_some() && !selected.is_empty();
-                                    if ui
-                                        .add_enabled(
-                                            can_step && selected != RANDOM_FILE_SELECTION,
-                                            egui::Button::new("◀"),
-                                        )
-                                        .on_hover_text(tr!(text, "skin-option-previous"))
-                                        .clicked()
-                                        && let Some(context) = path_context
-                                    {
-                                        let candidates =
-                                            glob_candidates_for_skin(context, &filepath.path);
-                                        if let Some(previous) =
-                                            previous_filepath_selection(&selected, &candidates)
-                                        {
-                                            selected = previous;
-                                        }
-                                    }
-                                    let display = if selected.is_empty() {
-                                        tr!(text, "skin-file-none")
-                                    } else if selected == RANDOM_FILE_SELECTION {
-                                        tr!(text, "skin-file-random")
-                                    } else {
-                                        filepath_selection_label(&selected).to_string()
-                                    };
-                                    egui::ComboBox::from_id_salt("selection")
-                                        .selected_text(display)
-                                        .show_ui(ui, |ui| {
-                                            // beatoraja 同様、具体ファイルに加えて「ランダム」を選べる。
-                                            // ランダム選択時は毎ロードで候補からランダムに解決する。
-                                            ui.selectable_value(
-                                                &mut selected,
-                                                RANDOM_FILE_SELECTION.to_string(),
-                                                tr!(text, "skin-file-random"),
-                                            );
-                                            // 候補列挙は ComboBox を開いたときだけ行う。
-                                            let candidates = match path_context {
-                                                Some(context) => glob_candidates_for_skin(
-                                                    context,
-                                                    &filepath.path,
-                                                ),
-                                                None => Vec::new(),
-                                            };
-                                            if let Some(normalized) =
-                                                normalize_filepath_selection(&selected, &candidates)
-                                            {
-                                                selected = normalized;
-                                            }
-                                            if candidates.is_empty() {
-                                                ui.label(tr!(text, "skin-file-no-candidates"));
-                                            }
-                                            for candidate in candidates {
-                                                let label = filepath_selection_label(&candidate);
-                                                ui.selectable_value(
-                                                    &mut selected,
-                                                    candidate.clone(),
-                                                    label,
-                                                );
-                                            }
-                                        });
-                                    if ui
-                                        .add_enabled(can_step, egui::Button::new("▶"))
-                                        .on_hover_text(tr!(text, "skin-option-next"))
-                                        .clicked()
-                                        && let Some(context) = path_context
-                                    {
-                                        let candidates =
-                                            glob_candidates_for_skin(context, &filepath.path);
-                                        if let Some(next) =
-                                            next_filepath_selection(&selected, &candidates)
-                                        {
-                                            selected = next;
-                                        }
-                                    }
-                                    ui.label(&filepath.name);
-                                });
-                                if selected != before {
-                                    files.insert(filepath.name.clone(), selected);
-                                    changed = true;
-                                }
-                            },
-                        );
-                    }
-                });
-            }
-            if !defs.offset.is_empty() {
-                ui.strong(tr!(text, "skin-offset-elements"));
+            SkinEditorSection::Files => defs.filepath.iter().any(|file| editor.matches(&file.name)),
+            SkinEditorSection::Offsets => defs
+                .offset
+                .iter()
+                .any(|offset| editor.matches(&format!("{} {}", offset.name, offset.category))),
+        };
+        if !any_match {
+            ui.label(tr!(text, "skin-no-matches"));
+        }
+        if editor.section == SkinEditorSection::Options && !defs.property.is_empty() {
+            ui.strong(tr!(text, "skin-options"));
+            // property / filepath は同名 (例: "シャッター") を持ちうるので、egui の
+            // ComboBox ID 衝突を防ぐためにカテゴリで名前空間を切る。
+            ui.push_id("property", |ui| {
                 let row_height = ui.text_style_height(&egui::TextStyle::Body)
                     + ui.spacing().item_spacing.y
                     + ui.spacing().interact_size.y;
-                for (offset_index, offset_def) in defs.offset.iter().enumerate() {
-                    show_culled_skin_row(
-                        ui,
-                        (offset_index, offset_def.id, offset_def.name.as_str()),
-                        row_height,
-                        |ui| {
-                            ui.add(
-                                egui::Label::new(format!(
-                                    "{} [{}] — id {}",
-                                    offset_def.name, offset_def.category, offset_def.id
-                                ))
-                                .wrap_mode(egui::TextWrapMode::Extend),
-                            );
-                            let existing = offsets
-                                .iter()
-                                .find(|offset| {
-                                    offset.name.as_deref() == Some(offset_def.name.as_str())
-                                        && offset.id == offset_def.id
-                                })
-                                .or_else(|| {
-                                    offsets.iter().find(|offset| {
-                                        offset.name.as_deref() == Some(offset_def.name.as_str())
-                                    })
-                                })
-                                .or_else(|| {
-                                    offsets.iter().find(|offset| {
-                                        offset.name.is_none() && offset.id == offset_def.id
-                                    })
-                                })
-                                .cloned();
-                            let mut value = existing.unwrap_or(SkinOffsetConfig {
-                                name: Some(offset_def.name.clone()),
-                                id: offset_def.id,
-                                ..Default::default()
-                            });
-                            value.name = Some(offset_def.name.clone());
-                            value.id = offset_def.id;
-                            let before = value.clone();
-                            ui.horizontal(|ui| {
-                                let _ = add_offset_drag_values(ui, offset_def, &mut value, text);
-                            });
-                            if value != before {
-                                changed |= update_skin_offset_value(offsets, offset_def, value);
-                                offsets_changed = true;
+                for (index, prop) in defs.property.iter().enumerate() {
+                    if !editor.matches(&prop.name) {
+                        continue;
+                    }
+                    show_culled_skin_row(ui, (index, prop.name.as_str()), row_height, |ui| {
+                        let mut selected = options
+                            .get(&prop.name)
+                            .cloned()
+                            .unwrap_or_else(|| property_default(prop));
+                        let before = selected.clone();
+                        ui.add(egui::Label::new(&prop.name).truncate()).on_hover_text(&prop.name);
+                        ui.horizontal(|ui| {
+                            let previous = previous_property_selection(prop, &selected);
+                            if ui
+                                .add_enabled(previous.is_some(), egui::Button::new("◀"))
+                                .on_hover_text(tr!(text, "skin-option-previous"))
+                                .clicked()
+                                && let Some(previous) = previous
+                            {
+                                selected = previous.to_string();
                             }
-                        },
-                    );
+                            egui::ComboBox::from_id_salt("selection")
+                                .selected_text(&selected)
+                                .show_ui(ui, |ui| {
+                                    for item in &prop.item {
+                                        ui.selectable_value(
+                                            &mut selected,
+                                            item.name.clone(),
+                                            &item.name,
+                                        );
+                                    }
+                                });
+                            let next = next_property_selection(prop, &selected);
+                            if ui
+                                .add_enabled(next.is_some(), egui::Button::new("▶"))
+                                .on_hover_text(tr!(text, "skin-option-next"))
+                                .clicked()
+                                && let Some(next) = next
+                            {
+                                selected = next.to_string();
+                            }
+                        });
+                        if selected != before {
+                            options.insert(prop.name.clone(), selected);
+                            changed = true;
+                        }
+                    });
                 }
-            }
-            if !defs.is_empty() && ui.button(tr!(text, "skin-reset-defaults")).clicked() {
-                let previous_offsets = offsets.clone();
-                changed |= reset_scene_skin_to_defaults_with_context(
-                    defs,
-                    path_context,
-                    options,
-                    files,
-                    offsets,
+            });
+        }
+        if editor.section == SkinEditorSection::Files && !defs.filepath.is_empty() {
+            ui.strong(tr!(text, "skin-file-selection"));
+            ui.push_id("filepath", |ui| {
+                let row_height = ui.text_style_height(&egui::TextStyle::Body)
+                    + ui.spacing().item_spacing.y
+                    + ui.spacing().interact_size.y;
+                for (index, filepath) in defs.filepath.iter().enumerate() {
+                    if !editor.matches(&filepath.name) {
+                        continue;
+                    }
+                    show_culled_skin_row(ui, (index, filepath.name.as_str()), row_height, |ui| {
+                        let mut selected = files.get(&filepath.name).cloned().unwrap_or_default();
+                        let before = selected.clone();
+                        ui.add(egui::Label::new(&filepath.name).truncate())
+                            .on_hover_text(&filepath.name);
+                        ui.horizontal(|ui| {
+                            let can_step = path_context.is_some() && !selected.is_empty();
+                            if ui
+                                .add_enabled(
+                                    can_step && selected != RANDOM_FILE_SELECTION,
+                                    egui::Button::new("◀"),
+                                )
+                                .on_hover_text(tr!(text, "skin-option-previous"))
+                                .clicked()
+                                && let Some(context) = path_context
+                            {
+                                let candidates = glob_candidates_for_skin(context, &filepath.path);
+                                if let Some(previous) =
+                                    previous_filepath_selection(&selected, &candidates)
+                                {
+                                    selected = previous;
+                                }
+                            }
+                            let display = if selected.is_empty() {
+                                tr!(text, "skin-file-none")
+                            } else if selected == RANDOM_FILE_SELECTION {
+                                tr!(text, "skin-file-random")
+                            } else {
+                                filepath_selection_label(&selected).to_string()
+                            };
+                            egui::ComboBox::from_id_salt("selection")
+                                .selected_text(display)
+                                .show_ui(ui, |ui| {
+                                    // beatoraja 同様、具体ファイルに加えて「ランダム」を選べる。
+                                    // ランダム選択時は毎ロードで候補からランダムに解決する。
+                                    ui.selectable_value(
+                                        &mut selected,
+                                        RANDOM_FILE_SELECTION.to_string(),
+                                        tr!(text, "skin-file-random"),
+                                    );
+                                    // 候補列挙は ComboBox を開いたときだけ行う。
+                                    let candidates = match path_context {
+                                        Some(context) => {
+                                            glob_candidates_for_skin(context, &filepath.path)
+                                        }
+                                        None => Vec::new(),
+                                    };
+                                    if let Some(normalized) =
+                                        normalize_filepath_selection(&selected, &candidates)
+                                    {
+                                        selected = normalized;
+                                    }
+                                    if candidates.is_empty() {
+                                        ui.label(tr!(text, "skin-file-no-candidates"));
+                                    }
+                                    for candidate in candidates {
+                                        let label = filepath_selection_label(&candidate);
+                                        ui.selectable_value(
+                                            &mut selected,
+                                            candidate.clone(),
+                                            label,
+                                        );
+                                    }
+                                });
+                            if ui
+                                .add_enabled(can_step, egui::Button::new("▶"))
+                                .on_hover_text(tr!(text, "skin-option-next"))
+                                .clicked()
+                                && let Some(context) = path_context
+                            {
+                                let candidates = glob_candidates_for_skin(context, &filepath.path);
+                                if let Some(next) = next_filepath_selection(&selected, &candidates)
+                                {
+                                    selected = next;
+                                }
+                            }
+                        });
+                        if selected != before {
+                            files.insert(filepath.name.clone(), selected);
+                            changed = true;
+                        }
+                    });
+                }
+            });
+        }
+        if editor.section == SkinEditorSection::Offsets && !defs.offset.is_empty() {
+            ui.strong(tr!(text, "skin-section-offsets"));
+            let row_height = ui.text_style_height(&egui::TextStyle::Body)
+                + ui.spacing().item_spacing.y
+                + ui.spacing().interact_size.y;
+            for (offset_index, offset_def) in defs.offset.iter().enumerate() {
+                if !editor.matches(&format!("{} {}", offset_def.name, offset_def.category)) {
+                    continue;
+                }
+                show_culled_skin_row(
+                    ui,
+                    (offset_index, offset_def.id, offset_def.name.as_str()),
+                    row_height,
+                    |ui| {
+                        ui.add(
+                            egui::Label::new(format!(
+                                "{} [{}] — id {}",
+                                offset_def.name, offset_def.category, offset_def.id
+                            ))
+                            .wrap_mode(egui::TextWrapMode::Extend),
+                        );
+                        let existing = offsets
+                            .iter()
+                            .find(|offset| {
+                                offset.name.as_deref() == Some(offset_def.name.as_str())
+                                    && offset.id == offset_def.id
+                            })
+                            .or_else(|| {
+                                offsets.iter().find(|offset| {
+                                    offset.name.as_deref() == Some(offset_def.name.as_str())
+                                })
+                            })
+                            .or_else(|| {
+                                offsets.iter().find(|offset| {
+                                    offset.name.is_none() && offset.id == offset_def.id
+                                })
+                            })
+                            .cloned();
+                        let mut value = existing.unwrap_or(SkinOffsetConfig {
+                            name: Some(offset_def.name.clone()),
+                            id: offset_def.id,
+                            ..Default::default()
+                        });
+                        value.name = Some(offset_def.name.clone());
+                        value.id = offset_def.id;
+                        let before = value.clone();
+                        ui.horizontal(|ui| {
+                            let _ = add_offset_drag_values(ui, offset_def, &mut value, text);
+                        });
+                        if value != before {
+                            changed |= update_skin_offset_value(offsets, offset_def, value);
+                            offsets_changed = true;
+                        }
+                    },
                 );
-                offsets_changed |= *offsets != previous_offsets;
             }
-        });
+        }
+        if !defs.is_empty() && ui.button(tr!(text, "skin-reset-defaults")).clicked() {
+            let previous_offsets = offsets.clone();
+            changed |= reset_scene_skin_to_defaults_with_context(
+                defs,
+                path_context,
+                options,
+                files,
+                offsets,
+            );
+            offsets_changed |= *offsets != previous_offsets;
+        }
+    });
     SceneSkinEdit { changed, offsets_changed }
 }
 

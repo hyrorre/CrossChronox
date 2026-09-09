@@ -8,7 +8,7 @@ pub(in crate::ui) struct SkinPanelActions {
     pub(in crate::ui) reload: SkinReloadRequest,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(in crate::ui) enum SkinSlot {
     Select,
     Decide,

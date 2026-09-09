@@ -392,12 +392,8 @@ pub struct EguiLayer {
     pub(super) show_fps: bool,
     /// 本体設定パネルの開閉状態。
     pub(super) show_settings: bool,
-    /// プロファイル設定パネルの開閉状態。
-    pub(super) show_profile_settings: bool,
     /// プロファイル設定内のキー設定UIと入力待受状態。
     pub(super) key_config: EguiKeyConfigUiState,
-    /// スキン設定パネルの開閉状態。
-    pub(super) show_skin: bool,
     /// ローカルのコース/段位作成・編集パネル。
     pub(super) show_course_editor: bool,
     pub(super) course_editor: CourseEditorUiState,

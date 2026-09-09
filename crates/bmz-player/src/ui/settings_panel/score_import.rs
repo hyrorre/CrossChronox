@@ -10,7 +10,8 @@ pub(in crate::ui) fn build_score_import_section(
     request: &mut Option<ScoreImportRequest>,
     text: Localizer,
 ) {
-    egui::CollapsingHeader::new(tr!(text, "settings-score-import-title"))
+    SettingsSection::new(SettingsPage::Import, tr!(text, "settings-score-import-title"))
+        .scope(tr!(text, "settings-scope-profile"))
         .id_salt("settings_score_import")
         .show(ui, |ui| {
             ui.horizontal(|ui| {
@@ -97,8 +98,11 @@ pub(in crate::ui) fn build_replay_import_section(
     progress: Option<ReplayImportProgress>,
     request: &mut Option<ImportBeatorajaReplaysRequest>,
     cancel: &mut bool,
+    text: Localizer,
 ) {
-    egui::CollapsingHeader::new("beatoraja Replay Import (.brd)")
+    SettingsSection::new(SettingsPage::Import, "beatoraja Replay Import (.brd)")
+        .scope(tr!(text, "settings-scope-profile"))
+        .subpage(1)
         .id_salt("settings_replay_import")
         .show(ui, |ui| {
             ui.label("playerフォルダ、replayフォルダ、または単一の.brdファイルを指定します。");

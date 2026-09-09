@@ -89,6 +89,7 @@ mod course_editor;
 mod course_form;
 mod profile_panel;
 mod select_course_builder;
+mod settings_navigation;
 mod settings_panel;
 mod skin_panel;
 
@@ -101,6 +102,7 @@ use auxiliary_window::*;
 use course_editor::*;
 use profile_panel::*;
 use select_course_builder::*;
+use settings_navigation::*;
 use settings_panel::*;
 use skin_panel::*;
 

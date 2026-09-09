@@ -10,9 +10,10 @@ pub(in crate::ui::profile_panel) fn build_profile_ir_section(
     let ir_login = &mut *section.ir_login;
     let ir_device_key = &mut *section.ir_device_key;
     let profile_root = section.profile_root;
-    egui::CollapsingHeader::new(tr!(text, "profile-ir-title")).id_salt("profile_ir").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Integration, tr!(text, "profile-ir-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .id_salt("profile_ir")
+        .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
             }
@@ -377,6 +378,5 @@ pub(in crate::ui::profile_panel) fn build_profile_ir_section(
             if ui.button(tr!(text, "profile-ir-add-provider")).clicked() {
                 profile.ir.providers.push(IrProviderConfig::custom());
             }
-        },
-    );
+        });
 }

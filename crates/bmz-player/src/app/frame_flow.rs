@@ -305,6 +305,8 @@ impl WinitApp {
 
     fn egui_skin_meta(&mut self) -> SkinConfigMeta {
         let skin = &self.boot.profile_config.skin;
+        let requested =
+            self.ui.egui.as_ref().and_then(|egui| egui.skin_settings_path(skin)).map(str::to_owned);
         let paths = [
             skin.play4.clone(),
             skin.play5.clone(),
@@ -330,7 +332,13 @@ impl WinitApp {
             battle5,
             battle7,
             course_result,
-        ] = paths.map(|path| self.play_skin_defs_for_path(&path));
+        ] = paths.map(|path| {
+            if requested.as_deref() == Some(path.as_str()) {
+                self.play_skin_defs_for_path(&path)
+            } else {
+                SceneSkinDefs::default()
+            }
+        });
         SkinConfigMeta {
             select: SceneSkinDefs::from_document(self.renderer.select_skin_document()),
             decide: SceneSkinDefs::from_document(self.renderer.decide_skin_document()),
@@ -595,7 +603,14 @@ impl WinitApp {
 
         let mut apply_obs_config = output.obs_enabled_changed;
         if output.save_app_config {
-            match save_app_config(&self.boot.app_paths.config_toml, &self.boot.app_config) {
+            let result = save_app_config(&self.boot.app_paths.config_toml, &self.boot.app_config);
+            if let Some(egui) = self.ui.egui.as_mut() {
+                egui.settings_save_finished(
+                    true,
+                    result.as_ref().map(|_| ()).map_err(|error| format!("{error:#}")),
+                );
+            }
+            match result {
                 Ok(()) => {
                     tracing::info!("app config saved from egui settings panel");
                     apply_obs_config = true;
@@ -634,10 +649,17 @@ impl WinitApp {
             self.cancel_beatoraja_replay_import();
         }
         if output.save_profile_config {
-            match save_profile_config(
+            let result = save_profile_config(
                 &self.boot.profile_paths.profile_toml,
                 &self.boot.profile_config,
-            ) {
+            );
+            if let Some(egui) = self.ui.egui.as_mut() {
+                egui.settings_save_finished(
+                    false,
+                    result.as_ref().map(|_| ()).map_err(|error| format!("{error:#}")),
+                );
+            }
+            match result {
                 Ok(()) => tracing::info!("profile config saved from egui skin panel"),
                 Err(error) => tracing::error!(%error, "failed to save profile config"),
             }

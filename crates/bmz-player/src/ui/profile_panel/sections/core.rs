@@ -7,9 +7,9 @@ pub(in crate::ui::profile_panel) fn build_profile_basic_section(
     let profile = &mut *section.profile;
     let unrestricted = section.unrestricted;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-basic-title"))
+    SettingsSection::new(SettingsPage::Profile, tr!(text, "profile-basic-title"))
+        .scope(tr!(text, "settings-scope-profile"))
         .id_salt("profile_basic")
-        .default_open(true)
         .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
@@ -31,9 +31,9 @@ pub(in crate::ui::profile_panel) fn build_profile_volume_section(
 ) {
     let profile = &mut *section.profile;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-volume-title"))
+    SettingsSection::new(SettingsPage::Audio, tr!(text, "profile-volume-title"))
+        .scope(tr!(text, "settings-scope-profile"))
         .id_salt("profile_volume")
-        .default_open(true)
         .show(ui, |ui| {
             ui.checkbox(
                 &mut profile.audio_mix.normalize_chart_volume,
@@ -97,9 +97,11 @@ pub(in crate::ui::profile_panel) fn build_profile_judge_section(
 ) {
     let profile = &mut *section.profile;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-judge-title")).id_salt("profile_judge").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Play, tr!(text, "profile-judge-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .subpage(1)
+        .id_salt("profile_judge")
+        .show(ui, |ui| {
             offset_ms_slider(
                 ui,
                 &mut profile.judge.input_offset_us,
@@ -154,8 +156,7 @@ pub(in crate::ui::profile_panel) fn build_profile_judge_section(
                 );
                 ui.label(tr!(text, "profile-fast-slow-threshold-help"));
             }
-        },
-    );
+        });
 }
 
 pub(in crate::ui::profile_panel) fn build_profile_input_section(
@@ -164,9 +165,10 @@ pub(in crate::ui::profile_panel) fn build_profile_input_section(
 ) {
     let profile = &mut *section.profile;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-input-title")).id_salt("profile_input").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Input, tr!(text, "profile-input-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .id_salt("profile_input")
+        .show(ui, |ui| {
             for (label, config) in [
                 (tr!(text, "settings-input-controller-1p"), &mut profile.input.gamepad1),
                 (tr!(text, "settings-input-controller-2p"), &mut profile.input.gamepad2),
@@ -201,8 +203,7 @@ pub(in crate::ui::profile_panel) fn build_profile_input_section(
             );
             ui.label(tr!(text, "profile-input-release-bounce-help"));
             ui.label(tr!(text, "profile-input-key-bindings-help"));
-        },
-    );
+        });
 }
 
 pub(in crate::ui::profile_panel) fn build_profile_replay_section(
@@ -212,9 +213,11 @@ pub(in crate::ui::profile_panel) fn build_profile_replay_section(
     let profile = &mut *section.profile;
     let unrestricted = section.unrestricted;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-replay-title")).id_salt("profile_replay").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Play, tr!(text, "profile-replay-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .subpage(3)
+        .id_salt("profile_replay")
+        .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
             }
@@ -239,8 +242,7 @@ pub(in crate::ui::profile_panel) fn build_profile_replay_section(
                     }
                 });
             }
-        },
-    );
+        });
 }
 
 pub(in crate::ui::profile_panel) fn build_profile_system_sound_section(
@@ -250,7 +252,8 @@ pub(in crate::ui::profile_panel) fn build_profile_system_sound_section(
     let profile = &mut *section.profile;
     let unrestricted = section.unrestricted;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-system-sound-title"))
+    SettingsSection::new(SettingsPage::Audio, tr!(text, "profile-system-sound-title"))
+        .scope(tr!(text, "settings-scope-profile"))
         .id_salt("profile_system_sound")
         .show(ui, |ui| {
             if !unrestricted {

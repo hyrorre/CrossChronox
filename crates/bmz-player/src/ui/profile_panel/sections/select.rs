@@ -7,9 +7,10 @@ pub(in crate::ui::profile_panel) fn build_profile_select_section(
     let profile = &mut *section.profile;
     let unrestricted = section.unrestricted;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-select-title")).id_salt("profile_select").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Select, tr!(text, "profile-select-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .id_salt("profile_select")
+        .show(ui, |ui| {
             if !unrestricted {
                 ui.disable();
             }
@@ -51,8 +52,7 @@ pub(in crate::ui::profile_panel) fn build_profile_select_section(
                 }
             });
             ui.small(tr!(text, "profile-select-difficulty-table-level-display-help"));
-        },
-    );
+        });
 }
 
 pub(in crate::ui) fn difficulty_table_level_display_label(

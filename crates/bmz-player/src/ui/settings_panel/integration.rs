@@ -8,7 +8,8 @@ pub(super) fn build_integration_settings_sections(
     save_clicked: &mut bool,
     check_update_clicked: &mut bool,
 ) {
-    egui::CollapsingHeader::new(tr!(text, "settings-updates-title"))
+    SettingsSection::new(SettingsPage::Diagnostics, tr!(text, "settings-updates-title"))
+        .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_updates")
         .show(ui, |ui| {
             ui.checkbox(&mut config.updates.enabled, tr!(text, "settings-updates-notifications"));
@@ -50,42 +51,46 @@ pub(super) fn build_integration_settings_sections(
             }
         });
 
-    egui::CollapsingHeader::new("Discord").show(ui, |ui| {
-        ui.checkbox(&mut config.discord.enabled, "Rich Presence");
-        ui.horizontal(|ui| {
-            ui.label("Application ID");
-            ui.add(
-                egui::TextEdit::singleline(&mut config.discord.application_id)
-                    .desired_width(260.0)
-                    .hint_text(tr!(text, "settings-discord-default-hint")),
+    SettingsSection::new(SettingsPage::Integration, "Discord")
+        .scope(tr!(text, "settings-scope-app"))
+        .subpage(1)
+        .show(ui, |ui| {
+            ui.checkbox(&mut config.discord.enabled, "Rich Presence");
+            ui.horizontal(|ui| {
+                ui.label("Application ID");
+                ui.add(
+                    egui::TextEdit::singleline(&mut config.discord.application_id)
+                        .desired_width(260.0)
+                        .hint_text(tr!(text, "settings-discord-default-hint")),
+                );
+            });
+            ui.horizontal(|ui| {
+                ui.label("Large image key");
+                ui.add(
+                    egui::TextEdit::singleline(&mut config.discord.large_image_key)
+                        .desired_width(160.0)
+                        .hint_text("bmz"),
+                );
+            });
+            ui.horizontal(|ui| {
+                ui.label("Large image text");
+                ui.add(
+                    egui::TextEdit::singleline(&mut config.discord.large_image_text)
+                        .desired_width(220.0)
+                        .hint_text("BMZ Player"),
+                );
+            });
+            ui.checkbox(
+                &mut config.discord.show_song_details,
+                tr!(text, "settings-discord-song-details"),
             );
+            ui.label(tr!(text, "settings-discord-default-help"));
         });
-        ui.horizontal(|ui| {
-            ui.label("Large image key");
-            ui.add(
-                egui::TextEdit::singleline(&mut config.discord.large_image_key)
-                    .desired_width(160.0)
-                    .hint_text("bmz"),
-            );
-        });
-        ui.horizontal(|ui| {
-            ui.label("Large image text");
-            ui.add(
-                egui::TextEdit::singleline(&mut config.discord.large_image_text)
-                    .desired_width(220.0)
-                    .hint_text("BMZ Player"),
-            );
-        });
-        ui.checkbox(
-            &mut config.discord.show_song_details,
-            tr!(text, "settings-discord-song-details"),
-        );
-        ui.label(tr!(text, "settings-discord-default-help"));
-    });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-input-title")).id_salt("settings_input").show(
-        ui,
-        |ui| {
+    SettingsSection::new(SettingsPage::Input, tr!(text, "settings-input-title"))
+        .scope(tr!(text, "settings-scope-app"))
+        .id_salt("settings_input")
+        .show(ui, |ui| {
             egui::ComboBox::new("input_backend", tr!(text, "settings-input-keyboard-backend"))
                 .selected_text(input_backend_label(&config.input.backend, text))
                 .show_ui(ui, |ui| {
@@ -233,10 +238,10 @@ pub(super) fn build_integration_settings_sections(
                 }
             });
             ui.label(tr!(text, "settings-input-assignment-help"));
-        },
-    );
+        });
 
-    egui::CollapsingHeader::new(tr!(text, "settings-logging-title"))
+    SettingsSection::new(SettingsPage::Diagnostics, tr!(text, "settings-logging-title"))
+        .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_logging")
         .show(ui, |ui| {
             egui::ComboBox::new("logging_level", tr!(text, "settings-logging-level"))

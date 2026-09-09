@@ -6,7 +6,9 @@ pub(in crate::ui::profile_panel) fn build_profile_display_section(
 ) {
     let profile = &mut *section.profile;
     let text = section.text;
-    egui::CollapsingHeader::new(tr!(text, "profile-display-title"))
+    SettingsSection::new(SettingsPage::Play, tr!(text, "profile-display-title"))
+        .scope(tr!(text, "settings-scope-profile"))
+        .subpage(2)
         .id_salt("profile_display")
         .show(ui, |ui| {
             let mut preset = profile.lane.hispeed_config();

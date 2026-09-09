@@ -13,7 +13,7 @@ pub(in crate::ui) fn skin_path_combo(
     let selected_text = skin_candidate_label(candidates, &current, show_bundled_origin, text);
     egui::ComboBox::from_id_salt(("skin_path_combo", slot.path_combo_id()))
         .selected_text(selected_text)
-        .width(320.0)
+        .width(ui.available_width().clamp(120.0, 520.0))
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut selected, String::new(), tr!(text, "skin-default"));
             for candidate in candidates {
@@ -43,7 +43,8 @@ pub(in crate::ui) fn skin_path_combo(
         restore_skin_slot_history(skin, slot);
     }
     let mut edited_path = skin_slot_path(skin, slot).to_string();
-    let text_changed = ui.text_edit_singleline(&mut edited_path).changed();
+    let text_changed =
+        ui.add(egui::TextEdit::singleline(&mut edited_path).desired_width(f32::INFINITY)).changed();
     if text_changed {
         save_skin_slot_history(skin, slot);
         *skin_slot_path_mut(skin, slot) = edited_path;
