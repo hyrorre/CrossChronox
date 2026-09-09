@@ -545,7 +545,7 @@ impl ProfileConfig {
             },
             ir: IrConfig::default(),
             ui: UiConfig {
-                language: "ja".to_string(),
+                language: AppLocale::system_default().code().to_owned(),
                 theme: "default".to_string(),
                 show_fps: false,
                 confirm_on_exit: false,

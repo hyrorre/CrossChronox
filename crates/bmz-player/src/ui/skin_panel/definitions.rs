@@ -40,21 +40,19 @@ pub(in crate::ui) fn build_scene_skin_defs(
             path_cache.get_or_resolve(slot, app_paths, skin_path)
         };
         changed |= fill_missing_skin_defaults_with_context(defs, path_context, options, files);
-        let any_match = match editor.section {
-            SkinEditorSection::Options => {
-                defs.property.iter().any(|prop| editor.matches(&prop.name))
-            }
-            SkinEditorSection::Files => defs.filepath.iter().any(|file| editor.matches(&file.name)),
-            SkinEditorSection::Offsets => defs
+        let any_match = defs.property.iter().any(|prop| editor.matches(&prop.name))
+            || defs.filepath.iter().any(|file| editor.matches(&file.name))
+            || defs
                 .offset
                 .iter()
-                .any(|offset| editor.matches(&format!("{} {}", offset.name, offset.category))),
-        };
+                .any(|offset| editor.matches(&format!("{} {}", offset.name, offset.category)));
         if !any_match {
             ui.label(tr!(text, "skin-no-matches"));
         }
-        if editor.section == SkinEditorSection::Options && !defs.property.is_empty() {
+        if !defs.property.is_empty() {
+            ui.add_space(8.0);
             ui.strong(tr!(text, "skin-options"));
+            ui.separator();
             // property / filepath は同名 (例: "シャッター") を持ちうるので、egui の
             // ComboBox ID 衝突を防ぐためにカテゴリで名前空間を切る。
             ui.push_id("property", |ui| {
@@ -111,8 +109,10 @@ pub(in crate::ui) fn build_scene_skin_defs(
                 }
             });
         }
-        if editor.section == SkinEditorSection::Files && !defs.filepath.is_empty() {
+        if !defs.filepath.is_empty() {
+            ui.add_space(8.0);
             ui.strong(tr!(text, "skin-file-selection"));
+            ui.separator();
             ui.push_id("filepath", |ui| {
                 let row_height = ui.text_style_height(&egui::TextStyle::Body)
                     + ui.spacing().item_spacing.y
@@ -206,8 +206,10 @@ pub(in crate::ui) fn build_scene_skin_defs(
                 }
             });
         }
-        if editor.section == SkinEditorSection::Offsets && !defs.offset.is_empty() {
+        if !defs.offset.is_empty() {
+            ui.add_space(8.0);
             ui.strong(tr!(text, "skin-section-offsets"));
+            ui.separator();
             let row_height = ui.text_style_height(&egui::TextStyle::Body)
                 + ui.spacing().item_spacing.y
                 + ui.spacing().interact_size.y;

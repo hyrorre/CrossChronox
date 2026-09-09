@@ -96,6 +96,24 @@ impl AppLocale {
         }
     }
 
+    /// OS の優先言語順から対応言語を選ぶ。OS の照会はプロセスごとに一度だけ行う。
+    pub fn system_default() -> Self {
+        static LOCALE: LazyLock<AppLocale> =
+            LazyLock::new(|| AppLocale::from_preferred_languages(sys_locale::get_locales()));
+        *LOCALE
+    }
+
+    fn from_preferred_languages(languages: impl IntoIterator<Item = impl AsRef<str>>) -> Self {
+        languages
+            .into_iter()
+            .find_map(|language| {
+                // POSIX の ja_JP.UTF-8 / zh_TW.UTF-8@modifier も扱う。
+                let language = language.as_ref().split(['.', '@']).next().unwrap_or_default();
+                Self::from_code(language)
+            })
+            .unwrap_or(Self::En)
+    }
+
     /// profile の String 設定値を解決する。不明値は `ja` へ安全に戻す。
     pub fn profile_language(language: &str) -> Self {
         match Self::from_code(language) {
@@ -244,6 +262,16 @@ static CATALOGS: LazyLock<Catalogs> = LazyLock::new(Catalogs::new);
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn os_language_preferences_use_the_first_supported_language() {
+        assert_eq!(AppLocale::from_preferred_languages(["fr-FR", "ko-KR", "ja-JP"]), AppLocale::Ko);
+        assert_eq!(AppLocale::from_preferred_languages(["en-GB", "ja"]), AppLocale::En);
+        assert_eq!(AppLocale::from_preferred_languages(["ja_JP.UTF-8"]), AppLocale::Ja);
+        assert_eq!(AppLocale::from_preferred_languages(["zh_TW.UTF-8@modifier"]), AppLocale::ZhTw);
+        assert_eq!(AppLocale::from_preferred_languages(["zh-HK"]), AppLocale::ZhHk);
+        assert_eq!(AppLocale::from_preferred_languages(["fr-FR", "de-DE"]), AppLocale::En);
+        assert_eq!(AppLocale::from_preferred_languages(std::iter::empty::<&str>()), AppLocale::En);
+    }
     use std::collections::{BTreeMap, BTreeSet};
 
     use fluent_syntax::parser;

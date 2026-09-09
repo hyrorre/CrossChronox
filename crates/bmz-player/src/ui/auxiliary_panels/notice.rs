@@ -1,36 +1,21 @@
 use super::*;
 
-pub(super) fn build_third_party_notice_panel(
-    ctx: &egui::Context,
-    open: &mut bool,
+pub(super) fn build_third_party_notice_page(
+    ui: &mut egui::Ui,
     app_paths: &AppPaths,
     notice_text: &mut Option<String>,
-    text: Localizer,
 ) {
-    if !*open {
+    if SettingsNavigation::load(ui.ctx()).page != SettingsPage::Licenses {
         return;
     }
     let notice = notice_text.get_or_insert_with(|| combined_license_notice_text(app_paths));
     let mut notice = notice.as_str();
-    localized_sized_panel_window(
-        "license_notice_panel",
-        tr!(text, "licenses-title"),
-        ctx,
-        open,
-        620.0,
-        560.0,
-        egui::pos2(936.0, 320.0),
-    )
-    .show(ctx, |ui| {
-        scrollable_window_content(ui, |ui| {
-            ui.add(
-                egui::TextEdit::multiline(&mut notice)
-                    .font(egui::TextStyle::Monospace)
-                    .desired_width(f32::INFINITY)
-                    .interactive(false),
-            );
-        });
-    });
+    ui.add(
+        egui::TextEdit::multiline(&mut notice)
+            .font(egui::TextStyle::Monospace)
+            .desired_width(f32::INFINITY)
+            .interactive(false),
+    );
 }
 
 pub(super) fn combined_license_notice_text(app_paths: &AppPaths) -> String {

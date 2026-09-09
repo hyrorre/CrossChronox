@@ -99,7 +99,6 @@ pub(in crate::ui::profile_panel) fn build_profile_judge_section(
     let text = section.text;
     SettingsSection::new(SettingsPage::Play, tr!(text, "profile-judge-title"))
         .scope(tr!(text, "settings-scope-profile"))
-        .subpage(1)
         .id_salt("profile_judge")
         .show(ui, |ui| {
             offset_ms_slider(
@@ -215,7 +214,6 @@ pub(in crate::ui::profile_panel) fn build_profile_replay_section(
     let text = section.text;
     SettingsSection::new(SettingsPage::Play, tr!(text, "profile-replay-title"))
         .scope(tr!(text, "settings-scope-profile"))
-        .subpage(3)
         .id_salt("profile_replay")
         .show(ui, |ui| {
             if !unrestricted {

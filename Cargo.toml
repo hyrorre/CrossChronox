@@ -44,6 +44,7 @@ futures-util = "0.3"
 fluent-bundle = "0.16"
 fluent-syntax = "0.12"
 unic-langid = "0.9"
+sys-locale = "0.3.2"
 
 rusqlite = { version = "0.31", features = ["bundled"] }
 

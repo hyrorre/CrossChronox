@@ -14,11 +14,13 @@ pub(super) enum SettingsPage {
     Library,
     Integration,
     Import,
-    Diagnostics,
+    Tables,
+    Ir,
+    Licenses,
 }
 
 impl SettingsPage {
-    const ALL: [Self; 12] = [
+    const ALL: [Self; 14] = [
         Self::General,
         Self::Profile,
         Self::Audio,
@@ -28,9 +30,11 @@ impl SettingsPage {
         Self::Select,
         Self::Skin,
         Self::Library,
+        Self::Tables,
+        Self::Ir,
         Self::Integration,
         Self::Import,
-        Self::Diagnostics,
+        Self::Licenses,
     ];
 
     fn label(self, text: Localizer) -> String {
@@ -46,28 +50,18 @@ impl SettingsPage {
             Self::Library => "settings-nav-library",
             Self::Integration => "settings-nav-integration",
             Self::Import => "settings-nav-import",
-            Self::Diagnostics => "settings-nav-diagnostics",
+            Self::Tables => "settings-tables-title",
+            Self::Ir => "profile-ir-title",
+            Self::Licenses => "menu-licenses",
         })
     }
 
     fn subpages(self) -> &'static [&'static str] {
         match self {
-            Self::Library => {
-                &["settings-song-folders", "settings-tables-title", "settings-downloads-title"]
+            Self::Integration => {
+                &["settings-nav-discord", "settings-nav-obs", "settings-screenshot-title"]
             }
-            Self::Integration => &[
-                "profile-ir-title",
-                "settings-nav-discord",
-                "settings-nav-obs",
-                "settings-screenshot-title",
-            ],
             Self::Input => &["settings-input-title", "profile-key-config-title"],
-            Self::Play => &[
-                "profile-play-title",
-                "profile-judge-title",
-                "profile-display-title",
-                "profile-replay-title",
-            ],
             Self::Import => &["settings-score-import-title", "settings-nav-replay-import"],
             _ => &[],
         }
@@ -77,7 +71,7 @@ impl SettingsPage {
 #[derive(Clone, Default)]
 pub(super) struct SettingsNavigation {
     pub(super) page: SettingsPage,
-    subpages: [usize; 12],
+    subpages: [usize; 14],
 }
 
 #[derive(Clone, Default)]
@@ -265,10 +259,14 @@ pub(super) fn build_settings_window(
                         |ui| {
                             egui::ScrollArea::vertical()
                                 .id_salt("settings_sidebar")
-                                .max_height(body_height)
+                                .max_height((body_height - 36.0).max(0.0))
+                                .auto_shrink([false, false])
                                 .show(ui, |ui| {
                                     ui.set_width(160.0);
                                     for page in SettingsPage::ALL {
+                                        if page == SettingsPage::Licenses {
+                                            continue;
+                                        }
                                         let label = if SettingsFeedback::load(ctx).has_changes(page)
                                         {
                                             format!("{} •", page.label(text))
@@ -278,6 +276,12 @@ pub(super) fn build_settings_window(
                                         ui.selectable_value(&mut navigation.page, page, label);
                                     }
                                 });
+                            ui.separator();
+                            ui.selectable_value(
+                                &mut navigation.page,
+                                SettingsPage::Licenses,
+                                SettingsPage::Licenses.label(text),
+                            );
                         },
                     );
                     ui.separator();
@@ -437,5 +441,37 @@ mod tests {
                 ctx.memory(|memory| memory.area_rect(egui::Id::new("settings_workspace"))).unwrap();
             assert!(rect.contains_rect(window), "window outside viewport: {window:?}");
         }
+    }
+
+    #[test]
+    fn license_navigation_stays_at_the_bottom_of_the_sidebar() {
+        let ctx = egui::Context::default();
+        let text = Localizer::new(AppLocale::En);
+        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0));
+        let mut license_rect = None;
+        let mut save_rect = None;
+        for _ in 0..3 {
+            let output = ctx.run_ui(
+                egui::RawInput { screen_rect: Some(rect), ..Default::default() },
+                |ui| {
+                    build_settings_window(ui.ctx(), &mut true, "Default", text, |_| {});
+                },
+            );
+            for shape in output.shapes {
+                if let egui::Shape::Text(label) = shape.shape {
+                    let rect = label.galley.rect.translate(label.pos.to_vec2());
+                    if label.galley.job.text == text.text("menu-licenses") {
+                        license_rect = Some(rect);
+                    }
+                    if label.galley.job.text == text.text("settings-save-all") {
+                        save_rect = Some(rect);
+                    }
+                }
+            }
+        }
+        let license = license_rect.expect("license navigation is visible");
+        let save = save_rect.expect("save button is visible");
+        assert!(license.top() > 400.0, "license should be pinned below the category list");
+        assert!(license.bottom() < save.top(), "license should be above the footer");
     }
 }

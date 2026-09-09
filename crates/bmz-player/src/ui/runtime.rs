@@ -39,7 +39,6 @@ impl EguiLayer {
             show_course_editor: false,
             course_editor: CourseEditorUiState::default(),
             skin_ui_path_cache: SkinUiPathCache::default(),
-            show_license_notice: false,
             license_notice_text: None,
             update_dialog_active: false,
             settings_new_root_path: String::new(),
@@ -258,7 +257,6 @@ impl EguiLayer {
         let show_settings = &mut self.show_settings;
         let show_course_editor = &mut self.show_course_editor;
         let show_fps = &mut self.show_fps;
-        let show_license_notice = &mut self.show_license_notice;
         let license_notice_text = &mut self.license_notice_text;
         let mut obs_enabled_changed = false;
         let mut save_app_config = false;
@@ -326,17 +324,9 @@ impl EguiLayer {
                         random_trainer: show_random_trainer,
                         settings: show_settings,
                         course_editor: show_course_editor,
-                        license_notice: show_license_notice,
                     },
                     app_paths,
                     directory_open_status,
-                    text,
-                );
-                build_third_party_notice_panel(
-                    ctx,
-                    show_license_notice,
-                    app_paths,
-                    license_notice_text,
                     text,
                 );
                 build_debug_panel(
@@ -354,6 +344,24 @@ impl EguiLayer {
                     build_settings_window(ctx, show_settings, &profile_name, text, |ui| {
                         let before_app = serde_json::to_value(&*app_config).ok();
                         let before_profile = serde_json::to_value(&*profile_config).ok();
+                        let profile_settings_actions = build_profile_settings_panel(
+                            ui,
+                            ProfileSettingsPanelContext {
+                                profile: profile_config,
+                                app_config,
+                                show_fps,
+                                ir_login,
+                                ir_device_key: &mut self.ir_device_key,
+                                profile_manager: &mut self.profile_manager,
+                                key_config: &mut self.key_config,
+                                profile_root,
+                                unrestricted: settings_editable,
+                                text,
+                            },
+                        );
+                        save_profile_config |= profile_settings_actions.save;
+                        save_app_config |= profile_settings_actions.save_app_config;
+                        key_config_action = profile_settings_actions.key_config_action;
                         let settings_actions = build_settings_panel(
                             ui,
                             window,
@@ -400,24 +408,7 @@ impl EguiLayer {
                         score_import_request = settings_actions.score_import_request;
                         replay_import_request = settings_actions.replay_import_request;
                         cancel_replay_import = settings_actions.cancel_replay_import;
-                        let profile_settings_actions = build_profile_settings_panel(
-                            ui,
-                            ProfileSettingsPanelContext {
-                                profile: profile_config,
-                                app_config,
-                                show_fps,
-                                ir_login,
-                                ir_device_key: &mut self.ir_device_key,
-                                profile_manager: &mut self.profile_manager,
-                                key_config: &mut self.key_config,
-                                profile_root,
-                                unrestricted: settings_editable,
-                                text,
-                            },
-                        );
-                        save_profile_config |= profile_settings_actions.save;
-                        save_app_config |= profile_settings_actions.save_app_config;
-                        key_config_action = profile_settings_actions.key_config_action;
+                        build_third_party_notice_page(ui, app_paths, license_notice_text);
                         let skin_actions = build_skin_panel(
                             ui,
                             &mut profile_config.skin,

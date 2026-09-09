@@ -457,7 +457,7 @@ fn ui_language_keeps_string_storage_with_canonical_locale_code() {
 }
 
 #[test]
-fn ui_language_recovers_missing_and_unsupported_values_to_japanese() {
+fn ui_language_defaults_to_os_and_preserves_unsupported_value_fallback() {
     let missing: UiConfig = toml::from_str(
         r#"
             theme = "default"
@@ -466,7 +466,8 @@ fn ui_language_recovers_missing_and_unsupported_values_to_japanese() {
             "#,
     )
     .unwrap();
-    assert_eq!(missing.language, "ja");
+    assert_eq!(missing.language, AppLocale::system_default().code());
+    assert_eq!(ProfileConfig::new_default("test", "Test", 0).ui.language, missing.language);
 
     let unsupported: UiConfig = toml::from_str(
         r#"

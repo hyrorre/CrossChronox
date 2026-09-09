@@ -8,7 +8,7 @@ pub(super) fn build_integration_settings_sections(
     save_clicked: &mut bool,
     check_update_clicked: &mut bool,
 ) {
-    SettingsSection::new(SettingsPage::Diagnostics, tr!(text, "settings-updates-title"))
+    SettingsSection::new(SettingsPage::General, tr!(text, "settings-updates-title"))
         .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_updates")
         .show(ui, |ui| {
@@ -53,7 +53,6 @@ pub(super) fn build_integration_settings_sections(
 
     SettingsSection::new(SettingsPage::Integration, "Discord")
         .scope(tr!(text, "settings-scope-app"))
-        .subpage(1)
         .show(ui, |ui| {
             ui.checkbox(&mut config.discord.enabled, "Rich Presence");
             ui.horizontal(|ui| {
@@ -240,7 +239,7 @@ pub(super) fn build_integration_settings_sections(
             ui.label(tr!(text, "settings-input-assignment-help"));
         });
 
-    SettingsSection::new(SettingsPage::Diagnostics, tr!(text, "settings-logging-title"))
+    SettingsSection::new(SettingsPage::General, tr!(text, "settings-logging-title"))
         .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_logging")
         .show(ui, |ui| {

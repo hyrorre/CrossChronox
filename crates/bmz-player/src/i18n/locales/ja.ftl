@@ -699,7 +699,7 @@ toast-select-random-mix-empty = RANDOM MIXの条件に一致する譜面があ�
 toast-select-random-mix-failed = RANDOM MIXの作成に失敗しました
 
 # Course editor
-menu-course-editor = コース / 段位作成
+menu-course-editor = コース作成
 select-new-course = 新規コース
 select-course-builder-title = コース作成
 select-course-builder-help = 選曲して決定すると課題曲に追加します。キーモードを混在させて最大10譜面まで追加できます。

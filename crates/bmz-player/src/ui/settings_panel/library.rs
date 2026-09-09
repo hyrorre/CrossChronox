@@ -209,9 +209,8 @@ pub(super) fn build_library_settings_sections(
             ui.label(tr!(text, "settings-select-scroll-help"));
         });
 
-    SettingsSection::new(SettingsPage::Library, tr!(text, "settings-tables-title"))
+    SettingsSection::new(SettingsPage::Tables, tr!(text, "settings-tables-title"))
         .scope(tr!(text, "settings-scope-app"))
-        .subpage(1)
         .id_salt("settings_tables")
         .show(ui, |ui| {
             ui.checkbox(
@@ -347,7 +346,6 @@ pub(super) fn build_library_settings_sections(
 
     SettingsSection::new(SettingsPage::Library, tr!(text, "settings-downloads-title"))
         .scope(tr!(text, "settings-scope-app"))
-        .subpage(2)
         .id_salt("settings_downloads")
         .show(ui, |ui| {
             ui.label(tr!(text, "settings-downloads-disclaimer"));

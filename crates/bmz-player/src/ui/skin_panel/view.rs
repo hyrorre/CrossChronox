@@ -1,36 +1,12 @@
-#[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
-pub(in crate::ui) enum SkinEditorSection {
-    #[default]
-    Options,
-    Files,
-    Offsets,
-}
-
-impl SkinEditorSection {
-    const ALL: [Self; 3] = [Self::Options, Self::Files, Self::Offsets];
-    fn label(self) -> &'static str {
-        match self {
-            Self::Options => "skin-options",
-            Self::Files => "skin-file-selection",
-            Self::Offsets => "skin-section-offsets",
-        }
-    }
-}
-
 #[derive(Clone)]
 pub(in crate::ui) struct SkinEditorState {
     pub(in crate::ui) slot: SkinSlot,
-    pub(in crate::ui) section: SkinEditorSection,
     pub(in crate::ui) search: String,
 }
 
 impl Default for SkinEditorState {
     fn default() -> Self {
-        Self {
-            slot: SkinSlot::Select,
-            section: SkinEditorSection::default(),
-            search: String::new(),
-        }
+        Self { slot: SkinSlot::Select, search: String::new() }
     }
 }
 
@@ -41,10 +17,7 @@ impl SkinEditorState {
     fn store(&self, ctx: &egui::Context) {
         ctx.data_mut(|data| data.insert_temp(egui::Id::new("skin_editor"), self.clone()));
         ctx.data_mut(|data| {
-            data.insert_temp(
-                egui::Id::new(("skin_preferences", self.slot)),
-                (self.section, self.search.clone()),
-            )
+            data.insert_temp(egui::Id::new(("skin_preferences", self.slot)), self.search.clone())
         });
     }
     pub(in crate::ui) fn matches(&self, name: &str) -> bool {
@@ -99,7 +72,10 @@ pub(in crate::ui) fn build_skin_panel(
     let mut editor = SkinEditorState::load(ui.ctx());
     let previous_slot = editor.slot;
     let groups: &[(&str, &[SkinSlot])] = &[
-        ("skin-target-common", &[SkinSlot::Select, SkinSlot::Decide]),
+        (
+            "skin-target-common",
+            &[SkinSlot::Select, SkinSlot::Decide, SkinSlot::Result, SkinSlot::CourseResult],
+        ),
         (
             "skin-target-play",
             &[
@@ -114,7 +90,6 @@ pub(in crate::ui) fn build_skin_panel(
             ],
         ),
         ("skin-target-battle", &[SkinSlot::Battle5, SkinSlot::Battle7]),
-        ("skin-target-result", &[SkinSlot::Result, SkinSlot::CourseResult]),
     ];
     egui::ComboBox::new("skin_target", tr!(text, "skin-target"))
         .selected_text(skin_scene_label(editor.slot, text))
@@ -128,10 +103,9 @@ pub(in crate::ui) fn build_skin_panel(
             }
         });
     if editor.slot != previous_slot {
-        let (section, search) = ui.ctx().data_mut(|data| {
+        let search = ui.ctx().data_mut(|data| {
             data.get_temp(egui::Id::new(("skin_preferences", editor.slot))).unwrap_or_default()
         });
-        editor.section = section;
         editor.search = search;
     }
     ui.push_id("skin_selection", |ui| {
@@ -175,51 +149,15 @@ pub(in crate::ui) fn build_skin_panel(
         ui.ctx().request_repaint();
         return SkinPanelActions { save: false, reset: false, reload };
     }
-    let defs = match editor.slot {
-        SkinSlot::Select => &skin_meta.select,
-        SkinSlot::Decide => &skin_meta.decide,
-        SkinSlot::Play4 => &skin_meta.play4,
-        SkinSlot::Play5 => &skin_meta.play5,
-        SkinSlot::Play6 => &skin_meta.play6,
-        SkinSlot::Play7 => &skin_meta.play7,
-        SkinSlot::Play8 => &skin_meta.play8,
-        SkinSlot::Play9 => &skin_meta.play9,
-        SkinSlot::Play10 => &skin_meta.play10,
-        SkinSlot::Play14 => &skin_meta.play14,
-        SkinSlot::Battle5 => &skin_meta.battle5,
-        SkinSlot::Battle7 => &skin_meta.battle7,
-        SkinSlot::Result => &skin_meta.result,
-        SkinSlot::CourseResult => &skin_meta.course_result,
-    };
-    let available: Vec<_> = SkinEditorSection::ALL
-        .into_iter()
-        .filter(|section| match section {
-            SkinEditorSection::Options => !defs.property.is_empty(),
-            SkinEditorSection::Files => !defs.filepath.is_empty(),
-            SkinEditorSection::Offsets => !defs.offset.is_empty(),
-        })
-        .collect();
-    if !available.contains(&editor.section)
-        && let Some(&section) = available.first()
-    {
-        editor.section = section;
-    }
     ui.add(
         egui::TextEdit::singleline(&mut editor.search)
             .hint_text(tr!(text, "skin-search"))
             .desired_width(f32::INFINITY),
     );
-    egui::ComboBox::new("skin_section", tr!(text, "skin-section"))
-        .selected_text(text.text(editor.section.label()))
-        .show_ui(ui, |ui| {
-            for section in available {
-                ui.selectable_value(&mut editor.section, section, text.text(section.label()));
-            }
-        });
     editor.store(ui.ctx());
     ui.separator();
     egui::ScrollArea::vertical()
-        .id_salt(("skin_details", editor.slot, editor.section, &editor.search))
+        .id_salt(("skin_details", editor.slot, &editor.search))
         .auto_shrink([false, false])
         .max_height((ui.available_height() - 65.0).max(40.0))
         .show(ui, |ui| match editor.slot {
@@ -516,6 +454,72 @@ mod tests {
         editor.search = "判定".into();
         assert!(editor.matches("判定文字"));
         assert!(!editor.matches("背景"));
+    }
+
+    #[test]
+    fn skin_editor_displays_options_files_and_offsets_together() {
+        let ctx = egui::Context::default();
+        SettingsNavigation::select(&ctx, SettingsPage::Skin);
+        let paths =
+            AppPaths::from_dirs("resources".into(), "data".into(), "cache".into(), "logs".into());
+        let defs = SceneSkinDefs {
+            property: vec![SkinPropertyDef {
+                category: String::new(),
+                name: "Lane".into(),
+                def: "On".into(),
+                item: vec![bmz_render::skin::SkinPropertyItemDef { name: "On".into(), op: 1 }],
+            }],
+            filepath: vec![SkinFilepathDef {
+                category: String::new(),
+                name: "Notes".into(),
+                path: "notes/*.png".into(),
+                def: String::new(),
+            }],
+            offset: vec![SkinOffsetDef {
+                category: String::new(),
+                name: "Judge".into(),
+                id: 32,
+                x: true,
+                y: false,
+                w: false,
+                h: false,
+                r: false,
+                a: false,
+            }],
+        };
+        let meta = SkinConfigMeta { select: defs, ..Default::default() };
+        let text = Localizer::new(AppLocale::En);
+        let output = ctx.run_ui(
+            egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(1200.0, 1600.0),
+                )),
+                ..Default::default()
+            },
+            |ui| {
+                build_skin_panel(
+                    ui,
+                    &mut SkinConfig::default(),
+                    &meta,
+                    &SkinCatalog::default(),
+                    &paths,
+                    &mut SkinUiPathCache::default(),
+                    text,
+                );
+            },
+        );
+        let labels: Vec<_> = output
+            .shapes
+            .iter()
+            .filter_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) => Some(text.galley.job.text.as_str()),
+                _ => None,
+            })
+            .collect();
+        for key in ["skin-options", "skin-file-selection", "skin-section-offsets"] {
+            assert!(labels.contains(&text.text(key).as_str()), "missing skin section: {key}");
+        }
     }
 
     #[test]

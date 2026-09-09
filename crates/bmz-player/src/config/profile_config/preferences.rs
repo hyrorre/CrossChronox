@@ -187,7 +187,7 @@ impl UiConfig {
 }
 
 fn default_profile_language() -> String {
-    AppLocale::DEFAULT.code().to_owned()
+    AppLocale::system_default().code().to_owned()
 }
 
 fn deserialize_profile_language<'de, D>(deserializer: D) -> Result<String, D::Error>

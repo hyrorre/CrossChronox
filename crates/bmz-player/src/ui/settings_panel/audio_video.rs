@@ -364,7 +364,7 @@ pub(super) fn build_audio_video_settings_sections(
 
     SettingsSection::new(SettingsPage::Integration, tr!(text, "settings-screenshot-title"))
         .scope(tr!(text, "settings-scope-app"))
-        .subpage(3)
+        .subpage(2)
         .id_salt("settings_screenshot")
         .show(ui, |ui| {
             ui.horizontal(|ui| {

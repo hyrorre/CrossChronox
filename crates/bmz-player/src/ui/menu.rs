@@ -4,7 +4,6 @@ pub(super) struct MenuPanelVisibility<'a> {
     pub(super) random_trainer: &'a mut bool,
     pub(super) settings: &'a mut bool,
     pub(super) course_editor: &'a mut bool,
-    pub(super) license_notice: &'a mut bool,
 }
 
 pub(super) fn build_menu(
@@ -23,11 +22,10 @@ pub(super) fn build_menu(
         .show(ctx, |ui| {
             ui.label(tr!(text, "menu-toggle-help"));
             ui.separator();
-            ui.checkbox(panels.debug, tr!(text, "menu-debug"));
-            ui.checkbox(panels.random_trainer, tr!(text, "menu-random-trainer"));
             ui.checkbox(panels.settings, tr!(text, "settings-workspace-title"));
             ui.checkbox(panels.course_editor, tr!(text, "menu-course-editor"));
-            ui.checkbox(panels.license_notice, tr!(text, "menu-licenses"));
+            ui.checkbox(panels.random_trainer, tr!(text, "menu-random-trainer"));
+            ui.checkbox(panels.debug, tr!(text, "menu-debug"));
             ui.separator();
             ui.label(tr!(text, "menu-open-directory"));
             ui.horizontal_wrapped(|ui| {
