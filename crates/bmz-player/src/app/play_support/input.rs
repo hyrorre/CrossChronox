@@ -4,7 +4,10 @@ pub(in crate::app) fn hispeed_action(
     state: ElementState,
     repeat: bool,
 ) -> Option<HispeedChange> {
-    match keyboard_lane_action(&ControlInputEvent::keyboard_parts(physical_key, state, repeat)) {
+    match keyboard_lane_action(
+        &ControlInputEvent::keyboard_parts(physical_key, state, repeat),
+        &crate::config::play_input::default_profile_input(),
+    ) {
         Some(PlayLaneAction::Hispeed(change)) => Some(change),
         _ => None,
     }
@@ -162,7 +165,10 @@ pub(in crate::app) fn lane_cover_step(
     state: ElementState,
     repeat: bool,
 ) -> Option<f32> {
-    match keyboard_lane_action(&ControlInputEvent::keyboard_parts(physical_key, state, repeat)) {
+    match keyboard_lane_action(
+        &ControlInputEvent::keyboard_parts(physical_key, state, repeat),
+        &crate::config::play_input::default_profile_input(),
+    ) {
         Some(PlayLaneAction::LaneCoverDelta(delta)) => Some(delta),
         _ => None,
     }

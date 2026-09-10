@@ -1,6 +1,13 @@
 use super::*;
 
-pub const UI_INPUT_BINDING_VERSION: u32 = 3;
+pub const UI_INPUT_BINDING_VERSION: u32 = 4;
+
+pub const PLAY_KEYBOARD_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
+    InputActionConfig::PlayHispeedDown,
+    InputActionConfig::PlayHispeedUp,
+    InputActionConfig::PlayLaneCoverUp,
+    InputActionConfig::PlayLaneCoverDown,
+];
 
 pub const CONFIGURABLE_SHORTCUT_MIGRATIONS: &[(u32, &[InputActionConfig])] = &[
     (
@@ -26,9 +33,14 @@ pub const CONFIGURABLE_SHORTCUT_MIGRATIONS: &[(u32, &[InputActionConfig])] = &[
             InputActionConfig::SelectSameFolder,
         ],
     ),
+    (4, PLAY_KEYBOARD_SHORTCUT_ACTIONS),
 ];
 
 pub const CONFIGURABLE_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
+    InputActionConfig::PlayHispeedDown,
+    InputActionConfig::PlayHispeedUp,
+    InputActionConfig::PlayLaneCoverUp,
+    InputActionConfig::PlayLaneCoverDown,
     InputActionConfig::SelectOpenFolder,
     InputActionConfig::SelectReload,
     InputActionConfig::SelectAutoplayFolder,
@@ -68,6 +80,10 @@ fn default_play_lane_bindings() -> Vec<BindingConfigEntry> {
 
 pub fn default_keyboard_bindings() -> Vec<BindingConfigEntry> {
     vec![
+        action_binding("ArrowLeft", InputActionConfig::PlayHispeedDown),
+        action_binding("ArrowRight", InputActionConfig::PlayHispeedUp),
+        action_binding("ArrowUp", InputActionConfig::PlayLaneCoverUp),
+        action_binding("ArrowDown", InputActionConfig::PlayLaneCoverDown),
         scratch_binding("LShift", LaneConfig::Scratch, ScratchDirectionConfig::Up),
         scratch_binding("LControl", LaneConfig::Scratch, ScratchDirectionConfig::Down),
         binding("Z", LaneConfig::Key1),

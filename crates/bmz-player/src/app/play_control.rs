@@ -1,3 +1,4 @@
+use crate::config::profile_config::{InputActionConfig, ProfileInputConfig};
 use bmz_gameplay::input::backend::PhysicalControl;
 
 use super::input_runtime::ControlInputEvent;
@@ -82,7 +83,10 @@ pub(super) enum GreenNumberChange {
     Down,
 }
 
-pub(super) fn keyboard_lane_action(event: &ControlInputEvent) -> Option<PlayLaneAction> {
+pub(super) fn keyboard_lane_action(
+    event: &ControlInputEvent,
+    input: &ProfileInputConfig,
+) -> Option<PlayLaneAction> {
     if !event.pressed {
         return None;
     }
@@ -90,11 +94,21 @@ pub(super) fn keyboard_lane_action(event: &ControlInputEvent) -> Option<PlayLane
         return None;
     };
     let lane_cover_step = if event.repeat { LANE_COVER_REPEAT_STEP } else { LANE_COVER_STEP };
-    match control.as_str() {
-        "ArrowLeft" => Some(PlayLaneAction::Hispeed(HispeedChange::Down)),
-        "ArrowRight" => Some(PlayLaneAction::Hispeed(HispeedChange::Up)),
-        "ArrowUp" => Some(PlayLaneAction::LaneCoverDelta(lane_cover_step)),
-        "ArrowDown" => Some(PlayLaneAction::LaneCoverDelta(-lane_cover_step)),
+    let action = input.ui.bindings.iter().find_map(|entry| {
+        (entry.device == "keyboard" && entry.control == *control)
+            .then_some(entry.action)
+            .flatten()
+            .filter(|action| {
+                crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(action)
+            })
+    })?;
+    match action {
+        InputActionConfig::PlayHispeedDown => Some(PlayLaneAction::Hispeed(HispeedChange::Down)),
+        InputActionConfig::PlayHispeedUp => Some(PlayLaneAction::Hispeed(HispeedChange::Up)),
+        InputActionConfig::PlayLaneCoverUp => Some(PlayLaneAction::LaneCoverDelta(lane_cover_step)),
+        InputActionConfig::PlayLaneCoverDown => {
+            Some(PlayLaneAction::LaneCoverDelta(-lane_cover_step))
+        }
         _ => None,
     }
 }
@@ -136,18 +150,73 @@ mod tests {
 
     #[test]
     fn keyboard_arrows_map_to_shared_lane_actions() {
+        let input = crate::config::play_input::default_profile_input();
         assert_eq!(
-            keyboard_lane_action(&keyboard(KeyCode::ArrowLeft, false)),
+            keyboard_lane_action(&keyboard(KeyCode::ArrowLeft, false), &input),
             Some(PlayLaneAction::Hispeed(HispeedChange::Down))
         );
         assert_eq!(
-            keyboard_lane_action(&keyboard(KeyCode::ArrowUp, false)),
+            keyboard_lane_action(&keyboard(KeyCode::ArrowUp, false), &input),
             Some(PlayLaneAction::LaneCoverDelta(LANE_COVER_STEP))
         );
         assert_eq!(
-            keyboard_lane_action(&keyboard(KeyCode::ArrowDown, true)),
+            keyboard_lane_action(&keyboard(KeyCode::ArrowDown, true), &input),
             Some(PlayLaneAction::LaneCoverDelta(-LANE_COVER_REPEAT_STEP))
         );
+    }
+
+    #[test]
+    fn remapped_and_cleared_shortcuts_survive_profile_reload() {
+        use crate::config::key_config::{
+            KeyBindingSlot, KeyBindingTarget, apply_play_binding, clear_play_binding,
+        };
+        use bmz_core::lane::KeyMode;
+        let mut input = crate::config::play_input::default_profile_input();
+        for (action, old_key, new_key, control, expected) in [
+            (
+                InputActionConfig::PlayHispeedDown,
+                KeyCode::ArrowLeft,
+                KeyCode::KeyH,
+                "H",
+                PlayLaneAction::Hispeed(HispeedChange::Down),
+            ),
+            (
+                InputActionConfig::PlayHispeedUp,
+                KeyCode::ArrowRight,
+                KeyCode::KeyJ,
+                "J",
+                PlayLaneAction::Hispeed(HispeedChange::Up),
+            ),
+            (
+                InputActionConfig::PlayLaneCoverUp,
+                KeyCode::ArrowUp,
+                KeyCode::KeyK,
+                "K",
+                PlayLaneAction::LaneCoverDelta(LANE_COVER_REPEAT_STEP),
+            ),
+            (
+                InputActionConfig::PlayLaneCoverDown,
+                KeyCode::ArrowDown,
+                KeyCode::KeyL,
+                "L",
+                PlayLaneAction::LaneCoverDelta(-LANE_COVER_REPEAT_STEP),
+            ),
+        ] {
+            let target = KeyBindingTarget::Action { action, slot: KeyBindingSlot::KeyboardPrimary };
+            apply_play_binding(&mut input, KeyMode::K7, target, control).unwrap();
+            input = toml::from_str(&toml::to_string(&input).unwrap()).unwrap();
+            crate::config::play_input::normalize_profile_input(&mut input);
+            assert_eq!(keyboard_lane_action(&keyboard(old_key, false), &input), None);
+            assert_eq!(keyboard_lane_action(&keyboard(new_key, true), &input), Some(expected));
+            let mut release = keyboard(new_key, false);
+            release.pressed = false;
+            assert_eq!(keyboard_lane_action(&release, &input), None);
+            clear_play_binding(&mut input, KeyMode::K7, target).unwrap();
+            input = toml::from_str(&toml::to_string(&input).unwrap()).unwrap();
+            crate::config::play_input::normalize_profile_input(&mut input);
+            assert_eq!(keyboard_lane_action(&keyboard(new_key, false), &input), None);
+            assert_eq!(keyboard_lane_action(&keyboard(old_key, false), &input), None);
+        }
     }
 
     #[test]

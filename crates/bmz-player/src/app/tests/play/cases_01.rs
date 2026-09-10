@@ -292,6 +292,59 @@ fn autoplay_replay_speed_keys_defer_to_current_play_bindings() {
 }
 
 #[test]
+fn autoplay_replay_speed_keys_defer_to_remapped_play_shortcuts() {
+    for &action in crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS {
+        for slot in [KeyBindingSlot::KeyboardPrimary, KeyBindingSlot::KeyboardSecondary] {
+            for (control, key, rate) in [
+                ("1", KeyCode::Digit1, 25),
+                ("2", KeyCode::Digit2, 50),
+                ("3", KeyCode::Digit3, 200),
+                ("4", KeyCode::Digit4, 300),
+            ] {
+                let mut input = crate::config::play_input::default_profile_input();
+                let target = KeyBindingTarget::Action { action, slot };
+                apply_play_binding(&mut input, KeyMode::K7, target, control).unwrap();
+                let pressed = HashSet::from([(
+                    W_KEYBOARD_DEVICE_ID,
+                    PhysicalControl::KeyboardKey(control.to_string()),
+                )]);
+                let play_input = play_option_input_for(&input, KeyMode::K7);
+                assert!(!is_unassigned_autoplay_replay_playback_rate_key(
+                    PhysicalKey::Code(key),
+                    Some(&play_input),
+                ));
+                assert_eq!(
+                    autoplay_replay_playback_rate_from_pressed_inputs(&pressed, Some(&play_input)),
+                    100,
+                );
+                assert!(
+                    keyboard_lane_action(
+                        &ControlInputEvent::keyboard_parts(
+                            PhysicalKey::Code(key),
+                            ElementState::Pressed,
+                            false,
+                        ),
+                        &input,
+                    )
+                    .is_some()
+                );
+
+                clear_play_binding(&mut input, KeyMode::K7, target).unwrap();
+                let play_input = play_option_input_for(&input, KeyMode::K7);
+                assert!(is_unassigned_autoplay_replay_playback_rate_key(
+                    PhysicalKey::Code(key),
+                    Some(&play_input),
+                ));
+                assert_eq!(
+                    autoplay_replay_playback_rate_from_pressed_inputs(&pressed, Some(&play_input)),
+                    rate,
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn play_control_hold_state_keeps_legacy_and_default_e1_fallbacks() {
     let mut legacy_input = crate::config::play_input::default_profile_input();
     legacy_input.ui.bindings.retain(|entry| entry.action != Some(InputActionConfig::E1));

@@ -107,7 +107,8 @@ impl WinitApp {
         } else {
             None
         };
-        let fixed_play_lane_action = keyboard_lane_action(&control_event);
+        let fixed_play_lane_action =
+            keyboard_lane_action(&control_event, &self.boot.profile_config.input);
         if self.play.active_play.is_some() {
             self.route_active_play_keyboard(
                 event,

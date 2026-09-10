@@ -159,6 +159,10 @@ pub enum ScratchDirectionConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub enum InputActionConfig {
+    PlayHispeedDown,
+    PlayHispeedUp,
+    PlayLaneCoverUp,
+    PlayLaneCoverDown,
     E1,
     /// Deprecated compatibility value. Runtime selection uses play-lane bindings.
     #[serde(rename = "Enter")]

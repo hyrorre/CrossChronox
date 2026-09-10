@@ -742,6 +742,29 @@ fn default_gamepad_ui_bindings_use_thumb_buttons_without_dpad_enter_back() {
 }
 
 #[test]
+fn v3_profile_migrates_play_shortcuts_once() {
+    let mut input = crate::config::play_input::default_profile_input();
+    input.ui.version = 3;
+    input.ui.bindings.retain(|entry| {
+        !entry.action.is_some_and(|action| PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(&action))
+    });
+    crate::config::play_input::normalize_profile_input(&mut input);
+    for &action in PLAY_KEYBOARD_SHORTCUT_ACTIONS {
+        assert_eq!(
+            input.ui.bindings.iter().filter(|entry| entry.action == Some(action)).count(),
+            1
+        );
+    }
+    input.ui.bindings.retain(|entry| {
+        !entry.action.is_some_and(|action| PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(&action))
+    });
+    crate::config::play_input::normalize_profile_input(&mut input);
+    assert!(!input.ui.bindings.iter().any(|entry| {
+        entry.action.is_some_and(|action| PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(&action))
+    }));
+}
+
+#[test]
 fn input_normalization_migrates_shortcuts_once_and_preserves_later_clears() {
     let mut input = crate::config::play_input::default_profile_input();
     input.ui.version = 0;

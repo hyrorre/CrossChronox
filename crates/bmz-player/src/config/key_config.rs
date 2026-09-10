@@ -141,6 +141,10 @@ pub const COMMON_ACTIONS: &[InputActionConfig] = &[
     InputActionConfig::E2,
     InputActionConfig::E3,
     InputActionConfig::E4,
+    InputActionConfig::PlayHispeedDown,
+    InputActionConfig::PlayHispeedUp,
+    InputActionConfig::PlayLaneCoverUp,
+    InputActionConfig::PlayLaneCoverDown,
     InputActionConfig::SelectOpenFolder,
     InputActionConfig::SelectReload,
     InputActionConfig::SelectAutoplayFolder,
@@ -228,7 +232,15 @@ pub fn binding_target_label(key_mode: KeyMode, target: KeyBindingTarget) -> Stri
 }
 
 pub fn common_key_binding_targets(slot: KeyBindingSlot) -> Vec<KeyBindingTarget> {
-    COMMON_ACTIONS.iter().copied().map(|action| KeyBindingTarget::Action { action, slot }).collect()
+    COMMON_ACTIONS
+        .iter()
+        .copied()
+        .filter(|action| {
+            !slot.is_controller()
+                || !crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(action)
+        })
+        .map(|action| KeyBindingTarget::Action { action, slot })
+        .collect()
 }
 
 pub fn key_mode_binding_targets(key_mode: KeyMode, slot: KeyBindingSlot) -> Vec<KeyBindingTarget> {
@@ -247,6 +259,10 @@ pub fn key_mode_binding_targets(key_mode: KeyMode, slot: KeyBindingSlot) -> Vec<
 
 pub fn action_label(action: InputActionConfig) -> &'static str {
     match action {
+        InputActionConfig::PlayHispeedDown => "HISPEED DOWN",
+        InputActionConfig::PlayHispeedUp => "HISPEED UP",
+        InputActionConfig::PlayLaneCoverUp => "LANE COVER UP",
+        InputActionConfig::PlayLaneCoverDown => "LANE COVER DOWN",
         InputActionConfig::E1 => "E1",
         InputActionConfig::E2 => "E2",
         InputActionConfig::E3 => "E3",
