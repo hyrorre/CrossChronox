@@ -385,7 +385,7 @@ impl SettingsEntryId {
             Self::NoteDisplayDurationMs => "DURATION",
             Self::Constant => "CONSTANT",
             Self::ConstantFadeMs => "CONSTANT FADE",
-            Self::SelectInputMode => "SELECT INPUT",
+            Self::SelectInputMode => "SELECT INPUT DEVICE",
             Self::AnalogScratch1P => "1P ANALOG SCRATCH",
             Self::AnalogScratchSensitivity1P => "1P ANALOG SENS",
             Self::AnalogScratchThreshold1P => "1P ANALOG STOP",

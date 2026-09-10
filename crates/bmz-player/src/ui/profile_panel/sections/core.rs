@@ -1,5 +1,7 @@
 use super::*;
 
+use crate::config::profile_config::SelectInputModeConfig;
+
 pub(in crate::ui::profile_panel) fn build_profile_basic_section(
     ui: &mut egui::Ui,
     section: &mut ProfileSectionContext<'_>,
@@ -168,6 +170,25 @@ pub(in crate::ui::profile_panel) fn build_profile_input_section(
         .scope(tr!(text, "settings-scope-profile"))
         .id_salt("profile_input")
         .show(ui, |ui| {
+            egui::ComboBox::new(
+                "profile_select_input_device",
+                tr!(text, "profile-input-select-device"),
+            )
+            .selected_text(profile.input.select_input_mode.display_label())
+            .show_ui(ui, |ui| {
+                ui.selectable_value(
+                    &mut profile.input.select_input_mode,
+                    SelectInputModeConfig::Key7Key14,
+                    SelectInputModeConfig::Key7Key14.display_label(),
+                );
+                ui.selectable_value(
+                    &mut profile.input.select_input_mode,
+                    SelectInputModeConfig::Key9,
+                    SelectInputModeConfig::Key9.display_label(),
+                );
+            });
+            ui.small(tr!(text, "settings-entry-description-select-input-mode"));
+            ui.separator();
             for (label, config) in [
                 (tr!(text, "settings-input-controller-1p"), &mut profile.input.gamepad1),
                 (tr!(text, "settings-input-controller-2p"), &mut profile.input.gamepad2),
