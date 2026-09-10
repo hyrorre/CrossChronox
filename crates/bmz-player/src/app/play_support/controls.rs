@@ -143,7 +143,16 @@ pub(in crate::app) fn autoplay_replay_playback_rate_from_pressed_inputs(
     pressed_inputs: &HashSet<(DeviceId, PhysicalControl)>,
     play_input: Option<&PlayOptionInput>,
 ) -> u16 {
-    const SPEED_KEYS: [(&str, u16); 4] = [("1", 25), ("2", 50), ("3", 200), ("4", 300)];
+    const SPEED_KEYS: [(&str, u16); 8] = [
+        ("1", 25),
+        ("Numpad1", 25),
+        ("2", 50),
+        ("Numpad2", 50),
+        ("3", 200),
+        ("Numpad3", 200),
+        ("4", 300),
+        ("Numpad4", 300),
+    ];
     SPEED_KEYS
         .into_iter()
         .find_map(|(control, rate)| {
@@ -184,7 +193,16 @@ pub(in crate::app) fn is_unassigned_autoplay_replay_playback_rate_key(
 pub(in crate::app) fn is_autoplay_replay_playback_rate_key(physical_key: PhysicalKey) -> bool {
     matches!(
         physical_key,
-        PhysicalKey::Code(KeyCode::Digit1 | KeyCode::Digit2 | KeyCode::Digit3 | KeyCode::Digit4)
+        PhysicalKey::Code(
+            KeyCode::Digit1
+                | KeyCode::Digit2
+                | KeyCode::Digit3
+                | KeyCode::Digit4
+                | KeyCode::Numpad1
+                | KeyCode::Numpad2
+                | KeyCode::Numpad3
+                | KeyCode::Numpad4
+        )
     )
 }
 

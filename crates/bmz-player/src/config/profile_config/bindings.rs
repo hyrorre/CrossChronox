@@ -1,6 +1,6 @@
 use super::*;
 
-pub const UI_INPUT_BINDING_VERSION: u32 = 4;
+pub const UI_INPUT_BINDING_VERSION: u32 = 5;
 
 pub const PLAY_KEYBOARD_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
     InputActionConfig::PlayHispeedDown,
@@ -104,23 +104,19 @@ pub fn default_keyboard_bindings() -> Vec<BindingConfigEntry> {
         action_binding("F5", InputActionConfig::SelectReload),
         action_binding("F10", InputActionConfig::SelectAutoplayFolder),
         action_binding("F11", InputActionConfig::SelectOpenIr),
+        action_binding("0", InputActionConfig::SelectDifficultyFilter),
         action_binding("1", InputActionConfig::SelectModeFilter),
         action_binding("2", InputActionConfig::SelectSort),
         action_binding("3", InputActionConfig::SelectLnMode),
         action_binding("4", InputActionConfig::SelectReplayCycle),
+        action_binding("5", InputActionConfig::SelectReplayPlay),
         action_binding("6", InputActionConfig::SelectOpenKeyConfig),
         action_binding("F12", InputActionConfig::Screenshot),
         action_binding("7", InputActionConfig::SelectRivalCycle),
-        action_binding("Numpad7", InputActionConfig::SelectRivalCycle),
         action_binding("8", InputActionConfig::SelectSameFolder),
         action_binding("9", InputActionConfig::SelectOpenDocuments),
-        action_binding("Numpad9", InputActionConfig::SelectOpenDocuments),
         action_binding("F8", InputActionConfig::SelectFavoriteSong),
         action_binding("F9", InputActionConfig::SelectFavoriteChart),
-        action_binding("Numpad8", InputActionConfig::SelectSameFolder),
-        action_binding("Numpad0", InputActionConfig::SelectDifficultyFilter),
-        action_binding("Numpad4", InputActionConfig::SelectReplayCycle),
-        action_binding("Numpad5", InputActionConfig::SelectReplayPlay),
     ]
 }
 

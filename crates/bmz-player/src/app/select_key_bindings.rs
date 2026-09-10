@@ -111,6 +111,14 @@ impl SelectKeyBindings {
                 .map(|e| e.control.clone())
                 .collect()
         };
+        let select_actions_for =
+            |action: InputActionConfig| with_numeric_keypad_aliases(actions_for(action), &kb);
+        let select_action_with_default = |action: InputActionConfig, default: &str| {
+            with_numeric_keypad_aliases(
+                select_controls_with_default(actions_for(action), default),
+                &kb,
+            )
+        };
 
         let key1_controls = keys_for(LaneConfig::Key1);
         let key2_controls = keys_for(LaneConfig::Key2);
@@ -161,30 +169,26 @@ impl SelectKeyBindings {
         let e2_action_controls = actions_for(InputActionConfig::E2);
         let e3_action_controls = actions_for(InputActionConfig::E3);
         let favorite_song_controls =
-            select_controls_with_default(actions_for(InputActionConfig::SelectFavoriteSong), "F8");
+            select_action_with_default(InputActionConfig::SelectFavoriteSong, "F8");
         let favorite_chart_controls =
-            select_controls_with_default(actions_for(InputActionConfig::SelectFavoriteChart), "F9");
-        let same_folder_controls = actions_for(InputActionConfig::SelectSameFolder);
-        let mode_filter_controls = actions_for(InputActionConfig::SelectModeFilter);
-        let sort_controls = actions_for(InputActionConfig::SelectSort);
-        let ln_mode_controls = actions_for(InputActionConfig::SelectLnMode);
-        let difficulty_filter_controls = select_controls_with_default(
-            actions_for(InputActionConfig::SelectDifficultyFilter),
-            "Numpad0",
-        );
-        let replay_cycle_controls = actions_for(InputActionConfig::SelectReplayCycle);
-        let replay_play_controls = select_controls_with_default(
-            actions_for(InputActionConfig::SelectReplayPlay),
-            "Numpad5",
-        );
-        let open_folder_controls = actions_for(InputActionConfig::SelectOpenFolder);
-        let reload_controls = actions_for(InputActionConfig::SelectReload);
-        let autoplay_folder_controls = actions_for(InputActionConfig::SelectAutoplayFolder);
-        let open_ir_controls = actions_for(InputActionConfig::SelectOpenIr);
-        let open_key_config_controls = actions_for(InputActionConfig::SelectOpenKeyConfig);
-        let screenshot_controls = actions_for(InputActionConfig::Screenshot);
-        let rival_cycle_controls = actions_for(InputActionConfig::SelectRivalCycle);
-        let open_documents_controls = actions_for(InputActionConfig::SelectOpenDocuments);
+            select_action_with_default(InputActionConfig::SelectFavoriteChart, "F9");
+        let same_folder_controls = select_actions_for(InputActionConfig::SelectSameFolder);
+        let mode_filter_controls = select_actions_for(InputActionConfig::SelectModeFilter);
+        let sort_controls = select_actions_for(InputActionConfig::SelectSort);
+        let ln_mode_controls = select_actions_for(InputActionConfig::SelectLnMode);
+        let difficulty_filter_controls =
+            select_action_with_default(InputActionConfig::SelectDifficultyFilter, "0");
+        let replay_cycle_controls = select_actions_for(InputActionConfig::SelectReplayCycle);
+        let replay_play_controls =
+            select_action_with_default(InputActionConfig::SelectReplayPlay, "5");
+        let open_folder_controls = select_actions_for(InputActionConfig::SelectOpenFolder);
+        let reload_controls = select_actions_for(InputActionConfig::SelectReload);
+        let autoplay_folder_controls = select_actions_for(InputActionConfig::SelectAutoplayFolder);
+        let open_ir_controls = select_actions_for(InputActionConfig::SelectOpenIr);
+        let open_key_config_controls = select_actions_for(InputActionConfig::SelectOpenKeyConfig);
+        let screenshot_controls = select_actions_for(InputActionConfig::Screenshot);
+        let rival_cycle_controls = select_actions_for(InputActionConfig::SelectRivalCycle);
+        let open_documents_controls = select_actions_for(InputActionConfig::SelectOpenDocuments);
         let mut scratch_up_controls = Vec::new();
         let mut scratch_down_controls = Vec::new();
         let mut select_scratch_up_controls = Vec::new();
@@ -364,6 +368,14 @@ impl SelectKeyBindings {
                 .map(|e| e.control.clone())
                 .collect()
         };
+        let select_actions_for =
+            |action: InputActionConfig| with_numeric_keypad_aliases(actions_for(action), &kb);
+        let select_action_with_default = |action: InputActionConfig, default: &str| {
+            with_numeric_keypad_aliases(
+                select_controls_with_default(actions_for(action), default),
+                &kb,
+            )
+        };
 
         let key1_controls = keys_for(LaneConfig::Key1);
         let key2_controls = keys_for(LaneConfig::Key2);
@@ -393,30 +405,26 @@ impl SelectKeyBindings {
         let e2_action_controls = actions_for(InputActionConfig::E2);
         let e3_action_controls = actions_for(InputActionConfig::E3);
         let favorite_song_controls =
-            select_controls_with_default(actions_for(InputActionConfig::SelectFavoriteSong), "F8");
+            select_action_with_default(InputActionConfig::SelectFavoriteSong, "F8");
         let favorite_chart_controls =
-            select_controls_with_default(actions_for(InputActionConfig::SelectFavoriteChart), "F9");
-        let same_folder_controls = actions_for(InputActionConfig::SelectSameFolder);
-        let mode_filter_controls = actions_for(InputActionConfig::SelectModeFilter);
-        let sort_controls = actions_for(InputActionConfig::SelectSort);
-        let ln_mode_controls = actions_for(InputActionConfig::SelectLnMode);
-        let difficulty_filter_controls = select_controls_with_default(
-            actions_for(InputActionConfig::SelectDifficultyFilter),
-            "Numpad0",
-        );
-        let replay_cycle_controls = actions_for(InputActionConfig::SelectReplayCycle);
-        let replay_play_controls = select_controls_with_default(
-            actions_for(InputActionConfig::SelectReplayPlay),
-            "Numpad5",
-        );
-        let open_folder_controls = actions_for(InputActionConfig::SelectOpenFolder);
-        let reload_controls = actions_for(InputActionConfig::SelectReload);
-        let autoplay_folder_controls = actions_for(InputActionConfig::SelectAutoplayFolder);
-        let open_ir_controls = actions_for(InputActionConfig::SelectOpenIr);
-        let open_key_config_controls = actions_for(InputActionConfig::SelectOpenKeyConfig);
-        let screenshot_controls = actions_for(InputActionConfig::Screenshot);
-        let rival_cycle_controls = actions_for(InputActionConfig::SelectRivalCycle);
-        let open_documents_controls = actions_for(InputActionConfig::SelectOpenDocuments);
+            select_action_with_default(InputActionConfig::SelectFavoriteChart, "F9");
+        let same_folder_controls = select_actions_for(InputActionConfig::SelectSameFolder);
+        let mode_filter_controls = select_actions_for(InputActionConfig::SelectModeFilter);
+        let sort_controls = select_actions_for(InputActionConfig::SelectSort);
+        let ln_mode_controls = select_actions_for(InputActionConfig::SelectLnMode);
+        let difficulty_filter_controls =
+            select_action_with_default(InputActionConfig::SelectDifficultyFilter, "0");
+        let replay_cycle_controls = select_actions_for(InputActionConfig::SelectReplayCycle);
+        let replay_play_controls =
+            select_action_with_default(InputActionConfig::SelectReplayPlay, "5");
+        let open_folder_controls = select_actions_for(InputActionConfig::SelectOpenFolder);
+        let reload_controls = select_actions_for(InputActionConfig::SelectReload);
+        let autoplay_folder_controls = select_actions_for(InputActionConfig::SelectAutoplayFolder);
+        let open_ir_controls = select_actions_for(InputActionConfig::SelectOpenIr);
+        let open_key_config_controls = select_actions_for(InputActionConfig::SelectOpenKeyConfig);
+        let screenshot_controls = select_actions_for(InputActionConfig::Screenshot);
+        let rival_cycle_controls = select_actions_for(InputActionConfig::SelectRivalCycle);
+        let open_documents_controls = select_actions_for(InputActionConfig::SelectOpenDocuments);
         let cycle_bga = key1_controls.first().cloned();
         let mut start = actions_for(InputActionConfig::E1);
         if let Some(legacy_start) = input.start_key.clone()
@@ -909,6 +917,39 @@ fn merge_select_controls(configured: Vec<String>, lane_controls: Vec<String>) ->
 
 fn select_controls_with_default(configured: Vec<String>, default_control: &str) -> Vec<String> {
     if configured.is_empty() { vec![default_control.to_string()] } else { configured }
+}
+
+fn with_numeric_keypad_aliases(
+    mut controls: Vec<String>,
+    keyboard_bindings: &[&BindingConfigEntry],
+) -> Vec<String> {
+    let configured = controls.clone();
+    for control in configured {
+        let Some(alias) = numeric_keypad_alias(control.as_str()) else { continue };
+        if controls.iter().any(|existing| existing == alias)
+            || keyboard_bindings.iter().any(|entry| entry.control == alias)
+        {
+            continue;
+        }
+        controls.push(alias.to_string());
+    }
+    controls
+}
+
+fn numeric_keypad_alias(control: &str) -> Option<&'static str> {
+    match control {
+        "0" => Some("Numpad0"),
+        "1" => Some("Numpad1"),
+        "2" => Some("Numpad2"),
+        "3" => Some("Numpad3"),
+        "4" => Some("Numpad4"),
+        "5" => Some("Numpad5"),
+        "6" => Some("Numpad6"),
+        "7" => Some("Numpad7"),
+        "8" => Some("Numpad8"),
+        "9" => Some("Numpad9"),
+        _ => None,
+    }
 }
 
 fn contains(controls: &[String], control: &str) -> bool {

@@ -45,6 +45,10 @@ fn migrate_configurable_shortcut_bindings(ui: &mut crate::config::profile_config
     if ui.version < 3 {
         migrate_select_digit_shortcuts(ui, &defaults);
     }
+    if ui.version < 5 {
+        let keyboard_defaults = crate::config::profile_config::default_keyboard_bindings();
+        normalize_select_digit_defaults(ui, &keyboard_defaults);
+    }
     ui.version = UI_INPUT_BINDING_VERSION;
 }
 
@@ -55,8 +59,8 @@ fn migrate_select_digit_shortcuts(
     use InputActionConfig::{SelectOpenDocuments, SelectReplayCycle, SelectSameFolder};
 
     // ReplayCycle / SameFolder previously had a runtime Numpad fallback. Materialize
-    // those defaults while adding the top-row companion so a later explicit clear
-    // remains cleared once the fallback is removed.
+    // those defaults while adding the top-row binding so the legacy fallback
+    // remains available after the fallback is removed.
     for (action, top_row, numpad) in
         [(SelectReplayCycle, "4", "Numpad4"), (SelectSameFolder, "8", "Numpad8")]
     {
@@ -64,10 +68,7 @@ fn migrate_select_digit_shortcuts(
         let has_legacy_default = ui.bindings.iter().any(|entry| {
             entry.action == Some(action) && entry.device == "keyboard" && entry.control == numpad
         });
-        if !has_action {
-            add_default_shortcut(ui, defaults, action, top_row);
-            add_default_shortcut(ui, defaults, action, numpad);
-        } else if has_legacy_default {
+        if !has_action || has_legacy_default {
             add_default_shortcut(ui, defaults, action, top_row);
         }
     }
@@ -82,6 +83,55 @@ fn migrate_select_digit_shortcuts(
     });
     if has_legacy_documents_default {
         add_default_shortcut(ui, defaults, SelectOpenDocuments, "9");
+    }
+}
+
+/// Consolidate legacy top-row/keypad pairs to the top-row binding.  A custom
+/// binding is left untouched, while a legacy keypad-only default is converted
+/// to the canonical top-row key.
+fn normalize_select_digit_defaults(
+    ui: &mut crate::config::profile_config::UiInputConfig,
+    defaults: &[BindingConfigEntry],
+) {
+    use InputActionConfig::{
+        SelectDifficultyFilter, SelectLnMode, SelectModeFilter, SelectOpenDocuments,
+        SelectOpenKeyConfig, SelectReplayCycle, SelectReplayPlay, SelectRivalCycle,
+        SelectSameFolder, SelectSort,
+    };
+
+    for (action, top_row, numpad) in [
+        (SelectDifficultyFilter, "0", "Numpad0"),
+        (SelectModeFilter, "1", "Numpad1"),
+        (SelectSort, "2", "Numpad2"),
+        (SelectLnMode, "3", "Numpad3"),
+        (SelectReplayCycle, "4", "Numpad4"),
+        (SelectReplayPlay, "5", "Numpad5"),
+        (SelectOpenKeyConfig, "6", "Numpad6"),
+        (SelectRivalCycle, "7", "Numpad7"),
+        (SelectSameFolder, "8", "Numpad8"),
+        (SelectOpenDocuments, "9", "Numpad9"),
+    ] {
+        let controls: Vec<String> = ui
+            .bindings
+            .iter()
+            .filter(|entry| entry.action == Some(action) && entry.device == "keyboard")
+            .map(|entry| entry.control.clone())
+            .collect();
+
+        let keypad_only = controls.len() == 1 && controls[0] == numpad;
+        let top_and_keypad = controls.len() == 2
+            && controls.iter().any(|control| control == top_row)
+            && controls.iter().any(|control| control == numpad);
+        if keypad_only {
+            add_default_shortcut(ui, defaults, action, top_row);
+        }
+        if keypad_only || top_and_keypad {
+            ui.bindings.retain(|entry| {
+                !(entry.action == Some(action)
+                    && entry.device == "keyboard"
+                    && entry.control == numpad)
+            });
+        }
     }
 }
 

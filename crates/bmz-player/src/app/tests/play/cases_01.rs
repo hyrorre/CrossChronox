@@ -211,7 +211,16 @@ fn autoplay_replay_speed_keys_use_top_row_hold_priority() {
         autoplay_replay_playback_rate_from_pressed_inputs(&HashSet::new(), Some(&play_input)),
         100
     );
-    for (control, expected) in [("1", 25), ("2", 50), ("3", 200), ("4", 300)] {
+    for (control, expected) in [
+        ("1", 25),
+        ("Numpad1", 25),
+        ("2", 50),
+        ("Numpad2", 50),
+        ("3", 200),
+        ("Numpad3", 200),
+        ("4", 300),
+        ("Numpad4", 300),
+    ] {
         assert_eq!(
             autoplay_replay_playback_rate_from_pressed_inputs(
                 &HashSet::from([keyboard(control)]),
@@ -286,7 +295,35 @@ fn autoplay_replay_speed_keys_defer_to_current_play_bindings() {
         Some(&play_input),
     ));
     assert!(is_unassigned_autoplay_replay_playback_rate_key(
+        PhysicalKey::Code(KeyCode::Numpad1),
+        Some(&play_input),
+    ));
+    assert!(is_unassigned_autoplay_replay_playback_rate_key(
         PhysicalKey::Code(KeyCode::Digit2),
+        Some(&play_input),
+    ));
+    assert!(is_unassigned_autoplay_replay_playback_rate_key(
+        PhysicalKey::Code(KeyCode::Numpad2),
+        Some(&play_input),
+    ));
+
+    apply_play_binding(
+        &mut input,
+        KeyMode::K7,
+        KeyBindingTarget::Key { lane: LaneConfig::Key1, slot: KeyBindingSlot::KeyboardSecondary },
+        "Numpad1",
+    )
+    .unwrap();
+    let play_input = play_option_input_for(&input, KeyMode::K7);
+    assert_eq!(
+        autoplay_replay_playback_rate_from_pressed_inputs(
+            &HashSet::from([keyboard("Numpad1")]),
+            Some(&play_input),
+        ),
+        100
+    );
+    assert!(!is_unassigned_autoplay_replay_playback_rate_key(
+        PhysicalKey::Code(KeyCode::Numpad1),
         Some(&play_input),
     ));
 }

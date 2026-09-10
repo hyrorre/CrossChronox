@@ -61,10 +61,10 @@ pub(super) fn result_panel_for_control(control: &PhysicalControl) -> Option<i32>
 
 pub(super) fn digit_to_replay_slot(physical_key: PhysicalKey) -> Option<u8> {
     match physical_key {
-        PhysicalKey::Code(KeyCode::Digit1) => Some(0),
-        PhysicalKey::Code(KeyCode::Digit2) => Some(1),
-        PhysicalKey::Code(KeyCode::Digit3) => Some(2),
-        PhysicalKey::Code(KeyCode::Digit4) => Some(3),
+        PhysicalKey::Code(KeyCode::Digit1 | KeyCode::Numpad1) => Some(0),
+        PhysicalKey::Code(KeyCode::Digit2 | KeyCode::Numpad2) => Some(1),
+        PhysicalKey::Code(KeyCode::Digit3 | KeyCode::Numpad3) => Some(2),
+        PhysicalKey::Code(KeyCode::Digit4 | KeyCode::Numpad4) => Some(3),
         _ => None,
     }
 }

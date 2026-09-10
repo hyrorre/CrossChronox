@@ -309,19 +309,24 @@ fn select_action_maps_configured_lane_keys() {
 #[test]
 fn select_action_maps_collection_keys() {
     let keys = default_select_keys();
-    for (key, expected) in [
-        (KeyCode::Digit1, SelectAction::ModeFilter),
-        (KeyCode::Digit2, SelectAction::Sort),
-        (KeyCode::Digit3, SelectAction::LnMode),
-        (KeyCode::Digit4, SelectAction::ReplayCycle),
-        (KeyCode::Numpad4, SelectAction::ReplayCycle),
-        (KeyCode::Digit8, SelectAction::SameFolder),
-        (KeyCode::Numpad8, SelectAction::SameFolder),
-        (KeyCode::Digit9, SelectAction::OpenDocuments),
-        (KeyCode::Numpad9, SelectAction::OpenDocuments),
+    for (normal, numpad, expected) in [
+        (KeyCode::Digit0, KeyCode::Numpad0, SelectAction::DifficultyFilter),
+        (KeyCode::Digit1, KeyCode::Numpad1, SelectAction::ModeFilter),
+        (KeyCode::Digit2, KeyCode::Numpad2, SelectAction::Sort),
+        (KeyCode::Digit3, KeyCode::Numpad3, SelectAction::LnMode),
+        (KeyCode::Digit4, KeyCode::Numpad4, SelectAction::ReplayCycle),
+        (KeyCode::Digit5, KeyCode::Numpad5, SelectAction::ReplayPlay),
+        (KeyCode::Digit6, KeyCode::Numpad6, SelectAction::OpenKeyConfig),
+        (KeyCode::Digit7, KeyCode::Numpad7, SelectAction::CycleRival),
+        (KeyCode::Digit8, KeyCode::Numpad8, SelectAction::SameFolder),
+        (KeyCode::Digit9, KeyCode::Numpad9, SelectAction::OpenDocuments),
     ] {
         assert_eq!(
-            select_action(PhysicalKey::Code(key), ElementState::Pressed, false, &keys),
+            select_action(PhysicalKey::Code(normal), ElementState::Pressed, false, &keys),
+            Some(expected),
+        );
+        assert_eq!(
+            select_action(PhysicalKey::Code(numpad), ElementState::Pressed, false, &keys),
             Some(expected),
         );
     }
@@ -332,10 +337,6 @@ fn select_action_maps_collection_keys() {
     assert_eq!(
         select_action(PhysicalKey::Code(KeyCode::F9), ElementState::Pressed, false, &keys),
         Some(SelectAction::FavoriteChart)
-    );
-    assert_eq!(
-        select_action(PhysicalKey::Code(KeyCode::Numpad5), ElementState::Pressed, false, &keys),
-        Some(SelectAction::ReplayPlay)
     );
 }
 
@@ -348,9 +349,9 @@ fn select_action_maps_configurable_shortcuts() {
         (KeyCode::F10, SelectAction::AutoplayFolder),
         (KeyCode::F11, SelectAction::OpenPrimaryIr),
         (KeyCode::Digit6, SelectAction::OpenKeyConfig),
+        (KeyCode::Numpad6, SelectAction::OpenKeyConfig),
         (KeyCode::Digit7, SelectAction::CycleRival),
         (KeyCode::Numpad7, SelectAction::CycleRival),
-        (KeyCode::Numpad9, SelectAction::OpenDocuments),
     ] {
         assert_eq!(
             select_action(PhysicalKey::Code(key), ElementState::Pressed, false, &keys),

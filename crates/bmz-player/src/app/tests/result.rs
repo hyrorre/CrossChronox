@@ -7,6 +7,19 @@ use crate::app::result_flow_timing::{
 };
 
 #[test]
+fn replay_slot_digits_accept_top_row_and_numpad() {
+    for (normal, numpad, expected) in [
+        (KeyCode::Digit1, KeyCode::Numpad1, 0),
+        (KeyCode::Digit2, KeyCode::Numpad2, 1),
+        (KeyCode::Digit3, KeyCode::Numpad3, 2),
+        (KeyCode::Digit4, KeyCode::Numpad4, 3),
+    ] {
+        assert_eq!(digit_to_replay_slot(PhysicalKey::Code(normal)), Some(expected));
+        assert_eq!(digit_to_replay_slot(PhysicalKey::Code(numpad)), Some(expected));
+    }
+}
+
+#[test]
 fn result_skin_signature_changes_when_only_offset_changes() {
     let mut skin = crate::config::profile_config::SkinConfig::default();
     let before = result_skin_signature_for_config(

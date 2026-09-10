@@ -721,23 +721,29 @@ fn default_gamepad_ui_bindings_use_thumb_buttons_without_dpad_enter_back() {
         ("F5", InputActionConfig::SelectReload),
         ("F10", InputActionConfig::SelectAutoplayFolder),
         ("F11", InputActionConfig::SelectOpenIr),
+        ("0", InputActionConfig::SelectDifficultyFilter),
         ("1", InputActionConfig::SelectModeFilter),
         ("2", InputActionConfig::SelectSort),
         ("3", InputActionConfig::SelectLnMode),
         ("4", InputActionConfig::SelectReplayCycle),
+        ("5", InputActionConfig::SelectReplayPlay),
         ("6", InputActionConfig::SelectOpenKeyConfig),
         ("F12", InputActionConfig::Screenshot),
         ("7", InputActionConfig::SelectRivalCycle),
-        ("Numpad7", InputActionConfig::SelectRivalCycle),
         ("8", InputActionConfig::SelectSameFolder),
-        ("Numpad8", InputActionConfig::SelectSameFolder),
         ("9", InputActionConfig::SelectOpenDocuments),
-        ("Numpad9", InputActionConfig::SelectOpenDocuments),
-        ("Numpad4", InputActionConfig::SelectReplayCycle),
     ] {
         assert!(bindings.iter().any(|entry| {
             entry.device == "keyboard" && entry.control == control && entry.action == Some(action)
         }));
+    }
+    for control in [
+        "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", "Numpad6", "Numpad7",
+        "Numpad8", "Numpad9",
+    ] {
+        assert!(
+            !bindings.iter().any(|entry| entry.device == "keyboard" && entry.control == control)
+        );
     }
 }
 
@@ -824,7 +830,7 @@ fn input_normalization_adds_later_shortcuts_without_restoring_v1_clears() {
 }
 
 #[test]
-fn input_normalization_adds_top_row_companions_to_v2_numpad_defaults() {
+fn input_normalization_removes_duplicate_keypad_defaults() {
     let mut input = crate::config::play_input::default_profile_input();
     input.ui.version = 2;
     input.ui.bindings.retain(|entry| {
@@ -837,29 +843,114 @@ fn input_normalization_adds_top_row_companions_to_v2_numpad_defaults() {
             )
         ) && !matches!(
             (entry.control.as_str(), entry.action),
-            ("4", Some(InputActionConfig::SelectReplayCycle))
+            ("0", Some(InputActionConfig::SelectDifficultyFilter))
+                | ("4", Some(InputActionConfig::SelectReplayCycle))
+                | ("5", Some(InputActionConfig::SelectReplayPlay))
                 | ("8", Some(InputActionConfig::SelectSameFolder))
                 | ("9", Some(InputActionConfig::SelectOpenDocuments))
         )
     });
+    // Recreate legacy profiles that stored keypad shortcuts as defaults before
+    // the top-row bindings became canonical.
+    for (control, action) in [
+        ("Numpad0", InputActionConfig::SelectDifficultyFilter),
+        ("Numpad4", InputActionConfig::SelectReplayCycle),
+        ("Numpad5", InputActionConfig::SelectReplayPlay),
+        ("Numpad7", InputActionConfig::SelectRivalCycle),
+        ("Numpad8", InputActionConfig::SelectSameFolder),
+        ("Numpad9", InputActionConfig::SelectOpenDocuments),
+    ] {
+        input.ui.bindings.push(BindingConfigEntry {
+            device: "keyboard".to_string(),
+            control: control.to_string(),
+            keyboard_slot: None,
+            lane: None,
+            action: Some(action),
+            scratch: None,
+        });
+    }
 
     crate::config::play_input::normalize_profile_input(&mut input);
 
     for (control, action) in [
+        ("0", InputActionConfig::SelectDifficultyFilter),
         ("1", InputActionConfig::SelectModeFilter),
         ("2", InputActionConfig::SelectSort),
         ("3", InputActionConfig::SelectLnMode),
         ("4", InputActionConfig::SelectReplayCycle),
-        ("Numpad4", InputActionConfig::SelectReplayCycle),
+        ("5", InputActionConfig::SelectReplayPlay),
         ("8", InputActionConfig::SelectSameFolder),
-        ("Numpad8", InputActionConfig::SelectSameFolder),
         ("9", InputActionConfig::SelectOpenDocuments),
+    ] {
+        assert!(
+            input.ui.bindings.iter().any(|entry| {
+                entry.device == "keyboard"
+                    && entry.control == control
+                    && entry.action == Some(action)
+            }),
+            "missing {control} for {action:?}"
+        );
+    }
+    for (control, action) in [
+        ("Numpad0", InputActionConfig::SelectDifficultyFilter),
+        ("Numpad4", InputActionConfig::SelectReplayCycle),
+        ("Numpad5", InputActionConfig::SelectReplayPlay),
+        ("Numpad7", InputActionConfig::SelectRivalCycle),
+        ("Numpad8", InputActionConfig::SelectSameFolder),
         ("Numpad9", InputActionConfig::SelectOpenDocuments),
     ] {
-        assert!(input.ui.bindings.iter().any(|entry| {
+        assert!(!input.ui.bindings.iter().any(|entry| {
             entry.device == "keyboard" && entry.control == control && entry.action == Some(action)
         }));
     }
+}
+
+#[test]
+fn input_normalization_preserves_custom_keypad_aliases() {
+    let mut input = crate::config::play_input::default_profile_input();
+    input.ui.version = 3;
+    input.ui.bindings.push(BindingConfigEntry {
+        device: "keyboard".to_string(),
+        control: "Numpad4".to_string(),
+        keyboard_slot: None,
+        lane: None,
+        action: Some(InputActionConfig::SelectReplayCycle),
+        scratch: None,
+    });
+    input.ui.bindings.push(BindingConfigEntry {
+        device: "keyboard".to_string(),
+        control: "R".to_string(),
+        keyboard_slot: None,
+        lane: None,
+        action: Some(InputActionConfig::SelectReplayCycle),
+        scratch: None,
+    });
+    input.ui.bindings.push(BindingConfigEntry {
+        device: "keyboard".to_string(),
+        control: "Numpad8".to_string(),
+        keyboard_slot: None,
+        lane: None,
+        action: Some(InputActionConfig::SelectSameFolder),
+        scratch: None,
+    });
+
+    crate::config::play_input::normalize_profile_input(&mut input);
+
+    assert!(input.ui.bindings.iter().any(|entry| {
+        entry.device == "keyboard"
+            && entry.control == "Numpad4"
+            && entry.action == Some(InputActionConfig::SelectReplayCycle)
+    }));
+    assert!(input.ui.bindings.iter().any(|entry| {
+        entry.device == "keyboard"
+            && entry.control == "R"
+            && entry.action == Some(InputActionConfig::SelectReplayCycle)
+    }));
+    assert!(!input.ui.bindings.iter().any(|entry| {
+        entry.device == "keyboard"
+            && entry.control == "Numpad8"
+            && entry.action == Some(InputActionConfig::SelectSameFolder)
+    }));
 }
 
 #[test]
