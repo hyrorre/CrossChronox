@@ -650,7 +650,19 @@ mod tests {
     #[test]
     fn settings_keys_common_lists_configurable_actions() {
         let items = load_settings_items(CONFIG_KEYS_COMMON_PATH);
-        assert_eq!(items.len(), COMMON_ACTIONS.len() * KEY_BINDING_SLOTS.len() + 1);
+        assert_eq!(
+            items.len(),
+            COMMON_ACTIONS.len() * KEY_BINDING_SLOTS.len()
+                - crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS.len()
+                + 1
+        );
+        for &action in crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS {
+            for &slot in KEY_BINDING_SLOTS {
+                assert_eq!(items.iter().any(|item| matches!(item,
+                    SelectItem::KeyBinding(row) if row.target == KeyBindingTarget::Action { action, slot }
+                )), !slot.is_controller());
+            }
+        }
         assert!(matches!(items.first(), Some(SelectItem::SettingsBack)));
         assert!(matches!(
             &items[1],
