@@ -151,11 +151,14 @@ pub(super) fn settings_list_label_with_tooltip(
     width: f32,
     tooltip: &str,
 ) {
-    ui.add_sized(
-        [width, ui.spacing().interact_size.y],
-        egui::Label::new(text).truncate().halign(egui::Align::Min),
-    )
-    .on_hover_text(tooltip);
+    let response = ui
+        .allocate_ui_with_layout(
+            egui::vec2(width, ui.spacing().interact_size.y),
+            egui::Layout::left_to_right(egui::Align::Center),
+            |ui| ui.add(egui::Label::new(text).truncate().halign(egui::Align::Min)),
+        )
+        .inner;
+    response.on_hover_text(tooltip);
 }
 
 pub(super) fn settings_drag_handle(
@@ -241,3 +244,34 @@ use library::{LibrarySettingsActions, build_library_settings_sections};
 pub(super) use main::build_settings_panel;
 pub(super) use obs::build_obs_settings_section;
 pub(super) use score_import::{build_replay_import_section, build_score_import_section};
+
+#[cfg(test)]
+mod list_label_tests {
+    use super::*;
+
+    #[test]
+    fn fixed_width_list_labels_start_at_the_left_edge() {
+        let ctx = egui::Context::default();
+        let output = ctx.run_ui(
+            egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(640.0, 480.0),
+                )),
+                ..Default::default()
+            },
+            |ui| {
+                settings_list_label_with_tooltip(ui, "Folder", 240.0, "/library/bms");
+            },
+        );
+        let text = output
+            .shapes
+            .iter()
+            .find_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) if text.galley.job.text == "Folder" => Some(text),
+                _ => None,
+            })
+            .expect("list label text");
+        assert!(text.pos.x < 5.0, "label text should be left aligned: {}", text.pos.x);
+    }
+}
