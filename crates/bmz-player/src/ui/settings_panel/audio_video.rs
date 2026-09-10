@@ -329,12 +329,7 @@ pub(super) fn build_audio_video_settings_sections(
                 }
             });
             ui.label(tr!(text, "settings-video-frame-latency-help"));
-            ui.add(
-                egui::DragValue::new(&mut config.video.target_fps)
-                    .range(0..=u32::MAX)
-                    .speed(1.0)
-                    .suffix(" FPS"),
-            );
+            target_fps_editor(ui, &mut config.video.target_fps);
             ui.label(tr!(text, "settings-video-target-fps-unlimited"));
             if ui.checkbox(show_fps, tr!(text, "settings-show-fps")).changed() {
                 profile.ui.show_fps = *show_fps;
@@ -395,4 +390,94 @@ pub(super) fn build_audio_video_settings_sections(
         state.obs_connection_status,
         text,
     );
+}
+
+/// ドラッグ中の低い値でUI自体が低FPSにならないよう、確定時だけ設定へ反映する。
+fn target_fps_editor(ui: &mut egui::Ui, target_fps: &mut u32) -> egui::Response {
+    let id = ui.make_persistent_id("target_fps_draft");
+    let mut draft = ui.data_mut(|data| data.get_temp::<u32>(id)).unwrap_or(*target_fps);
+    let response = ui.add(
+        egui::DragValue::new(&mut draft)
+            .range(0..=u32::MAX)
+            .speed(1.0)
+            .suffix(" FPS")
+            .update_while_editing(false),
+    );
+    if response.is_pointer_button_down_on() {
+        ui.data_mut(|data| data.insert_temp(id, draft));
+    } else {
+        ui.data_mut(|data| data.remove::<u32>(id));
+        *target_fps = draft;
+    }
+    response
+}
+
+#[cfg(test)]
+mod fps_editor_tests {
+    use super::*;
+
+    #[test]
+    fn typed_fps_waits_for_confirmation_and_escape_cancels() {
+        for (key, expected) in [(egui::Key::Enter, 1), (egui::Key::Escape, 0)] {
+            let ctx = egui::Context::default();
+            let mut fps = 0;
+            let mut frame = |events| {
+                let mut rect = egui::Rect::NOTHING;
+                let _ = ctx.run_ui(egui::RawInput { events, ..Default::default() }, |ui| {
+                    rect = target_fps_editor(ui, &mut fps).rect;
+                });
+                (rect, fps)
+            };
+            let pos = frame(vec![]).0.center();
+            for pressed in [true, false] {
+                frame(vec![
+                    egui::Event::PointerMoved(pos),
+                    egui::Event::PointerButton {
+                        pos,
+                        button: egui::PointerButton::Primary,
+                        pressed,
+                        modifiers: egui::Modifiers::NONE,
+                    },
+                ]);
+            }
+            frame(vec![]);
+            assert_eq!(frame(vec![egui::Event::Text("1".into())]).1, 0);
+            assert_eq!(
+                frame(vec![egui::Event::Key {
+                    key,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: egui::Modifiers::NONE,
+                }])
+                .1,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn fps_limit_is_unchanged_during_drag_and_committed_on_release() {
+        let ctx = egui::Context::default();
+        let mut fps = 0;
+        let mut frame = |events| {
+            let mut rect = egui::Rect::NOTHING;
+            let _ = ctx.run_ui(egui::RawInput { events, ..Default::default() }, |ui| {
+                rect = target_fps_editor(ui, &mut fps).rect;
+            });
+            (rect, fps)
+        };
+        let pos = frame(vec![]).0.center();
+        let button = |pos, pressed| egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        frame(vec![egui::Event::PointerMoved(pos), button(pos, true)]);
+        let end = pos + egui::vec2(30.0, 0.0);
+        assert_eq!(frame(vec![egui::Event::PointerMoved(end)]).1, 0);
+        assert_eq!(frame(vec![]).1, 0);
+        assert!(frame(vec![button(end, false)]).1 > 0);
+    }
 }
