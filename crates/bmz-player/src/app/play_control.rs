@@ -18,6 +18,8 @@ pub(super) enum PlayLaneAction {
     AnalogLaneCoverDelta(f32),
     GreenNumberDelta(i32),
     ToggleLaneCoverVisibility,
+    VisualOffsetDelta(i32),
+    ToggleVisualOffsetAutoAdjust,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,14 +96,19 @@ pub(super) fn keyboard_lane_action(
         return None;
     };
     let lane_cover_step = if event.repeat { LANE_COVER_REPEAT_STEP } else { LANE_COVER_STEP };
-    let action = input.ui.bindings.iter().find_map(|entry| {
-        (entry.device == "keyboard" && entry.control == *control)
-            .then_some(entry.action)
-            .flatten()
-            .filter(|action| {
-                crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS.contains(action)
+    // 設定ファイル内の行順に依存させず、プレイ操作の固定順で同一キーを
+    // 解決する。共通 E1〜E4 は呼び出し側で先に判定されるため、ここでは
+    // プレイ用ショートカット同士の決定順だけを定義する。
+    let action = crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS
+        .iter()
+        .copied()
+        .find(|action| {
+            input.ui.bindings.iter().any(|entry| {
+                entry.device == "keyboard"
+                    && entry.action == Some(*action)
+                    && keyboard_controls_match(&entry.control, control)
             })
-    })?;
+        })?;
     match action {
         InputActionConfig::PlayHispeedDown => Some(PlayLaneAction::Hispeed(HispeedChange::Down)),
         InputActionConfig::PlayHispeedUp => Some(PlayLaneAction::Hispeed(HispeedChange::Up)),
@@ -109,6 +116,43 @@ pub(super) fn keyboard_lane_action(
         InputActionConfig::PlayLaneCoverDown => {
             Some(PlayLaneAction::LaneCoverDelta(-lane_cover_step))
         }
+        InputActionConfig::PlayVisualOffsetUp => Some(PlayLaneAction::VisualOffsetDelta(1)),
+        InputActionConfig::PlayVisualOffsetDown => Some(PlayLaneAction::VisualOffsetDelta(-1)),
+        InputActionConfig::PlayVisualOffsetAutoAdjust => {
+            Some(PlayLaneAction::ToggleVisualOffsetAutoAdjust)
+        }
+        _ => None,
+    }
+}
+
+fn keyboard_controls_match(configured: &str, pressed: &str) -> bool {
+    configured == pressed
+        || numeric_keypad_alias(configured) == Some(pressed)
+        || numeric_keypad_alias(pressed) == Some(configured)
+}
+
+fn numeric_keypad_alias(control: &str) -> Option<&'static str> {
+    match control {
+        "0" => Some("Numpad0"),
+        "1" => Some("Numpad1"),
+        "2" => Some("Numpad2"),
+        "3" => Some("Numpad3"),
+        "4" => Some("Numpad4"),
+        "5" => Some("Numpad5"),
+        "6" => Some("Numpad6"),
+        "7" => Some("Numpad7"),
+        "8" => Some("Numpad8"),
+        "9" => Some("Numpad9"),
+        "Numpad0" => Some("0"),
+        "Numpad1" => Some("1"),
+        "Numpad2" => Some("2"),
+        "Numpad3" => Some("3"),
+        "Numpad4" => Some("4"),
+        "Numpad5" => Some("5"),
+        "Numpad6" => Some("6"),
+        "Numpad7" => Some("7"),
+        "Numpad8" => Some("8"),
+        "Numpad9" => Some("9"),
         _ => None,
     }
 }
@@ -217,6 +261,60 @@ mod tests {
             assert_eq!(keyboard_lane_action(&keyboard(new_key, false), &input), None);
             assert_eq!(keyboard_lane_action(&keyboard(old_key, false), &input), None);
         }
+    }
+
+    #[test]
+    fn visual_offset_shortcuts_accept_numeric_keypad_aliases() {
+        let input = crate::config::play_input::default_profile_input();
+        assert_eq!(
+            keyboard_lane_action(&keyboard(KeyCode::Digit3, false), &input),
+            Some(PlayLaneAction::VisualOffsetDelta(1))
+        );
+        assert_eq!(
+            keyboard_lane_action(&keyboard(KeyCode::Numpad3, false), &input),
+            Some(PlayLaneAction::VisualOffsetDelta(1))
+        );
+        assert_eq!(
+            keyboard_lane_action(&keyboard(KeyCode::Numpad9, false), &input),
+            Some(PlayLaneAction::VisualOffsetDelta(-1))
+        );
+        assert_eq!(
+            keyboard_lane_action(&keyboard(KeyCode::Numpad0, false), &input),
+            Some(PlayLaneAction::ToggleVisualOffsetAutoAdjust)
+        );
+    }
+
+    #[test]
+    fn duplicate_play_shortcuts_use_fixed_action_order() {
+        use crate::config::key_config::{KeyBindingSlot, KeyBindingTarget, apply_play_binding};
+        use bmz_core::lane::KeyMode;
+
+        let mut input = crate::config::play_input::default_profile_input();
+        apply_play_binding(
+            &mut input,
+            KeyMode::K7,
+            KeyBindingTarget::Action {
+                action: InputActionConfig::PlayVisualOffsetUp,
+                slot: KeyBindingSlot::KeyboardPrimary,
+            },
+            "H",
+        )
+        .unwrap();
+        apply_play_binding(
+            &mut input,
+            KeyMode::K7,
+            KeyBindingTarget::Action {
+                action: InputActionConfig::PlayHispeedUp,
+                slot: KeyBindingSlot::KeyboardPrimary,
+            },
+            "H",
+        )
+        .unwrap();
+
+        assert_eq!(
+            keyboard_lane_action(&keyboard(KeyCode::KeyH, false), &input),
+            Some(PlayLaneAction::Hispeed(HispeedChange::Up))
+        );
     }
 
     #[test]

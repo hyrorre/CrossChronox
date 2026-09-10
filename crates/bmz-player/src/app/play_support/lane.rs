@@ -77,6 +77,9 @@ pub(in crate::app) fn apply_pending_play_lane_action_to_state(
                 lane.refresh_cover_hispeed(now_bpm, false);
             }
         }
+        PlayLaneAction::VisualOffsetDelta(_) | PlayLaneAction::ToggleVisualOffsetAutoAdjust => {
+            return false;
+        }
     }
     true
 }
@@ -210,6 +213,9 @@ pub(in crate::app) fn apply_play_lane_action_to_session(
             apply_green_number_step_to_session(session, delta, false)
         }
         PlayLaneAction::ToggleLaneCoverVisibility => toggle_lane_cover_visibility(session, false),
+        PlayLaneAction::VisualOffsetDelta(_) | PlayLaneAction::ToggleVisualOffsetAutoAdjust => {
+            false
+        }
     }
 }
 

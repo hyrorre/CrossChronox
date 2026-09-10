@@ -1,12 +1,28 @@
 use super::*;
 
-pub const UI_INPUT_BINDING_VERSION: u32 = 5;
+pub const UI_INPUT_BINDING_VERSION: u32 = 6;
 
 pub const PLAY_KEYBOARD_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
     InputActionConfig::PlayHispeedDown,
     InputActionConfig::PlayHispeedUp,
     InputActionConfig::PlayLaneCoverUp,
     InputActionConfig::PlayLaneCoverDown,
+    InputActionConfig::PlayVisualOffsetUp,
+    InputActionConfig::PlayVisualOffsetDown,
+    InputActionConfig::PlayVisualOffsetAutoAdjust,
+];
+
+const LEGACY_PLAY_KEYBOARD_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
+    InputActionConfig::PlayHispeedDown,
+    InputActionConfig::PlayHispeedUp,
+    InputActionConfig::PlayLaneCoverUp,
+    InputActionConfig::PlayLaneCoverDown,
+];
+
+const NEW_PLAY_VISUAL_OFFSET_ACTIONS: &[InputActionConfig] = &[
+    InputActionConfig::PlayVisualOffsetUp,
+    InputActionConfig::PlayVisualOffsetDown,
+    InputActionConfig::PlayVisualOffsetAutoAdjust,
 ];
 
 pub const CONFIGURABLE_SHORTCUT_MIGRATIONS: &[(u32, &[InputActionConfig])] = &[
@@ -33,7 +49,8 @@ pub const CONFIGURABLE_SHORTCUT_MIGRATIONS: &[(u32, &[InputActionConfig])] = &[
             InputActionConfig::SelectSameFolder,
         ],
     ),
-    (4, PLAY_KEYBOARD_SHORTCUT_ACTIONS),
+    (4, LEGACY_PLAY_KEYBOARD_SHORTCUT_ACTIONS),
+    (6, NEW_PLAY_VISUAL_OFFSET_ACTIONS),
 ];
 
 pub const CONFIGURABLE_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
@@ -41,6 +58,9 @@ pub const CONFIGURABLE_SHORTCUT_ACTIONS: &[InputActionConfig] = &[
     InputActionConfig::PlayHispeedUp,
     InputActionConfig::PlayLaneCoverUp,
     InputActionConfig::PlayLaneCoverDown,
+    InputActionConfig::PlayVisualOffsetUp,
+    InputActionConfig::PlayVisualOffsetDown,
+    InputActionConfig::PlayVisualOffsetAutoAdjust,
     InputActionConfig::SelectOpenFolder,
     InputActionConfig::SelectReload,
     InputActionConfig::SelectAutoplayFolder,
@@ -84,6 +104,9 @@ pub fn default_keyboard_bindings() -> Vec<BindingConfigEntry> {
         action_binding("ArrowRight", InputActionConfig::PlayHispeedUp),
         action_binding("ArrowUp", InputActionConfig::PlayLaneCoverUp),
         action_binding("ArrowDown", InputActionConfig::PlayLaneCoverDown),
+        action_binding("3", InputActionConfig::PlayVisualOffsetUp),
+        action_binding("9", InputActionConfig::PlayVisualOffsetDown),
+        action_binding("0", InputActionConfig::PlayVisualOffsetAutoAdjust),
         scratch_binding("LShift", LaneConfig::Scratch, ScratchDirectionConfig::Up),
         scratch_binding("LControl", LaneConfig::Scratch, ScratchDirectionConfig::Down),
         binding("Z", LaneConfig::Key1),

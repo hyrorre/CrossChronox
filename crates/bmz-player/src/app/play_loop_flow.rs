@@ -552,6 +552,16 @@ impl WinitApp {
     }
 
     pub(super) fn apply_play_lane_action(&mut self, action: PlayLaneAction) -> bool {
+        match action {
+            PlayLaneAction::VisualOffsetDelta(delta) => {
+                return self.adjust_visual_offset_ms(delta);
+            }
+            PlayLaneAction::ToggleVisualOffsetAutoAdjust => {
+                self.toggle_visual_offset_auto_adjust();
+                return true;
+            }
+            _ => {}
+        }
         if self.play.active_play.is_none() {
             return self.apply_pending_play_lane_action(action);
         }

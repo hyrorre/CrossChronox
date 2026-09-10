@@ -163,6 +163,9 @@ pub enum InputActionConfig {
     PlayHispeedUp,
     PlayLaneCoverUp,
     PlayLaneCoverDown,
+    PlayVisualOffsetUp,
+    PlayVisualOffsetDown,
+    PlayVisualOffsetAutoAdjust,
     E1,
     /// Deprecated compatibility value. Runtime selection uses play-lane bindings.
     #[serde(rename = "Enter")]

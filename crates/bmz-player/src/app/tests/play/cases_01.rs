@@ -329,7 +329,7 @@ fn autoplay_replay_speed_keys_defer_to_current_play_bindings() {
 }
 
 #[test]
-fn autoplay_replay_speed_keys_defer_to_remapped_play_shortcuts() {
+fn autoplay_replay_speed_keys_override_remapped_play_shortcuts() {
     for &action in crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS {
         for slot in [KeyBindingSlot::KeyboardPrimary, KeyBindingSlot::KeyboardSecondary] {
             for (control, key, rate) in [
@@ -346,13 +346,13 @@ fn autoplay_replay_speed_keys_defer_to_remapped_play_shortcuts() {
                     PhysicalControl::KeyboardKey(control.to_string()),
                 )]);
                 let play_input = play_option_input_for(&input, KeyMode::K7);
-                assert!(!is_unassigned_autoplay_replay_playback_rate_key(
+                assert!(is_unassigned_autoplay_replay_playback_rate_key(
                     PhysicalKey::Code(key),
                     Some(&play_input),
                 ));
                 assert_eq!(
                     autoplay_replay_playback_rate_from_pressed_inputs(&pressed, Some(&play_input)),
-                    100,
+                    rate,
                 );
                 assert!(
                     keyboard_lane_action(

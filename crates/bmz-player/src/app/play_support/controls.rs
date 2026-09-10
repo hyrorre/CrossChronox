@@ -173,7 +173,6 @@ fn play_input_claims_control(input: &PlayOptionInput, control: &PhysicalControl)
             InputActionConfig::E4,
         ]
         .into_iter()
-        .chain(crate::config::profile_config::PLAY_KEYBOARD_SHORTCUT_ACTIONS.iter().copied())
         .any(|action| input.is_action(W_KEYBOARD_DEVICE_ID, control, action))
 }
 

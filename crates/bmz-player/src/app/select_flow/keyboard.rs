@@ -107,8 +107,24 @@ impl WinitApp {
         } else {
             None
         };
-        let fixed_play_lane_action =
-            keyboard_lane_action(&control_event, &self.boot.profile_config.input);
+        let fixed_play_lane_action = if has_play_control_context
+            && play_physical_control.is_some_and(|control| {
+                self.play.play_option_input.as_ref().is_some_and(|input| {
+                    input.resolves_lane(W_KEYBOARD_DEVICE_ID, control)
+                        || [
+                            InputActionConfig::E1,
+                            InputActionConfig::E2,
+                            InputActionConfig::E3,
+                            InputActionConfig::E4,
+                        ]
+                        .into_iter()
+                        .any(|action| input.is_action(W_KEYBOARD_DEVICE_ID, control, action))
+                })
+            }) {
+            None
+        } else {
+            keyboard_lane_action(&control_event, &self.boot.profile_config.input)
+        };
         if self.play.active_play.is_some() {
             self.route_active_play_keyboard(
                 event,
