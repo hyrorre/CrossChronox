@@ -338,8 +338,13 @@ pub(super) fn build_settings_window(
                                 });
                         }
                         navigation.store(ctx);
+                        // サブページごとに本文のウィジェット名前空間を分ける。
+                        // 本文の先頭位置は同じでも内容のIDが変わるため、eguiの
+                        // debug用「矩形のID変更」警告を発生させない。
+                        let content_id =
+                            ("settings_content_body", navigation.page, navigation.subpage());
                         if navigation.page == SettingsPage::Skin && ui.available_height() >= 380.0 {
-                            contents(ui);
+                            ui.push_id(content_id, contents);
                         } else {
                             egui::ScrollArea::vertical()
                                 .id_salt((
@@ -349,7 +354,9 @@ pub(super) fn build_settings_window(
                                 ))
                                 .auto_shrink([false, false])
                                 .max_height(ui.available_height())
-                                .show(ui, contents);
+                                .show(ui, |ui| {
+                                    ui.push_id(content_id, contents);
+                                });
                         }
                     },
                 );
@@ -517,5 +524,52 @@ mod tests {
         let save = save_rect.expect("save button is visible");
         assert!(license.top() > 400.0, "license should be pinned below the category list");
         assert!(license.bottom() < save.top(), "license should be above the footer");
+    }
+
+    #[test]
+    fn switching_subpage_scopes_content_widget_ids() {
+        let ctx = egui::Context::default();
+        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0));
+        let text = Localizer::new(AppLocale::En);
+        let mut open = true;
+        let mut navigation = SettingsNavigation::load(&ctx);
+        navigation.page = SettingsPage::Input;
+        navigation.subpages[SettingsPage::Input as usize] = 0;
+        navigation.store(&ctx);
+        let render = |ctx: &egui::Context, open: &mut bool| {
+            ctx.run_ui(egui::RawInput { screen_rect: Some(rect), ..Default::default() }, |_| {
+                build_settings_window(ctx, open, "Default", text, |ui| {
+                    let id = if SettingsNavigation::load(ui.ctx()).subpage() == 0 {
+                        egui::Id::new("input-devices")
+                    } else {
+                        egui::Id::new("key-config")
+                    };
+                    let rect = ui.available_rect_before_wrap();
+                    let _ = ui.interact(
+                        egui::Rect::from_min_size(rect.min, egui::vec2(200.0, 22.0)),
+                        id,
+                        egui::Sense::click(),
+                    );
+                });
+            })
+        };
+        let _ = render(&ctx, &mut open);
+        let mut navigation = SettingsNavigation::load(&ctx);
+        navigation.subpages[SettingsPage::Input as usize] = 1;
+        navigation.store(&ctx);
+        let output = render(&ctx, &mut open);
+        let red_rects = output
+            .shapes
+            .iter()
+            .filter(|shape| match &shape.shape {
+                egui::Shape::Rect(rect) => {
+                    rect.fill == egui::Color32::TRANSPARENT
+                        && rect.stroke.color == egui::Color32::RED
+                        && rect.stroke.width == 2.0
+                }
+                _ => false,
+            })
+            .count();
+        assert_eq!(red_rects, 0, "unexpected diagnostic red rectangles: {red_rects}");
     }
 }
