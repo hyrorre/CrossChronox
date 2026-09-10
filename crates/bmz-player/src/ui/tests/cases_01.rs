@@ -174,7 +174,7 @@ fn difficulty_table_source_label_shows_fetched_table_name() {
 
     assert_eq!(
         difficulty_table_source_label("https://example.com/header.json", &tables),
-        "発狂BMS難易度表 (https://example.com/header.json)"
+        "発狂BMS難易度表"
     );
 }
 
@@ -184,6 +184,13 @@ fn difficulty_table_source_label_keeps_url_before_first_fetch() {
         difficulty_table_source_label("https://example.com/header.json", &[]),
         "https://example.com/header.json"
     );
+}
+
+#[test]
+fn song_folder_display_name_uses_only_the_last_component() {
+    assert_eq!(song_folder_display_name("/library/bms"), "bms");
+    assert_eq!(song_folder_display_name("/library/bms/"), "bms");
+    assert_eq!(song_folder_display_name("/"), "/");
 }
 
 #[test]

@@ -142,8 +142,20 @@ pub(super) fn settings_list_label_width(ui: &egui::Ui) -> f32 {
 }
 
 pub(super) fn settings_list_label(ui: &mut egui::Ui, text: &str, width: f32) {
-    ui.add_sized([width, ui.spacing().interact_size.y], egui::Label::new(text).truncate())
-        .on_hover_text(text);
+    settings_list_label_with_tooltip(ui, text, width, text);
+}
+
+pub(super) fn settings_list_label_with_tooltip(
+    ui: &mut egui::Ui,
+    text: &str,
+    width: f32,
+    tooltip: &str,
+) {
+    ui.add_sized(
+        [width, ui.spacing().interact_size.y],
+        egui::Label::new(text).truncate().halign(egui::Align::Min),
+    )
+    .on_hover_text(tooltip);
 }
 
 pub(super) fn settings_drag_handle(

@@ -35,6 +35,7 @@ pub(super) fn build_library_settings_sections(
             let root_len = config.songs.roots.len();
             for (index, root) in config.songs.roots.iter_mut().enumerate() {
                 ui.push_id(index, |ui| {
+                    let folder_name = song_folder_display_name(&root.path);
                     let label_width = (settings_list_label_width(ui)
                         - SETTINGS_LIST_DRAG_HANDLE_WIDTH)
                         .max(SETTINGS_LIST_MIN_LABEL_WIDTH);
@@ -44,7 +45,12 @@ pub(super) fn build_library_settings_sections(
                                 SettingsDragPayload { list: SettingsDragList::SongRoots, index };
                             ui.horizontal(|ui| {
                                 settings_drag_handle(ui, payload, text);
-                                settings_list_label(ui, &root.path, label_width);
+                                settings_list_label_with_tooltip(
+                                    ui,
+                                    &folder_name,
+                                    label_width,
+                                    &root.path,
+                                );
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui| {
@@ -101,7 +107,7 @@ pub(super) fn build_library_settings_sections(
                         settings_drag_ghost(
                             ui.ctx(),
                             egui::Id::new(("settings_song_root_ghost", index)),
-                            &root.path,
+                            &folder_name,
                             label_width,
                             true,
                             text,
@@ -241,7 +247,12 @@ pub(super) fn build_library_settings_sections(
                                     ),
                                 );
                                 settings_drag_handle(ui, payload, text);
-                                settings_list_label(ui, &source_label, label_width);
+                                settings_list_label_with_tooltip(
+                                    ui,
+                                    &source_label,
+                                    label_width,
+                                    &source.url,
+                                );
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui| {

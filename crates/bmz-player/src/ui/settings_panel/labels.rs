@@ -7,8 +7,18 @@ pub(in crate::ui) fn difficulty_table_source_label(
     difficulty_tables
         .iter()
         .find(|table| table.source_url == source_url && !table.name.trim().is_empty())
-        .map(|table| format!("{} ({source_url})", table.name))
+        .map(|table| table.name.clone())
         .unwrap_or_else(|| source_url.to_string())
+}
+
+pub(in crate::ui) fn song_folder_display_name(path: &str) -> String {
+    let trimmed = path.trim_end_matches(['/', '\\']);
+    std::path::Path::new(trimmed)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or(path)
+        .to_owned()
 }
 
 pub(in crate::ui) fn audio_backend_label(backend: &AudioBackend, text: Localizer) -> String {
