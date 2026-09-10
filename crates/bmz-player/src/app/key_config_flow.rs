@@ -73,6 +73,16 @@ impl WinitApp {
                     slot: KeyBindingSlot::KeyboardPrimary,
                 },
             ),
+            EguiKeyConfigAction::RestoreDefaults { section, slot } => (
+                match section {
+                    EguiKeyConfigSection::KeyMode(key_mode) => *key_mode,
+                    _ => KeyMode::K7,
+                },
+                KeyBindingTarget::Key {
+                    lane: crate::config::profile_config::LaneConfig::Key1,
+                    slot: *slot,
+                },
+            ),
         };
         let session = KeyConfigEditSession::begin(key_mode, target, &self.boot.profile_config);
         let result = match action {
@@ -93,6 +103,47 @@ impl WinitApp {
                     return;
                 }
             }
+            EguiKeyConfigAction::RestoreDefaults { section, slot } => match section {
+                EguiKeyConfigSection::Common => {
+                    crate::config::key_config::restore_action_group_defaults(
+                        &mut self.boot.profile_config.input,
+                        crate::config::key_config::KeyBindingGroup::Common,
+                        slot,
+                    );
+                    Ok(())
+                }
+                EguiKeyConfigSection::Select => {
+                    crate::config::key_config::restore_action_group_defaults(
+                        &mut self.boot.profile_config.input,
+                        crate::config::key_config::KeyBindingGroup::Select,
+                        slot,
+                    );
+                    Ok(())
+                }
+                EguiKeyConfigSection::Play => {
+                    crate::config::key_config::restore_action_group_defaults(
+                        &mut self.boot.profile_config.input,
+                        crate::config::key_config::KeyBindingGroup::Play,
+                        slot,
+                    );
+                    Ok(())
+                }
+                EguiKeyConfigSection::Result => {
+                    crate::config::key_config::restore_action_group_defaults(
+                        &mut self.boot.profile_config.input,
+                        crate::config::key_config::KeyBindingGroup::Result,
+                        slot,
+                    );
+                    Ok(())
+                }
+                EguiKeyConfigSection::KeyMode(key_mode) => {
+                    crate::config::key_config::restore_key_mode_defaults(
+                        &mut self.boot.profile_config.input,
+                        key_mode,
+                        slot,
+                    )
+                }
+            },
         };
         if let Err(error) = result {
             tracing::warn!(%error, ?key_mode, ?target, "failed to apply egui key binding");

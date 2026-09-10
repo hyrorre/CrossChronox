@@ -17,10 +17,7 @@ pub fn apply_play_binding(
         return Ok(());
     }
 
-    let slot = target.slot();
     let mut bindings = resolve_play_bindings(input, key_mode)?;
-    remove_control_from_device(&mut bindings, slot.device(), control);
-
     match target {
         KeyBindingTarget::Key { lane, slot } => {
             let keyboard = read_lane_keyboard_slots(&bindings, lane);
@@ -148,6 +145,112 @@ pub fn clear_play_binding(
     }
 
     persist_bindings(input, key_mode, bindings)
+}
+
+/// 現在表示中の共通グループだけをデフォルトへ戻す。
+pub fn restore_action_group_defaults(
+    input: &mut ProfileInputConfig,
+    group: KeyBindingGroup,
+    slot: KeyBindingSlot,
+) {
+    let defaults = crate::config::profile_config::default_ui_bindings();
+    for &action in actions_for_group(group) {
+        let default_control = defaults.iter().find_map(|entry| {
+            if entry.action != Some(action) || !device_matches(&entry.device, slot.device()) {
+                return None;
+            }
+            match slot {
+                KeyBindingSlot::KeyboardPrimary => (entry.keyboard_slot.is_none()
+                    || entry.keyboard_slot == Some(KeyboardBindingSlotConfig::Primary))
+                .then(|| entry.control.clone()),
+                KeyBindingSlot::KeyboardSecondary => (entry.keyboard_slot
+                    == Some(KeyboardBindingSlotConfig::Secondary))
+                .then(|| entry.control.clone()),
+                KeyBindingSlot::Controller
+                | KeyBindingSlot::Controller1P
+                | KeyBindingSlot::Controller2P => Some(entry.control.clone()),
+            }
+        });
+        let target = KeyBindingTarget::Action { action, slot };
+        match default_control {
+            Some(control) => apply_play_binding(input, KeyMode::K7, target, &control)
+                .expect("default action binding is valid"),
+            None => clear_play_binding(input, KeyMode::K7, target)
+                .expect("default action binding is valid"),
+        }
+    }
+}
+
+/// 現在表示中のキーモードと入力スロットだけをデフォルトへ戻す。
+pub fn restore_key_mode_defaults(
+    input: &mut ProfileInputConfig,
+    key_mode: KeyMode,
+    slot: KeyBindingSlot,
+) -> Result<(), crate::config::play_input::InheritError> {
+    let defaults = crate::config::play_input::default_play_bindings(key_mode);
+    for target in key_mode_binding_targets(key_mode, slot) {
+        let default_control = default_control_for_target(&defaults, target);
+        match default_control {
+            Some(control) => apply_play_binding(input, key_mode, target, &control)?,
+            None => clear_play_binding(input, key_mode, target)?,
+        }
+    }
+    Ok(())
+}
+
+fn actions_for_group(group: KeyBindingGroup) -> &'static [InputActionConfig] {
+    match group {
+        KeyBindingGroup::Common => COMMON_ACTIONS,
+        KeyBindingGroup::Select => SELECT_ACTIONS,
+        KeyBindingGroup::Play => PLAY_ACTIONS,
+        KeyBindingGroup::Result => RESULT_ACTIONS,
+    }
+}
+
+fn default_control_for_target(
+    defaults: &[BindingConfigEntry],
+    target: KeyBindingTarget,
+) -> Option<String> {
+    match target {
+        KeyBindingTarget::Key { lane, slot } => defaults.iter().find_map(|entry| {
+            (entry.lane == Some(lane)
+                && entry.action.is_none()
+                && device_matches(&entry.device, slot.device())
+                && (slot.is_controller()
+                    || entry.keyboard_slot.is_none()
+                    || entry.keyboard_slot
+                        == Some(match slot {
+                            KeyBindingSlot::KeyboardPrimary => KeyboardBindingSlotConfig::Primary,
+                            KeyBindingSlot::KeyboardSecondary => {
+                                KeyboardBindingSlotConfig::Secondary
+                            }
+                            _ => unreachable!(),
+                        })))
+            .then(|| entry.control.clone())
+        }),
+        KeyBindingTarget::Scratch { lane, direction, slot } => defaults.iter().find_map(|entry| {
+            (entry.lane == Some(lane)
+                && entry.action.is_none()
+                && entry.scratch
+                    == Some(match direction {
+                        ScratchDirection::Up => ScratchDirectionConfig::Up,
+                        ScratchDirection::Down => ScratchDirectionConfig::Down,
+                    })
+                && device_matches(&entry.device, slot.device())
+                && (slot.is_controller()
+                    || entry.keyboard_slot.is_none()
+                    || entry.keyboard_slot
+                        == Some(match slot {
+                            KeyBindingSlot::KeyboardPrimary => KeyboardBindingSlotConfig::Primary,
+                            KeyBindingSlot::KeyboardSecondary => {
+                                KeyboardBindingSlotConfig::Secondary
+                            }
+                            _ => unreachable!(),
+                        })))
+            .then(|| entry.control.clone())
+        }),
+        KeyBindingTarget::Action { .. } => None,
+    }
 }
 
 pub fn snapshot_play_mode_config(

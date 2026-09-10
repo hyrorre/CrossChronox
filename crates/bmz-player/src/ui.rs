@@ -116,7 +116,7 @@ use menu::*;
 use model::*;
 pub use model::{
     CourseEditorAction, CourseEditorChart, CourseEditorData, DebugInfo, EguiKeyConfigAction,
-    EguiKeyConfigInput, EguiLayer, EguiOutput, EguiRunContext, SceneSkinDefs,
+    EguiKeyConfigInput, EguiKeyConfigSection, EguiLayer, EguiOutput, EguiRunContext, SceneSkinDefs,
     SelectCourseBuilderAction, SelectCourseBuilderData, SkinCandidate, SkinCandidateOrigin,
     SkinCatalog, SkinConfigMeta, SkinReloadRequest, SongScanRequest, UpdateDialog,
     UpdateDialogAction,

@@ -65,7 +65,6 @@ pub(super) fn apply_action_binding(
     let secondary = keyboard.secondary;
     let gamepad = action_controls_for_slot(input, action, KeyBindingSlot::Controller);
 
-    remove_ui_control_from_device(input, slot.device(), control);
     remove_action_device_bindings(input, action, "keyboard");
     remove_action_device_bindings(input, action, "gamepad");
 

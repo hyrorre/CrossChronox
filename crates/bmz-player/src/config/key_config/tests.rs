@@ -56,6 +56,47 @@ fn shared_key_config_target_catalog_matches_mode_lanes_and_dp_devices() {
 }
 
 #[test]
+fn action_groups_keep_screen_order_and_play_visual_shortcuts() {
+    let select =
+        key_binding_targets_for_group(KeyBindingGroup::Select, KeyBindingSlot::KeyboardPrimary);
+    let actions: Vec<_> = select
+        .into_iter()
+        .map(|target| match target {
+            KeyBindingTarget::Action { action, .. } => action,
+            _ => unreachable!(),
+        })
+        .collect();
+    assert_eq!(
+        actions,
+        vec![
+            InputActionConfig::SelectModeFilter,
+            InputActionConfig::SelectSort,
+            InputActionConfig::SelectLnMode,
+            InputActionConfig::SelectReplayCycle,
+            InputActionConfig::SelectReplayPlay,
+            InputActionConfig::SelectOpenKeyConfig,
+            InputActionConfig::SelectRivalCycle,
+            InputActionConfig::SelectSameFolder,
+            InputActionConfig::SelectOpenDocuments,
+            InputActionConfig::SelectDifficultyFilter,
+            InputActionConfig::SelectOpenFolder,
+            InputActionConfig::SelectReload,
+            InputActionConfig::SelectFavoriteSong,
+            InputActionConfig::SelectFavoriteChart,
+            InputActionConfig::SelectAutoplayFolder,
+            InputActionConfig::SelectOpenIr,
+            InputActionConfig::Screenshot,
+        ]
+    );
+    assert_eq!(PLAY_ACTIONS.len(), 7);
+    assert!(PLAY_ACTIONS.contains(&InputActionConfig::PlayVisualOffsetAutoAdjust));
+    assert!(
+        key_binding_targets_for_group(KeyBindingGroup::Result, KeyBindingSlot::KeyboardPrimary)
+            .is_empty()
+    );
+}
+
+#[test]
 fn apply_play_binding_keeps_primary_and_secondary_separate() {
     let mut profile = ProfileConfig::new_default("default", "Default", 0);
     apply_play_binding(
@@ -248,7 +289,7 @@ fn apply_play_binding_moves_duplicate_keyboard_key() {
             KeyMode::K7,
             key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardPrimary),
         ),
-        "(none)"
+        "Q"
     );
     assert_eq!(
         format_play_binding(
@@ -258,6 +299,109 @@ fn apply_play_binding_moves_duplicate_keyboard_key() {
         ),
         "Q"
     );
+}
+
+#[test]
+fn conflicting_bindings_are_kept_and_reported_with_priority() {
+    let mut profile = ProfileConfig::new_default("default", "Default", 0);
+    let select_target =
+        action_target(InputActionConfig::SelectSort, KeyBindingSlot::KeyboardPrimary);
+    apply_play_binding(&mut profile.input, KeyMode::K7, select_target, "Q").unwrap();
+    let common_target = action_target(InputActionConfig::E1, KeyBindingSlot::KeyboardPrimary);
+
+    let common_warning = key_binding_conflict_description(&profile, KeyMode::K7, common_target)
+        .expect("common binding should report the select conflict");
+    assert!(common_warning.contains("Select") || common_warning.contains("SORT"));
+    let select_warning = key_binding_conflict_description(&profile, KeyMode::K7, select_target)
+        .expect("select binding should report the common conflict");
+    assert!(select_warning.contains("E1"));
+}
+
+#[test]
+fn key_mode_binding_wins_over_common_binding() {
+    let mut profile = ProfileConfig::new_default("default", "Default", 0);
+    let target = key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardPrimary);
+    apply_play_binding(&mut profile.input, KeyMode::K7, target, "Q").unwrap();
+    let common_target = action_target(InputActionConfig::E1, KeyBindingSlot::KeyboardPrimary);
+
+    let warning = key_binding_conflict_description(&profile, KeyMode::K7, common_target)
+        .expect("common binding should report the lane conflict");
+    assert!(warning.contains("KEY 1"));
+}
+
+#[test]
+fn restoring_action_group_defaults_does_not_change_other_groups() {
+    let mut profile = ProfileConfig::new_default("default", "Default", 0);
+    apply_play_binding(
+        &mut profile.input,
+        KeyMode::K7,
+        action_target(InputActionConfig::E1, KeyBindingSlot::KeyboardPrimary),
+        "T",
+    )
+    .unwrap();
+    apply_play_binding(
+        &mut profile.input,
+        KeyMode::K7,
+        action_target(InputActionConfig::SelectSort, KeyBindingSlot::KeyboardPrimary),
+        "Y",
+    )
+    .unwrap();
+
+    restore_action_group_defaults(
+        &mut profile.input,
+        KeyBindingGroup::Common,
+        KeyBindingSlot::KeyboardPrimary,
+    );
+
+    assert_eq!(
+        format_play_binding(
+            &profile,
+            KeyMode::K7,
+            action_target(InputActionConfig::E1, KeyBindingSlot::KeyboardPrimary),
+        ),
+        "Q"
+    );
+    assert_eq!(
+        format_play_binding(
+            &profile,
+            KeyMode::K7,
+            action_target(InputActionConfig::SelectSort, KeyBindingSlot::KeyboardPrimary),
+        ),
+        "Y"
+    );
+}
+
+#[test]
+fn restoring_key_mode_defaults_restores_all_visible_lanes() {
+    let mut profile = ProfileConfig::new_default("default", "Default", 0);
+    let key1 = key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardPrimary);
+    let key2 = key_target(LaneConfig::Key2, KeyBindingSlot::KeyboardPrimary);
+    apply_play_binding(&mut profile.input, KeyMode::K7, key1, "Q").unwrap();
+    apply_play_binding(&mut profile.input, KeyMode::K7, key2, "A").unwrap();
+
+    restore_key_mode_defaults(&mut profile.input, KeyMode::K7, KeyBindingSlot::KeyboardPrimary)
+        .unwrap();
+
+    assert_eq!(format_play_binding(&profile, KeyMode::K7, key1), "Z");
+    assert_eq!(format_play_binding(&profile, KeyMode::K7, key2), "S");
+}
+
+#[test]
+fn restoring_key_mode_defaults_keeps_other_modes_and_slots() {
+    let mut profile = ProfileConfig::new_default("default", "Default", 0);
+    let k7_primary = key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardPrimary);
+    let k7_secondary = key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardSecondary);
+    let k5_primary = key_target(LaneConfig::Key1, KeyBindingSlot::KeyboardPrimary);
+    apply_play_binding(&mut profile.input, KeyMode::K7, k7_primary, "A").unwrap();
+    apply_play_binding(&mut profile.input, KeyMode::K7, k7_secondary, "B").unwrap();
+    apply_play_binding(&mut profile.input, KeyMode::K5, k5_primary, "C").unwrap();
+
+    restore_key_mode_defaults(&mut profile.input, KeyMode::K7, KeyBindingSlot::KeyboardPrimary)
+        .unwrap();
+
+    assert_eq!(format_play_binding(&profile, KeyMode::K7, k7_primary), "Z");
+    assert_eq!(format_play_binding(&profile, KeyMode::K7, k7_secondary), "B");
+    assert_eq!(format_play_binding(&profile, KeyMode::K5, k5_primary), "C");
 }
 
 #[test]

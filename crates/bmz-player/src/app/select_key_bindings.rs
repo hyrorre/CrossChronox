@@ -76,6 +76,21 @@ impl SelectKeyBindings {
             .iter()
             .filter(|e| e.device == "keyboard" || is_gamepad_device(&e.device))
             .collect();
+        let common_controls: HashSet<(String, String)> = all_input
+            .iter()
+            .filter(|entry| {
+                matches!(
+                    entry.action,
+                    Some(
+                        InputActionConfig::E1
+                            | InputActionConfig::E2
+                            | InputActionConfig::E3
+                            | InputActionConfig::E4
+                    )
+                )
+            })
+            .map(|entry| (entry.device.clone(), entry.control.clone()))
+            .collect();
         let play_all: Vec<_> = play_7k
             .iter()
             .filter(|e| e.device == "keyboard" || is_gamepad_device(&e.device))
@@ -87,37 +102,72 @@ impl SelectKeyBindings {
 
         // キーボード専用（ヒント文字列表示用）
         let kb_keys_for = |lane: LaneConfig| -> Vec<String> {
-            play_kb.iter().filter(|e| e.lane == Some(lane)).map(|e| e.control.clone()).collect()
+            play_kb
+                .iter()
+                .filter(|e| {
+                    e.lane == Some(lane)
+                        && !common_control_matches(&common_controls, &e.device, &e.control)
+                })
+                .map(|e| e.control.clone())
+                .collect()
         };
 
         // キーボード + ゲームパッド（is_enter / is_back ルックアップ用）
         let keys_for = |lane: LaneConfig| -> Vec<String> {
-            play_all.iter().filter(|e| e.lane == Some(lane)).map(|e| e.control.clone()).collect()
+            play_all
+                .iter()
+                .filter(|e| {
+                    e.lane == Some(lane)
+                        && !common_control_matches(&common_controls, &e.device, &e.control)
+                })
+                .map(|e| e.control.clone())
+                .collect()
         };
         let keys_for_2p = |lane: LaneConfig| -> Vec<String> {
             play_14k_all
                 .iter()
-                .filter(|e| e.lane == Some(lane))
+                .filter(|e| {
+                    e.lane == Some(lane)
+                        && !common_control_matches(&common_controls, &e.device, &e.control)
+                })
                 .map(|e| e.control.clone())
                 .collect()
         };
         let kb_actions_for = |action: InputActionConfig| -> Vec<String> {
             kb.iter().filter(|e| e.action == Some(action)).map(|e| e.control.clone()).collect()
         };
-        let actions_for = |action: InputActionConfig| -> Vec<String> {
+        let common_actions_for = |action: InputActionConfig| {
             all_input
                 .iter()
                 .filter(|e| e.action == Some(action))
                 .map(|e| e.control.clone())
-                .collect()
+                .collect::<Vec<_>>()
         };
-        let select_actions_for =
-            |action: InputActionConfig| with_numeric_keypad_aliases(actions_for(action), &kb);
-        let select_action_with_default = |action: InputActionConfig, default: &str| {
+        let select_actions_for = |action: InputActionConfig| {
             with_numeric_keypad_aliases(
-                select_controls_with_default(actions_for(action), default),
+                all_input
+                    .iter()
+                    .filter(|entry| {
+                        entry.action == Some(action)
+                            && !common_control_matches(
+                                &common_controls,
+                                &entry.device,
+                                &entry.control,
+                            )
+                    })
+                    .map(|entry| entry.control.clone())
+                    .collect(),
                 &kb,
             )
+        };
+        let select_action_with_default = |action: InputActionConfig, default: &str| {
+            let configured = select_actions_for(action);
+            if configured.is_empty()
+                && common_control_matches(&common_controls, "keyboard", default)
+            {
+                return Vec::new();
+            }
+            with_numeric_keypad_aliases(select_controls_with_default(configured, default), &kb)
         };
 
         let key1_controls = keys_for(LaneConfig::Key1);
@@ -156,7 +206,7 @@ impl SelectKeyBindings {
             .collect();
         let lane_back = merge_select_controls(lane_back_1p, lane_back_2p);
         let enter = lane_enter;
-        let back = merge_select_controls(actions_for(InputActionConfig::E2), lane_back);
+        let back = merge_select_controls(common_actions_for(InputActionConfig::E2), lane_back);
         let e_action_controls: Vec<(InputActionConfig, String)> = [
             InputActionConfig::E1,
             InputActionConfig::E2,
@@ -164,10 +214,12 @@ impl SelectKeyBindings {
             InputActionConfig::E4,
         ]
         .into_iter()
-        .flat_map(|action| actions_for(action).into_iter().map(move |control| (action, control)))
+        .flat_map(|action| {
+            common_actions_for(action).into_iter().map(move |control| (action, control))
+        })
         .collect();
-        let e2_action_controls = actions_for(InputActionConfig::E2);
-        let e3_action_controls = actions_for(InputActionConfig::E3);
+        let e2_action_controls = common_actions_for(InputActionConfig::E2);
+        let e3_action_controls = common_actions_for(InputActionConfig::E3);
         let favorite_song_controls =
             select_action_with_default(InputActionConfig::SelectFavoriteSong, "F8");
         let favorite_chart_controls =
@@ -210,7 +262,7 @@ impl SelectKeyBindings {
             );
         }
         let cycle_bga = keys_for(LaneConfig::Key1).into_iter().next();
-        let mut start = actions_for(InputActionConfig::E1);
+        let mut start = common_actions_for(InputActionConfig::E1);
         if let Some(legacy_start) = input.start_key.clone()
             && !start.iter().any(|control| control == &legacy_start)
         {
@@ -344,37 +396,80 @@ impl SelectKeyBindings {
             .iter()
             .filter(|e| e.device == "keyboard" || is_gamepad_device(&e.device))
             .collect();
+        let common_controls: HashSet<(String, String)> = all_input
+            .iter()
+            .filter(|entry| {
+                matches!(
+                    entry.action,
+                    Some(
+                        InputActionConfig::E1
+                            | InputActionConfig::E2
+                            | InputActionConfig::E3
+                            | InputActionConfig::E4
+                    )
+                )
+            })
+            .map(|entry| (entry.device.clone(), entry.control.clone()))
+            .collect();
         let play_all: Vec<_> = play_9k
             .iter()
             .filter(|e| e.device == "keyboard" || is_gamepad_device(&e.device))
             .collect();
-        let play_control_set: HashSet<String> =
-            play_all.iter().map(|entry| entry.control.clone()).collect();
-
         let kb_keys_for = |lane: LaneConfig| -> Vec<String> {
-            play_kb.iter().filter(|e| e.lane == Some(lane)).map(|e| e.control.clone()).collect()
+            play_kb
+                .iter()
+                .filter(|e| {
+                    e.lane == Some(lane)
+                        && !common_control_matches(&common_controls, &e.device, &e.control)
+                })
+                .map(|e| e.control.clone())
+                .collect()
         };
         let keys_for = |lane: LaneConfig| -> Vec<String> {
-            play_all.iter().filter(|e| e.lane == Some(lane)).map(|e| e.control.clone()).collect()
+            play_all
+                .iter()
+                .filter(|e| {
+                    e.lane == Some(lane)
+                        && !common_control_matches(&common_controls, &e.device, &e.control)
+                })
+                .map(|e| e.control.clone())
+                .collect()
         };
         let kb_actions_for = |action: InputActionConfig| -> Vec<String> {
             kb.iter().filter(|e| e.action == Some(action)).map(|e| e.control.clone()).collect()
         };
-        let actions_for = |action: InputActionConfig| -> Vec<String> {
+        let common_actions_for = |action: InputActionConfig| {
             all_input
                 .iter()
                 .filter(|e| e.action == Some(action))
-                .filter(|e| !play_control_set.contains(&e.control))
                 .map(|e| e.control.clone())
-                .collect()
+                .collect::<Vec<_>>()
         };
-        let select_actions_for =
-            |action: InputActionConfig| with_numeric_keypad_aliases(actions_for(action), &kb);
-        let select_action_with_default = |action: InputActionConfig, default: &str| {
+        let select_actions_for = |action: InputActionConfig| {
             with_numeric_keypad_aliases(
-                select_controls_with_default(actions_for(action), default),
+                all_input
+                    .iter()
+                    .filter(|entry| {
+                        entry.action == Some(action)
+                            && !common_control_matches(
+                                &common_controls,
+                                &entry.device,
+                                &entry.control,
+                            )
+                    })
+                    .map(|entry| entry.control.clone())
+                    .collect(),
                 &kb,
             )
+        };
+        let select_action_with_default = |action: InputActionConfig, default: &str| {
+            let configured = select_actions_for(action);
+            if configured.is_empty()
+                && common_control_matches(&common_controls, "keyboard", default)
+            {
+                return Vec::new();
+            }
+            with_numeric_keypad_aliases(select_controls_with_default(configured, default), &kb)
         };
 
         let key1_controls = keys_for(LaneConfig::Key1);
@@ -388,7 +483,8 @@ impl SelectKeyBindings {
         let key9_controls = keys_for(LaneConfig::Key9);
 
         let enter = merge_select_controls(key5_controls.clone(), key7_controls.clone());
-        let back = merge_select_controls(actions_for(InputActionConfig::E2), key3_controls.clone());
+        let back =
+            merge_select_controls(common_actions_for(InputActionConfig::E2), key3_controls.clone());
         let select_previous_controls = key4_controls.clone();
         let select_next_controls = key6_controls.clone();
         let target_previous_controls = key8_controls.clone();
@@ -400,10 +496,12 @@ impl SelectKeyBindings {
             InputActionConfig::E4,
         ]
         .into_iter()
-        .flat_map(|action| actions_for(action).into_iter().map(move |control| (action, control)))
+        .flat_map(|action| {
+            common_actions_for(action).into_iter().map(move |control| (action, control))
+        })
         .collect();
-        let e2_action_controls = actions_for(InputActionConfig::E2);
-        let e3_action_controls = actions_for(InputActionConfig::E3);
+        let e2_action_controls = common_actions_for(InputActionConfig::E2);
+        let e3_action_controls = common_actions_for(InputActionConfig::E3);
         let favorite_song_controls =
             select_action_with_default(InputActionConfig::SelectFavoriteSong, "F8");
         let favorite_chart_controls =
@@ -426,7 +524,7 @@ impl SelectKeyBindings {
         let rival_cycle_controls = select_actions_for(InputActionConfig::SelectRivalCycle);
         let open_documents_controls = select_actions_for(InputActionConfig::SelectOpenDocuments);
         let cycle_bga = key1_controls.first().cloned();
-        let mut start = actions_for(InputActionConfig::E1);
+        let mut start = common_actions_for(InputActionConfig::E1);
         if let Some(legacy_start) = input.start_key.clone()
             && !start.iter().any(|control| control == &legacy_start)
         {
@@ -950,6 +1048,25 @@ fn numeric_keypad_alias(control: &str) -> Option<&'static str> {
         "9" => Some("Numpad9"),
         _ => None,
     }
+}
+
+fn common_control_matches(
+    common_controls: &HashSet<(String, String)>,
+    device: &str,
+    control: &str,
+) -> bool {
+    common_controls.iter().any(|(common_device, common)| {
+        (common_device == device
+            || (is_gamepad_device(common_device) && device.eq_ignore_ascii_case("gamepad"))
+            || (is_gamepad_device(device) && common_device.eq_ignore_ascii_case("gamepad")))
+            && controls_match(common, control)
+    })
+}
+
+fn controls_match(left: &str, right: &str) -> bool {
+    left == right
+        || numeric_keypad_alias(left) == Some(right)
+        || numeric_keypad_alias(right) == Some(left)
 }
 
 fn contains(controls: &[String], control: &str) -> bool {

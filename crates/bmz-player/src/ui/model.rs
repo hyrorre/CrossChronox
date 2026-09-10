@@ -434,9 +434,12 @@ pub struct EguiLayer {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub(super) enum EguiKeyConfigSection {
+pub enum EguiKeyConfigSection {
     #[default]
     Common,
+    Select,
+    Play,
+    Result,
     KeyMode(KeyMode),
 }
 
@@ -476,6 +479,7 @@ pub enum EguiKeyConfigAction {
     Bind { key_mode: KeyMode, target: KeyBindingTarget, control: String },
     Clear { key_mode: KeyMode, target: KeyBindingTarget },
     ToggleEightKeyHispeed { entry_id: SettingsEntryId },
+    RestoreDefaults { section: EguiKeyConfigSection, slot: KeyBindingSlot },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

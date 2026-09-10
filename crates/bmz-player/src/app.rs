@@ -181,9 +181,10 @@ use crate::storage::score_import::{ScoreImportRequest, import_scores};
 use crate::table_cmd::{TableFetchOutcome, TableFetchReport};
 use crate::ui::{
     CourseEditorAction, CourseEditorChart, CourseEditorData, DebugInfo, EguiKeyConfigAction,
-    EguiKeyConfigInput, EguiLayer, EguiRunContext, SceneSkinDefs, SelectCourseBuilderAction,
-    SelectCourseBuilderData, SkinCandidate, SkinCandidateOrigin, SkinCatalog, SkinConfigMeta,
-    SkinReloadRequest, SongScanRequest, UpdateDialog, UpdateDialogAction,
+    EguiKeyConfigInput, EguiKeyConfigSection, EguiLayer, EguiRunContext, SceneSkinDefs,
+    SelectCourseBuilderAction, SelectCourseBuilderData, SkinCandidate, SkinCandidateOrigin,
+    SkinCatalog, SkinConfigMeta, SkinReloadRequest, SongScanRequest, UpdateDialog,
+    UpdateDialogAction,
 };
 use crate::update::{DownloadedUpdate, UpdateAssetKind, UpdateCandidate};
 use crate::window_config::{monitor_config_name, select_monitor};

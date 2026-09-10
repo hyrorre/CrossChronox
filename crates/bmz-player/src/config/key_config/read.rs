@@ -245,25 +245,6 @@ pub(super) fn remove_lane_device_bindings(
     bindings.retain(|entry| !(device_matches(&entry.device, device) && entry.lane == Some(lane)));
 }
 
-pub(super) fn remove_control_from_device(
-    bindings: &mut Vec<BindingConfigEntry>,
-    device: &str,
-    control: &str,
-) {
-    bindings.retain(|entry| !(device_matches(&entry.device, device) && entry.control == control));
-}
-
-pub(super) fn remove_ui_control_from_device(
-    input: &mut ProfileInputConfig,
-    device: &str,
-    control: &str,
-) {
-    input
-        .ui
-        .bindings
-        .retain(|entry| !(device_matches(&entry.device, device) && entry.control == control));
-}
-
 pub(super) fn action_controls_for_slot(
     input: &ProfileInputConfig,
     action: InputActionConfig,
