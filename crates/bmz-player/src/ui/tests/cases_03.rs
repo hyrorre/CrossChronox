@@ -145,6 +145,9 @@ fn play_skin_defs_include_beatoraja_common_offsets() {
     assert!(offsets.contains(&(32, "Judge offset")));
     assert!(offsets.contains(&(33, "Judge Detail offset")));
     assert!(offsets.contains(&(SKIN_OFFSET_BAR_LINE, "Bar Line offset")));
+
+    let notes = defs.offset.iter().find(|offset| offset.id == 30).expect("notes offset def");
+    assert!(notes.x && notes.y && notes.w && notes.h && notes.a);
 }
 
 #[test]
@@ -194,7 +197,7 @@ fn play_skin_defs_enable_bar_line_alpha_when_skin_def_disables_it() {
         .iter()
         .find(|offset| offset.id == SKIN_OFFSET_BAR_LINE)
         .expect("bar line offset def");
-    assert!(bar_line.a);
+    assert!(bar_line.x && bar_line.y && bar_line.w && bar_line.h && bar_line.a);
 }
 
 #[test]

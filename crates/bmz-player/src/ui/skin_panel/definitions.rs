@@ -9,6 +9,26 @@ pub(in crate::ui) struct SceneSkinEdit {
     pub(in crate::ui) offsets_changed: bool,
 }
 
+/// ComboBox の選択肢のうち最も長い文字列が収まる幅を計算する。
+///
+/// `ComboBox` は選択中の文字列に合わせて幅が変わるため、選択肢全体を計測して
+/// ボタン幅を固定する。アイコンとボタンの余白も含め、通常の既定幅を下限にする。
+fn combo_width_for_labels<'a>(ui: &egui::Ui, labels: impl IntoIterator<Item = &'a str>) -> f32 {
+    let font_id = egui::TextStyle::Button.resolve(ui.style());
+    let max_text_width = labels
+        .into_iter()
+        .map(|label| {
+            ui.painter()
+                .layout_no_wrap(label.to_owned(), font_id.clone(), ui.visuals().text_color())
+                .size()
+                .x
+        })
+        .fold(0.0, f32::max);
+    let spacing = ui.spacing();
+    (max_text_width + spacing.icon_spacing + spacing.icon_width + spacing.button_padding.x * 2.0)
+        .max(spacing.combo_width)
+}
+
 pub(in crate::ui) fn build_scene_skin_defs(
     ui: &mut egui::Ui,
     slot: SkinSlot,
@@ -63,6 +83,8 @@ pub(in crate::ui) fn build_scene_skin_defs(
                     if !editor.matches(&prop.name) {
                         continue;
                     }
+                    let combo_width =
+                        combo_width_for_labels(ui, prop.item.iter().map(|item| item.name.as_str()));
                     show_culled_skin_row(ui, (index, prop.name.as_str()), row_height, |ui| {
                         let mut selected = options
                             .get(&prop.name)
@@ -82,6 +104,8 @@ pub(in crate::ui) fn build_scene_skin_defs(
                             }
                             egui::ComboBox::from_id_salt("selection")
                                 .selected_text(&selected)
+                                .width(combo_width)
+                                .truncate()
                                 .show_ui(ui, |ui| {
                                     for item in &prop.item {
                                         ui.selectable_value(
@@ -122,6 +146,9 @@ pub(in crate::ui) fn build_scene_skin_defs(
                         continue;
                     }
                     show_culled_skin_row(ui, (index, filepath.name.as_str()), row_height, |ui| {
+                        let candidates = path_context
+                            .map(|context| glob_candidates_for_skin(context, &filepath.path))
+                            .unwrap_or_default();
                         let mut selected = files.get(&filepath.name).cloned().unwrap_or_default();
                         let before = selected.clone();
                         ui.add(egui::Label::new(&filepath.name).truncate())
@@ -151,8 +178,19 @@ pub(in crate::ui) fn build_scene_skin_defs(
                             } else {
                                 filepath_selection_label(&selected).to_string()
                             };
+                            let mut combo_labels = vec![display.clone()];
+                            combo_labels.push(tr!(text, "skin-file-random"));
+                            combo_labels.extend(
+                                candidates.iter().map(|candidate| {
+                                    filepath_selection_label(candidate).to_string()
+                                }),
+                            );
+                            let combo_width =
+                                combo_width_for_labels(ui, combo_labels.iter().map(String::as_str));
                             egui::ComboBox::from_id_salt("selection")
                                 .selected_text(display)
+                                .width(combo_width)
+                                .truncate()
                                 .show_ui(ui, |ui| {
                                     // beatoraja 同様、具体ファイルに加えて「ランダム」を選べる。
                                     // ランダム選択時は毎ロードで候補からランダムに解決する。
@@ -161,13 +199,6 @@ pub(in crate::ui) fn build_scene_skin_defs(
                                         RANDOM_FILE_SELECTION.to_string(),
                                         tr!(text, "skin-file-random"),
                                     );
-                                    // 候補列挙は ComboBox を開いたときだけ行う。
-                                    let candidates = match path_context {
-                                        Some(context) => {
-                                            glob_candidates_for_skin(context, &filepath.path)
-                                        }
-                                        None => Vec::new(),
-                                    };
                                     if let Some(normalized) =
                                         normalize_filepath_selection(&selected, &candidates)
                                     {

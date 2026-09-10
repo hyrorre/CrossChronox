@@ -101,6 +101,9 @@ impl SceneSkinDefs {
         if let Some(existing) =
             self.offset.iter_mut().find(|existing| existing.id == SKIN_OFFSET_BAR_LINE)
         {
+            existing.x = true;
+            existing.y = true;
+            existing.w = true;
             existing.h = true;
             existing.a = true;
         } else {
@@ -126,12 +129,12 @@ pub(super) fn beatoraja_play_common_offsets() -> [SkinOffsetDef; 4] {
             category: "beatoraja".to_string(),
             name: "Notes offset".to_string(),
             id: 30,
-            x: false,
-            y: false,
-            w: false,
+            x: true,
+            y: true,
+            w: true,
             h: true,
             r: false,
-            a: false,
+            a: true,
         },
         SkinOffsetDef {
             category: "beatoraja".to_string(),
@@ -163,9 +166,9 @@ pub(super) fn bmz_play_bar_line_offset() -> SkinOffsetDef {
         category: "bmz".to_string(),
         name: "Bar Line offset".to_string(),
         id: SKIN_OFFSET_BAR_LINE,
-        x: false,
-        y: false,
-        w: false,
+        x: true,
+        y: true,
+        w: true,
         h: true,
         r: false,
         a: true,
