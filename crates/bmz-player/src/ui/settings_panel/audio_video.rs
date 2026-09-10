@@ -328,7 +328,6 @@ pub(super) fn build_audio_video_settings_sections(
                     );
                 }
             });
-            ui.label(tr!(text, "settings-video-frame-latency-help"));
             target_fps_editor(ui, &mut config.video.target_fps);
             ui.label(tr!(text, "settings-video-target-fps-unlimited"));
             if ui.checkbox(show_fps, tr!(text, "settings-show-fps")).changed() {

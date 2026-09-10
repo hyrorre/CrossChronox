@@ -268,7 +268,7 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                     egui::ComboBox::from_label("SCROLL")
                         .selected_text(match assist.scroll_mode {
                             AssistScrollMode::Off => "OFF",
-                            AssistScrollMode::Remove => "REMOVE (CONSTANT)",
+                            AssistScrollMode::Remove => "REMOVE",
                             AssistScrollMode::Add => "ADD",
                         })
                         .show_ui(ui, |ui| {
@@ -302,7 +302,7 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                     egui::ComboBox::from_label("LONGNOTE")
                         .selected_text(match assist.long_note_mode {
                             AssistLongNoteMode::Off => "OFF",
-                            AssistLongNoteMode::Remove => "REMOVE (LEGACY NOTE)",
+                            AssistLongNoteMode::Remove => "REMOVE",
                             AssistLongNoteMode::AddLn => "ADD LN",
                             AssistLongNoteMode::AddCn => "ADD CN",
                             AssistLongNoteMode::AddHcn => "ADD HCN",
@@ -330,7 +330,7 @@ pub(in crate::ui::profile_panel) fn build_profile_play_section(
                     egui::ComboBox::from_label("MINE")
                         .selected_text(match assist.mine_mode {
                             AssistMineMode::Off => "OFF",
-                            AssistMineMode::Remove => "REMOVE (NO MINE)",
+                            AssistMineMode::Remove => "REMOVE",
                             AssistMineMode::AddRandom => "ADD RANDOM",
                             AssistMineMode::AddNear => "ADD NEAR",
                             AssistMineMode::AddBlank => "ADD BLANK",

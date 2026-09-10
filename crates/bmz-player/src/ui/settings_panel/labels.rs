@@ -112,10 +112,10 @@ pub(in crate::ui) fn available_renderer_backends() -> Vec<RendererBackend> {
 
 pub(in crate::ui) fn vsync_mode_label(mode: &VsyncModeConfig) -> &'static str {
     match mode {
-        VsyncModeConfig::Vsync => "Vsync (Fifo)",
-        VsyncModeConfig::AdaptiveVsync => "Adaptive Vsync (Fifo Relaxed)",
-        VsyncModeConfig::VsyncOff => "Vsync Off (Immediate)",
-        VsyncModeConfig::FastVsync => "Fast Vsync (Mailbox)",
+        VsyncModeConfig::Vsync => "Vsync",
+        VsyncModeConfig::AdaptiveVsync => "Adaptive Vsync",
+        VsyncModeConfig::VsyncOff => "Vsync Off",
+        VsyncModeConfig::FastVsync => "Fast Vsync",
     }
 }
 
