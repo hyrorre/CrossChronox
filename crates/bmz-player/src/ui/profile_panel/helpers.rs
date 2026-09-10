@@ -5,7 +5,7 @@ pub(in crate::ui) fn profile_selection_label(
     profiles
         .iter()
         .find(|profile| profile.id == profile_id)
-        .map(|profile| format!("{} ({})", profile.id, profile.display_name))
+        .map(|profile| format!("{}: {}", profile.id, profile.display_name))
         .unwrap_or_else(|| profile_id.to_string())
 }
 
