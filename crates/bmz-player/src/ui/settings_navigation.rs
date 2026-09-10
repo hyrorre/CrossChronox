@@ -340,20 +340,16 @@ pub(super) fn build_settings_window(
                                 });
                         }
                         navigation.store(ctx);
-                        // サブページごとに本文のウィジェット名前空間を分ける。
-                        // 本文の先頭位置は同じでも内容のIDが変わるため、eguiの
-                        // debug用「矩形のID変更」警告を発生させない。
+                        // スクロール領域自身はページ間で同じ矩形・同じ ID を
+                        // 保持する。ページごとの差分は内側の名前空間へ閉じ込め、
+                        // スクロール領域そのものの ID 変更診断を発生させない。
                         let content_id =
                             ("settings_content_body", navigation.page, navigation.subpage());
                         if navigation.page == SettingsPage::Skin && ui.available_height() >= 380.0 {
                             ui.push_id(content_id, contents);
                         } else {
                             egui::ScrollArea::vertical()
-                                .id_salt((
-                                    "settings_content",
-                                    navigation.page,
-                                    navigation.subpage(),
-                                ))
+                                .id_salt("settings_content")
                                 .auto_shrink([false, false])
                                 .max_height(ui.available_height())
                                 .show(ui, |ui| {
@@ -443,8 +439,7 @@ mod tests {
                 .show(ui, |_| panic!("hidden section ran"));
             SettingsSection::new(SettingsPage::InputDevices, "devices")
                 .show(ui, |_| panic!("wrong subpage ran"));
-            SettingsSection::new(SettingsPage::KeyConfig, "bindings")
-                .show(ui, |_| visible = true);
+            SettingsSection::new(SettingsPage::KeyConfig, "bindings").show(ui, |_| visible = true);
         });
         assert!(visible);
     }
@@ -527,48 +522,48 @@ mod tests {
     }
 
     #[test]
-    fn switching_subpage_scopes_content_widget_ids() {
+    fn switching_settings_pages_scopes_content_widget_ids() {
         let ctx = egui::Context::default();
         let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0));
         let text = Localizer::new(AppLocale::En);
         let mut open = true;
-        let mut navigation = SettingsNavigation::load(&ctx);
-        navigation.page = SettingsPage::InputDevices;
-        navigation.store(&ctx);
         let render = |ctx: &egui::Context, open: &mut bool| {
             ctx.run_ui(egui::RawInput { screen_rect: Some(rect), ..Default::default() }, |_| {
                 build_settings_window(ctx, open, "Default", text, |ui| {
-                    let id = if SettingsNavigation::load(ui.ctx()).page == SettingsPage::InputDevices {
-                        egui::Id::new("input-devices")
-                    } else {
-                        egui::Id::new("key-config")
-                    };
                     let rect = ui.available_rect_before_wrap();
                     let _ = ui.interact(
                         egui::Rect::from_min_size(rect.min, egui::vec2(200.0, 22.0)),
-                        id,
+                        // 各ページの本文は同じウィジェット ID を使う。本文の親 ID
+                        // がページ単位で分離されていれば、ページ切り替え時に
+                        // egui の「矩形の ID 変更」診断は発生しない。
+                        egui::Id::new("settings-page-first-widget"),
                         egui::Sense::click(),
                     );
                 });
             })
         };
-        let _ = render(&ctx, &mut open);
-        let mut navigation = SettingsNavigation::load(&ctx);
-        navigation.page = SettingsPage::KeyConfig;
-        navigation.store(&ctx);
-        let output = render(&ctx, &mut open);
-        let red_rects = output
-            .shapes
-            .iter()
-            .filter(|shape| match &shape.shape {
-                egui::Shape::Rect(rect) => {
-                    rect.fill == egui::Color32::TRANSPARENT
-                        && rect.stroke.color == egui::Color32::RED
-                        && rect.stroke.width == 2.0
-                }
-                _ => false,
-            })
-            .count();
-        assert_eq!(red_rects, 0, "unexpected diagnostic red rectangles: {red_rects}");
+        for page in [
+            SettingsPage::Library,
+            SettingsPage::Tables,
+            SettingsPage::Ir,
+            SettingsPage::Library,
+            SettingsPage::KeyConfig,
+        ] {
+            SettingsNavigation::select(&ctx, page);
+            let output = render(&ctx, &mut open);
+            let red_rects = output
+                .shapes
+                .iter()
+                .filter(|shape| match &shape.shape {
+                    egui::Shape::Rect(rect) => {
+                        rect.fill == egui::Color32::TRANSPARENT
+                            && rect.stroke.color == egui::Color32::RED
+                            && rect.stroke.width == 2.0
+                    }
+                    _ => false,
+                })
+                .count();
+            assert_eq!(red_rects, 0, "unexpected diagnostic red rectangles on {page:?}");
+        }
     }
 }

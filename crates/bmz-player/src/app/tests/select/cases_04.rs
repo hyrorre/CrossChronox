@@ -329,7 +329,7 @@ fn select_snapshot_rows_formats_app_config_values_and_audio_apply_action() {
     assert_eq!(backend.display_bar_text(), "AUDIO BACKEND [WASAPI]");
     assert_eq!(backend.artist, "WASAPI");
     assert_eq!(backend.subtitle, "音声出力に使用するOS・ドライバのバックエンドを選びます。");
-    assert_eq!(apply.title, "適用（音声出力を開き直す）");
+    assert_eq!(apply.title, "適用 (音声出力を開き直す)");
     assert_eq!(
         apply.subtitle,
         "「適用」で現在の設定を保存し音声出力を再構築します（再生中は不可）。"
