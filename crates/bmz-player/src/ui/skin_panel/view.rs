@@ -63,7 +63,7 @@ pub(in crate::ui) fn build_skin_panel(
     text: Localizer,
 ) -> SkinPanelActions {
     let save_clicked = false;
-    let mut reset_clicked = false;
+    let reset_clicked = false;
     let mut reload = SkinReloadRequest::default();
     let show_bundled_origin = show_bundled_skin_origin(app_paths, skin_catalog);
     if SettingsNavigation::load(ui.ctx()).page != SettingsPage::Skin {
@@ -373,10 +373,7 @@ pub(in crate::ui) fn build_skin_panel(
             }
         });
     ui.separator();
-    ui.label(tr!(text, "skin-save-reset-help"));
-    if ui.button(tr!(text, "skin-restore-saved")).clicked() {
-        reset_clicked = true;
-    }
+    ui.label(tr!(text, "settings-autosave-help"));
     SkinPanelActions { save: save_clicked, reset: reset_clicked, reload }
 }
 
@@ -556,7 +553,7 @@ mod tests {
             );
             for shape in output.shapes {
                 if let egui::Shape::Text(text) = shape.shape
-                    && text.galley.job.text == "Save all changes"
+                    && text.galley.job.text == "Changes are saved automatically."
                 {
                     saw_save = true;
                     let rect = text.galley.rect.translate(text.pos.to_vec2());

@@ -78,7 +78,9 @@ pub(super) struct SettingsNavigation {
 pub(super) struct SettingsFeedback {
     dirty: std::collections::HashMap<SettingsPage, (bool, bool)>,
     error: Option<String>,
-    saved: bool,
+    last_change: f64,
+    retry_after: f64,
+    errors: [Option<String>; 2],
 }
 
 impl SettingsFeedback {
@@ -98,17 +100,20 @@ impl SettingsFeedback {
         let dirty = feedback.dirty.entry(SettingsNavigation::load(ctx).page).or_default();
         dirty.0 |= app;
         dirty.1 |= profile;
-        feedback.saved = false;
+        feedback.last_change = ctx.input(|input| input.time);
         feedback.store(ctx);
     }
 
+    #[cfg(test)]
     fn has_changes(&self, page: SettingsPage) -> bool {
         self.dirty.get(&page).is_some_and(|&(app, profile)| app || profile)
     }
 
     fn finish_save(&mut self, app: bool, result: Result<(), String>) {
+        let index = usize::from(!app);
         match result {
             Ok(()) => {
+                self.errors[index] = None;
                 for dirty in self.dirty.values_mut() {
                     if app {
                         dirty.0 = false;
@@ -116,10 +121,29 @@ impl SettingsFeedback {
                         dirty.1 = false;
                     }
                 }
-                self.saved = true;
             }
-            Err(error) => self.error = Some(error),
+            Err(error) => self.errors[index] = Some(error),
         }
+        self.error = self.errors.iter().flatten().next().cloned();
+    }
+
+    pub(super) fn autosave(ctx: &egui::Context, closed: bool) -> (bool, bool) {
+        let mut feedback = Self::load(ctx);
+        let now = ctx.input(|input| input.time);
+        if now < feedback.retry_after || (!closed && now - feedback.last_change < 0.5) {
+            ctx.request_repaint_after(std::time::Duration::from_millis(500));
+            return (false, false);
+        }
+        let pending = feedback.dirty.values().fold((false, false), |a, b| (a.0 || b.0, a.1 || b.1));
+        if pending.0 || pending.1 {
+            feedback.retry_after = now + 5.0;
+            feedback.store(ctx);
+        }
+        pending
+    }
+
+    pub(super) fn has_pending(ctx: &egui::Context) -> bool {
+        Self::load(ctx).dirty.values().any(|&(app, profile)| app || profile)
     }
 
     pub(super) fn profile_changed(ctx: &egui::Context, profile_id: &str) {
@@ -136,10 +160,13 @@ impl SettingsFeedback {
 }
 
 impl EguiLayer {
-    /// 保存に成功した保存先の変更マークだけを消す。失敗時は変更状態を維持する。
+    /// 成功した保存先の保留状態を消し、失敗した保存先は再試行できるよう保持する。
     pub(crate) fn settings_save_finished(&mut self, app: bool, result: Result<(), String>) {
         let mut feedback = SettingsFeedback::load(&self.ctx);
         feedback.finish_save(app, result);
+        if feedback.error.is_none() {
+            feedback.retry_after = 0.0;
+        }
         feedback.store(&self.ctx);
     }
 }
@@ -222,15 +249,14 @@ impl SettingsSection {
     }
 }
 
-/// 保存ボタンとナビゲーションをスクロール領域の外に配置する。
+/// 自動保存の状態とナビゲーションをスクロール領域の外に配置する。
 pub(super) fn build_settings_window(
     ctx: &egui::Context,
     open: &mut bool,
     profile_name: &str,
     text: Localizer,
     contents: impl FnOnce(&mut egui::Ui),
-) -> bool {
-    let mut save = false;
+) {
     localized_sized_panel_window(
         "settings_workspace",
         tr!(text, "settings-workspace-title"),
@@ -267,12 +293,7 @@ pub(super) fn build_settings_window(
                                         if page == SettingsPage::Licenses {
                                             continue;
                                         }
-                                        let label = if SettingsFeedback::load(ctx).has_changes(page)
-                                        {
-                                            format!("{} •", page.label(text))
-                                        } else {
-                                            page.label(text)
-                                        };
+                                        let label = page.label(text);
                                         ui.selectable_value(&mut navigation.page, page, label);
                                     }
                                 });
@@ -336,30 +357,51 @@ pub(super) fn build_settings_window(
         );
         ui.separator();
         ui.horizontal_wrapped(|ui| {
-            save = ui.button(tr!(text, "settings-save-all")).clicked();
-            let mut feedback = SettingsFeedback::load(ctx);
-            if save {
-                feedback.error = None;
-                feedback.store(ctx);
-            }
+            let feedback = SettingsFeedback::load(ctx);
             if let Some(error) = &feedback.error {
                 ui.colored_label(egui::Color32::LIGHT_RED, tr!(text, "settings-save-failed"))
                     .on_hover_text(error);
-            } else if feedback.dirty.values().any(|&(app, profile)| app || profile) {
-                ui.label(tr!(text, "settings-unsaved"));
-            } else if feedback.saved {
-                ui.label(tr!(text, "settings-saved"));
             } else {
-                ui.small(tr!(text, "settings-save-all-help"));
+                ui.small(tr!(text, "settings-autosave-help"));
             }
         });
     });
-    save
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn autosave_debounces_changes_flushes_on_close_and_retries_failures() {
+        let ctx = egui::Context::default();
+        let frame = |time: f64, changed: (bool, bool), closed: bool| {
+            let mut pending = (false, false);
+            let _ = ctx.run_ui(egui::RawInput { time: Some(time), ..Default::default() }, |ui| {
+                SettingsFeedback::changed(ui.ctx(), changed.0, changed.1);
+                pending = SettingsFeedback::autosave(ui.ctx(), closed);
+            });
+            pending
+        };
+        assert_eq!(frame(0.0, (true, false), false), (false, false));
+        assert!(SettingsFeedback::has_pending(&ctx));
+        assert_eq!(frame(0.3, (false, true), false), (false, false));
+        assert_eq!(frame(0.7, (false, false), false), (false, false));
+        assert_eq!(frame(0.9, (false, false), false), (true, true));
+        let mut feedback = SettingsFeedback::load(&ctx);
+        feedback.finish_save(true, Err("Disk full".into()));
+        feedback.finish_save(false, Ok(()));
+        feedback.store(&ctx);
+        assert_eq!(frame(1.0, (false, false), true), (false, false));
+        assert_eq!(frame(6.0, (false, false), false), (true, false));
+        SettingsFeedback::default().store(&ctx);
+        assert_eq!(frame(7.0, (false, true), true), (false, true));
+        let mut feedback = SettingsFeedback::load(&ctx);
+        feedback.finish_save(false, Ok(()));
+        feedback.store(&ctx);
+        assert_eq!(frame(13.0, (false, false), false), (false, false));
+        assert!(!SettingsFeedback::has_pending(&ctx));
+    }
 
     #[test]
     fn failed_save_keeps_changes_when_the_other_config_saves_successfully() {
@@ -370,9 +412,9 @@ mod tests {
         assert_eq!(feedback.dirty[&SettingsPage::Audio], (true, false));
         assert_eq!(feedback.error.as_deref(), Some("Disk full"));
         assert!(feedback.has_changes(SettingsPage::Audio));
-        feedback.error = None;
         feedback.finish_save(true, Ok(()));
         assert!(!feedback.has_changes(SettingsPage::Audio));
+        assert!(feedback.error.is_none());
     }
 
     #[test]
@@ -401,7 +443,7 @@ mod tests {
     }
 
     #[test]
-    fn settings_window_keeps_save_button_inside_viewport_with_long_content() {
+    fn settings_window_keeps_autosave_status_inside_viewport_with_long_content() {
         for size in [egui::vec2(480.0, 480.0), egui::vec2(1280.0, 800.0)] {
             let ctx = egui::Context::default();
             let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, size);
@@ -424,7 +466,9 @@ mod tests {
                     },
                 );
                 let save = output.shapes.iter().find_map(|shape| match &shape.shape {
-                    egui::Shape::Text(text) if text.galley.job.text == "Save all changes" => {
+                    egui::Shape::Text(text)
+                        if text.galley.job.text == "Changes are saved automatically." =>
+                    {
                         Some((shape.clip_rect, text.galley.rect.translate(text.pos.to_vec2())))
                     }
                     _ => None,
@@ -463,7 +507,7 @@ mod tests {
                     if label.galley.job.text == text.text("menu-licenses") {
                         license_rect = Some(rect);
                     }
-                    if label.galley.job.text == text.text("settings-save-all") {
+                    if label.galley.job.text == text.text("settings-autosave-help") {
                         save_rect = Some(rect);
                     }
                 }

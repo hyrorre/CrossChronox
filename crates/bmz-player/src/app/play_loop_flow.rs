@@ -192,7 +192,7 @@ impl WinitApp {
                 self.apply_play_table_text(&mut snapshot);
                 self.play.last_play_snapshot = Some(snapshot);
                 // active_play がまだ残っている内に hispeed/lane_cover/lift を profile に保存する。
-                self.save_current_play_options(hispeed, "play finished");
+                self.save_configs_after_play(hispeed, "play finished");
                 if let Some(finished) = &early_finished {
                     if let Some(chart_id) = self.play.last_started_chart_id {
                         self.prepare_terminal_course_finish(chart_id, finished);

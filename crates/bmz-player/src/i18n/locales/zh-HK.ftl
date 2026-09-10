@@ -750,6 +750,7 @@ settings-nav-diagnostics = 更新與診斷
 settings-nav-discord = Discord
 settings-nav-obs = OBS
 settings-nav-replay-import = 匯入重播
+settings-autosave-help = 變更會自動儲存。
 settings-save-all = 儲存所有變更
 settings-save-all-help = 一併儲存其他頁面的變更。
 settings-unsaved = 有尚未儲存的變更

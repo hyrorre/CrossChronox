@@ -523,7 +523,7 @@ impl WinitApp {
         let media = self.take_play_media_cache_from_active(chart_id, mode);
         tracing::info!(chart_id, ?mode, "quick retrying chart");
         self.notify_obs_retry_play();
-        self.save_current_play_options(
+        self.save_configs_after_play(
             self.play.active_play.as_ref().map(|active| active.running.session.hispeed),
             "quick retry",
         );

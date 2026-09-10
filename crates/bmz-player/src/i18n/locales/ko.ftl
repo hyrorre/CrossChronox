@@ -749,6 +749,7 @@ settings-nav-diagnostics = 업데이트 · 진단
 settings-nav-discord = Discord
 settings-nav-obs = OBS
 settings-nav-replay-import = 리플레이 가져오기
+settings-autosave-help = 변경 사항은 자동으로 저장됩니다.
 settings-save-all = 모든 변경 저장
 settings-save-all-help = 다른 페이지의 변경도 저장합니다.
 settings-unsaved = 저장하지 않은 변경이 있습니다

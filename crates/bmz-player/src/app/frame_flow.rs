@@ -601,7 +601,7 @@ impl WinitApp {
         }
         self.apply_egui_video_config(window);
 
-        let mut apply_obs_config = output.obs_enabled_changed;
+        let apply_obs_config = output.obs_enabled_changed;
         if output.save_app_config {
             let result = save_app_config(&self.boot.app_paths.config_toml, &self.boot.app_config);
             if let Some(egui) = self.ui.egui.as_mut() {
@@ -613,7 +613,6 @@ impl WinitApp {
             match result {
                 Ok(()) => {
                     tracing::info!("app config saved from egui settings panel");
-                    apply_obs_config = true;
                 }
                 Err(error) => tracing::error!(%error, "failed to save app config"),
             }
@@ -1007,14 +1006,18 @@ impl WinitApp {
         if self.integrations.exit_configs_saved {
             return;
         }
+        self.save_configs_after_play(hispeed, reason);
+        self.integrations.exit_configs_saved = true;
+    }
+
+    pub(super) fn save_configs_after_play(&mut self, hispeed: Option<f32>, reason: &'static str) {
         self.save_current_play_options(hispeed, reason);
         if let Err(error) = save_app_config(&self.boot.app_paths.config_toml, &self.boot.app_config)
         {
-            tracing::error!(%error, reason, "failed to save app config on exit");
+            tracing::error!(%error, reason, "failed to save app config");
         } else {
-            tracing::info!(reason, "saved app config on exit");
+            tracing::info!(reason, "saved app config");
         }
-        self.integrations.exit_configs_saved = true;
     }
 }
 

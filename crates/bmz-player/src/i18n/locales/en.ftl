@@ -752,6 +752,7 @@ settings-nav-diagnostics = Updates & diagnostics
 settings-nav-discord = Discord
 settings-nav-obs = OBS
 settings-nav-replay-import = Replay import
+settings-autosave-help = Changes are saved automatically.
 settings-save-all = Save all changes
 settings-save-all-help = Includes changes on other pages.
 settings-unsaved = Unsaved changes
