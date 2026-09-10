@@ -4,9 +4,8 @@ pub(in crate::ui::profile_panel) fn build_profile_key_config_section(
     ui: &mut egui::Ui,
     section: &mut ProfileSectionContext<'_>,
 ) {
-    SettingsSection::new(SettingsPage::Input, tr!(section.text, "profile-key-config-title"))
+    SettingsSection::new(SettingsPage::KeyConfig, tr!(section.text, "profile-key-config-title"))
         .scope(tr!(section.text, "settings-scope-profile"))
-        .subpage(1)
         .id_salt("profile_key_config")
         .show(ui, |ui| {
             if !section.unrestricted {

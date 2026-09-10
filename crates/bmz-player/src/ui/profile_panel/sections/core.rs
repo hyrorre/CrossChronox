@@ -164,7 +164,7 @@ pub(in crate::ui::profile_panel) fn build_profile_input_section(
 ) {
     let profile = &mut *section.profile;
     let text = section.text;
-    SettingsSection::new(SettingsPage::Input, tr!(text, "profile-input-title"))
+    SettingsSection::new(SettingsPage::InputDevices, tr!(text, "profile-input-title"))
         .scope(tr!(text, "settings-scope-profile"))
         .id_salt("profile_input")
         .show(ui, |ui| {

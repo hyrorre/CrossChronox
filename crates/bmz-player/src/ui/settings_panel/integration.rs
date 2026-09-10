@@ -86,7 +86,7 @@ pub(super) fn build_integration_settings_sections(
             ui.label(tr!(text, "settings-discord-default-help"));
         });
 
-    SettingsSection::new(SettingsPage::Input, tr!(text, "settings-input-title"))
+    SettingsSection::new(SettingsPage::InputDevices, tr!(text, "settings-input-title"))
         .scope(tr!(text, "settings-scope-app"))
         .id_salt("settings_input")
         .show(ui, |ui| {

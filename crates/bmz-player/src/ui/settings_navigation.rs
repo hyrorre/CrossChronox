@@ -7,7 +7,8 @@ pub(super) enum SettingsPage {
     Profile,
     Audio,
     Video,
-    Input,
+    InputDevices,
+    KeyConfig,
     Play,
     Select,
     Skin,
@@ -20,12 +21,13 @@ pub(super) enum SettingsPage {
 }
 
 impl SettingsPage {
-    const ALL: [Self; 14] = [
+    const ALL: [Self; 15] = [
         Self::General,
         Self::Profile,
         Self::Audio,
         Self::Video,
-        Self::Input,
+        Self::InputDevices,
+        Self::KeyConfig,
         Self::Play,
         Self::Select,
         Self::Skin,
@@ -43,7 +45,8 @@ impl SettingsPage {
             Self::Profile => "settings-nav-profile",
             Self::Audio => "settings-nav-audio",
             Self::Video => "settings-nav-video",
-            Self::Input => "settings-nav-input",
+            Self::InputDevices => "settings-input-title",
+            Self::KeyConfig => "profile-key-config-title",
             Self::Play => "settings-nav-play",
             Self::Select => "settings-nav-select",
             Self::Skin => "settings-nav-skin",
@@ -61,7 +64,6 @@ impl SettingsPage {
             Self::Integration => {
                 &["settings-nav-discord", "settings-nav-obs", "settings-screenshot-title"]
             }
-            Self::Input => &["settings-input-title", "profile-key-config-title"],
             Self::Import => &["settings-score-import-title", "settings-nav-replay-import"],
             _ => &[],
         }
@@ -71,7 +73,7 @@ impl SettingsPage {
 #[derive(Clone, Default)]
 pub(super) struct SettingsNavigation {
     pub(super) page: SettingsPage,
-    subpages: [usize; 14],
+    subpages: [usize; 15],
 }
 
 #[derive(Clone, Default)]
@@ -191,7 +193,7 @@ impl SettingsNavigation {
     }
 
     pub(super) fn accepts_key_capture(&self) -> bool {
-        self.page == SettingsPage::Input && self.subpage() == 1
+        self.page == SettingsPage::KeyConfig
     }
 }
 
@@ -428,22 +430,20 @@ mod tests {
     fn hidden_sections_do_not_run_and_subpage_selection_survives_navigation() {
         let ctx = egui::Context::default();
         let mut navigation = SettingsNavigation::default();
-        navigation.page = SettingsPage::Input;
-        navigation.subpages[SettingsPage::Input as usize] = 1;
+        navigation.page = SettingsPage::KeyConfig;
         navigation.store(&ctx);
         assert!(navigation.accepts_key_capture());
         SettingsNavigation::select(&ctx, SettingsPage::Audio);
         assert!(!SettingsNavigation::load(&ctx).accepts_key_capture());
-        SettingsNavigation::select(&ctx, SettingsPage::Input);
+        SettingsNavigation::select(&ctx, SettingsPage::KeyConfig);
         assert!(SettingsNavigation::load(&ctx).accepts_key_capture());
         let mut visible = false;
         let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
             SettingsSection::new(SettingsPage::Audio, "hidden")
                 .show(ui, |_| panic!("hidden section ran"));
-            SettingsSection::new(SettingsPage::Input, "devices")
+            SettingsSection::new(SettingsPage::InputDevices, "devices")
                 .show(ui, |_| panic!("wrong subpage ran"));
-            SettingsSection::new(SettingsPage::Input, "bindings")
-                .subpage(1)
+            SettingsSection::new(SettingsPage::KeyConfig, "bindings")
                 .show(ui, |_| visible = true);
         });
         assert!(visible);
@@ -533,13 +533,12 @@ mod tests {
         let text = Localizer::new(AppLocale::En);
         let mut open = true;
         let mut navigation = SettingsNavigation::load(&ctx);
-        navigation.page = SettingsPage::Input;
-        navigation.subpages[SettingsPage::Input as usize] = 0;
+        navigation.page = SettingsPage::InputDevices;
         navigation.store(&ctx);
         let render = |ctx: &egui::Context, open: &mut bool| {
             ctx.run_ui(egui::RawInput { screen_rect: Some(rect), ..Default::default() }, |_| {
                 build_settings_window(ctx, open, "Default", text, |ui| {
-                    let id = if SettingsNavigation::load(ui.ctx()).subpage() == 0 {
+                    let id = if SettingsNavigation::load(ui.ctx()).page == SettingsPage::InputDevices {
                         egui::Id::new("input-devices")
                     } else {
                         egui::Id::new("key-config")
@@ -555,7 +554,7 @@ mod tests {
         };
         let _ = render(&ctx, &mut open);
         let mut navigation = SettingsNavigation::load(&ctx);
-        navigation.subpages[SettingsPage::Input as usize] = 1;
+        navigation.page = SettingsPage::KeyConfig;
         navigation.store(&ctx);
         let output = render(&ctx, &mut open);
         let red_rects = output
