@@ -223,11 +223,8 @@ pub(in crate::ui) fn build_scene_skin_defs(
                     row_height,
                     |ui| {
                         ui.add(
-                            egui::Label::new(format!(
-                                "{} [{}] — id {}",
-                                offset_def.name, offset_def.category, offset_def.id
-                            ))
-                            .wrap_mode(egui::TextWrapMode::Extend),
+                            egui::Label::new(&offset_def.name)
+                                .wrap_mode(egui::TextWrapMode::Extend),
                         );
                         let existing = offsets
                             .iter()
