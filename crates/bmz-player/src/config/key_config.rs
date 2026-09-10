@@ -413,28 +413,26 @@ fn target_controls(
             })
             .map(|entry| (entry.device, entry.control))
             .collect(),
-        KeyBindingTarget::Scratch { lane, slot, .. } => {
-            resolve_play_bindings(&profile.input, key_mode)
-                .unwrap_or_default()
-                .into_iter()
-                .filter(|entry| {
-                    entry.lane == Some(lane)
-                        && devices_conflict(&entry.device, slot.device())
-                        && (slot.is_controller()
-                            || entry.keyboard_slot.is_none()
-                            || entry.keyboard_slot
-                                == Some(match slot {
-                                    KeyBindingSlot::KeyboardPrimary => {
-                                        KeyboardBindingSlotConfig::Primary
-                                    }
-                                    KeyBindingSlot::KeyboardSecondary => {
-                                        KeyboardBindingSlotConfig::Secondary
-                                    }
-                                    _ => unreachable!(),
-                                }))
-                })
-                .map(|entry| (entry.device, entry.control))
-                .collect()
+        KeyBindingTarget::Scratch { lane, direction, slot } => {
+            let bindings = resolve_play_bindings(&profile.input, key_mode).unwrap_or_default();
+            match slot {
+                KeyBindingSlot::KeyboardPrimary | KeyBindingSlot::KeyboardSecondary => {
+                    read_scratch_keyboard_slots(&bindings, lane)
+                        .get(direction, slot)
+                        .into_iter()
+                        .map(|control| ("keyboard".to_string(), control))
+                        .collect()
+                }
+                KeyBindingSlot::Controller
+                | KeyBindingSlot::Controller1P
+                | KeyBindingSlot::Controller2P => {
+                    read_scratch_gamepad_slots_for_device(&bindings, lane, slot.device())
+                        .get(direction)
+                        .into_iter()
+                        .map(|control| (slot.device().to_string(), control))
+                        .collect()
+                }
+            }
         }
     }
 }

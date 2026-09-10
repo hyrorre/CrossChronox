@@ -724,6 +724,36 @@ fn default_scratch_keyboard_shows_separate_keys_for_up_and_down() {
 }
 
 #[test]
+fn scratch_conflict_check_ignores_the_other_direction() {
+    let profile = ProfileConfig::new_default("default", "Default", 0);
+
+    assert!(
+        key_binding_conflict_description(
+            &profile,
+            KeyMode::K7,
+            scratch_target(
+                LaneConfig::Scratch,
+                ScratchDirection::Up,
+                KeyBindingSlot::KeyboardPrimary,
+            ),
+        )
+        .is_none()
+    );
+    assert!(
+        key_binding_conflict_description(
+            &profile,
+            KeyMode::K7,
+            scratch_target(
+                LaneConfig::Scratch,
+                ScratchDirection::Down,
+                KeyBindingSlot::KeyboardPrimary,
+            ),
+        )
+        .is_none()
+    );
+}
+
+#[test]
 fn fourteen_k_controller_slots_preserve_numbered_devices() {
     let mut profile = ProfileConfig::new_default("default", "Default", 0);
     apply_play_binding(
